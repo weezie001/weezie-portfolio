@@ -1,0 +1,137 @@
+@import "tailwindcss";
+
+/* ============================================================
+   Neumorphism theme — soft "white" surface, black text,
+   blue + brown accents (from the Weezie avatar: blue beanie/
+   jeans, brown skin). Hierarchy comes from soft dual shadows,
+   not borders.
+   ============================================================ */
+@theme {
+  --color-paper: #e9ebf1;     /* base surface — reads white, lets shadows show */
+  --color-paper-2: #e5e8ef;   /* alternating section */
+  --color-ink: #0c0d10;       /* solid black text */
+  --color-ink-soft: #3f434e;  /* secondary text (still dark) */
+  --color-line: #d3d7e0;      /* faint dividers (used sparingly) */
+
+  --color-blue: #2f6bff;      /* primary accent (beanie / jeans) */
+  --color-blue-deep: #1e50d6;
+  --color-brown: #8a5a34;     /* secondary accent (skin / hands) */
+  --color-brown-deep: #6f4526;
+
+  /* code-editor monospace across the whole UI */
+  --font-sans: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --font-display: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+/* shadow colors derived from the base surface */
+:root {
+  --neu-dark: #c6c9d4;
+  --neu-light: #ffffff;
+}
+
+html { scroll-behavior: smooth; overflow-x: clip; }
+
+body {
+  @apply bg-paper text-ink font-sans antialiased;
+  overflow-x: clip; /* parallax elements slide off-screen — never a horizontal scrollbar */
+}
+
+::selection { background: var(--color-blue); color: #fff; }
+
+/* --- bold display (monospace) --- */
+.display {
+  font-family: var(--font-display);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+/* --- dark hero-style gradient band (for the new image sections) --- */
+.dark-band {
+  position: relative;
+  background:
+    radial-gradient(120% 130% at 50% 0%, #4a2622 0%, #26161a 46%, #0c0a0c 100%);
+  color: #fff;
+}
+/* smooth, near-invisible fade into the light sections above & below */
+.dark-band::before,
+.dark-band::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 90px;
+  pointer-events: none;
+  z-index: 1;
+}
+.dark-band::before { top: 0; background: linear-gradient(to bottom, var(--color-paper), transparent); }
+.dark-band::after { bottom: 0; background: linear-gradient(to top, var(--color-paper), transparent); }
+
+/* --- neumorphic surfaces --- */
+.neu       { box-shadow: 7px 7px 16px var(--neu-dark), -7px -7px 16px var(--neu-light); }
+.neu-sm    { box-shadow: 4px 4px 9px var(--neu-dark), -4px -4px 9px var(--neu-light); }
+.neu-inset { box-shadow: inset 5px 5px 10px var(--neu-dark), inset -5px -5px 10px var(--neu-light); }
+.neu-hover { transition: box-shadow .25s ease, transform .25s ease; }
+.neu-hover:hover { box-shadow: 10px 10px 22px var(--neu-dark), -10px -10px 22px var(--neu-light); transform: translateY(-3px); }
+.neu-hover:active { box-shadow: inset 4px 4px 9px var(--neu-dark), inset -4px -4px 9px var(--neu-light); transform: translateY(0); }
+
+/* --- primary (blue) button — keeps the .btn-gradient class used across components --- */
+.btn-gradient {
+  background: var(--color-blue);
+  color: #fff;
+  box-shadow: 5px 5px 12px var(--neu-dark), -5px -5px 12px var(--neu-light);
+  transition: transform .2s ease, filter .2s ease, box-shadow .2s ease;
+}
+.btn-gradient:hover { transform: translateY(-2px); filter: brightness(1.06); }
+.btn-gradient:active {
+  transform: translateY(0);
+  box-shadow: inset 3px 3px 8px var(--color-blue-deep), inset -3px -3px 8px #5a86ff;
+}
+
+/* --- headings kept solid black (was a gradient) --- */
+.text-gradient {
+  color: var(--color-ink);
+}
+
+/* --- reveal-on-enter: slide in from a side and stay (re-triggers on scroll up) --- */
+.reveal {
+  opacity: 0;
+  transition: opacity .7s cubic-bezier(.22,1,.36,1), transform .7s cubic-bezier(.22,1,.36,1);
+  will-change: transform, opacity;
+}
+.reveal.from-left  { transform: translateX(-90px); }
+.reveal.from-right { transform: translateX(90px); }
+.reveal.from-up    { transform: translateY(48px); }
+.reveal.in         { opacity: 1; transform: none; }
+
+/* --- marquee --- */
+@keyframes marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.animate-marquee { animation: marquee 34s linear infinite; }
+
+/* --- float --- */
+@keyframes floaty {
+  0%,100% { transform: translateY(0) rotate(var(--r,0deg)); }
+  50%     { transform: translateY(-14px) rotate(var(--r,0deg)); }
+}
+.floaty { animation: floaty 5s ease-in-out infinite; }
+
+/* --- loader --- */
+@keyframes loader-pop { 0% { opacity:0; transform: translateY(16px) scale(.96);} 100%{opacity:1;transform:none;} }
+.loader-word { animation: loader-pop .7s ease-out both; }
+
+/* --- typewriter caret --- */
+@keyframes caret-blink { 0%,45%{opacity:1;} 50%,100%{opacity:0;} }
+.caret { animation: caret-blink 1s steps(1) infinite; }
+
+/* --- game reveal --- */
+@keyframes throw-in { 0% { opacity:0; transform: translateY(12px) scale(.85);} 100%{opacity:1;transform:none;} }
+.throw-in { animation: throw-in .3s ease-out both; }
+@keyframes count-pop { 0% { opacity:0; transform: scale(.6);} 40%{opacity:1;transform: scale(1.12);} 100%{opacity:1;transform: scale(1);} }
+.count-pop { animation: count-pop .45s ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .animate-marquee, .floaty, .loader-word, .caret, .throw-in, .count-pop { animation: none; }
+  .btn-gradient, .neu-hover { transition: none; }
+}

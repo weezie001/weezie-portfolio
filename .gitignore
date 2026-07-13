@@ -1,0 +1,13 @@
+node_modules
+dist
+.env
+.DS_Store
+*.local
+
+# Raw image drops (optimized copies live in /public)
+/ChatGPT Image*.png
+/download*.png
+/WhatsApp Image*.jpeg
+/Another_pose*.jpeg
+/Character_showing*.jpeg
+/Collaboration_handshake*.jpeg
