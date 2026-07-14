@@ -282,11 +282,10 @@ export const rpsHands = {
 
 // --- Rock-Paper-Scissors discount game config (tweak freely) ---
 export const gameConfig = {
-  maxGames: 8,        // total games a visitor may play (saved on their device)
-  winsPerGame: 2,     // best-of-3 → first to 2 throws wins the game
-  discountPct: 30,    // reward on a win
-  // computer move weights relative to the player's throw. Tuned so each
-  // best-of-3 game lands at ~10% player win-rate.
-  // per-throw player win ≈ 16/(16+66) ≈ 0.195 → P(win best-of-3) ≈ 0.10
-  weights: { computerLoses: 16, computerWins: 66, tie: 18 },
+  maxGames: 10,        // tries to win the 30% discount (saved on the visitor's device)
+  maxFunGames: 8,      // extra games "just for fun" once the offer is gone
+  winsPerGame: 2,      // best-of-3 → first to 2 throws wins the game
+  discountPct: 30,     // reward on a win
+  winChancePct: 10,    // % chance to win the discount, per game
+  funWinChancePct: 45, // % chance to win a "just for fun" game
 }

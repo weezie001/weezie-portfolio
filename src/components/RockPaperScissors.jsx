@@ -2,43 +2,34 @@ import { useEffect, useRef, useState } from 'react'
 import { site, gameConfig, rpsHands } from '../data.js'
 import { useMediaQuery } from '../hooks/useMediaQuery.js'
 
-const STORE_KEY = 'weezie_rps_v3'
+const STORE_KEY = 'weezie_rps_v4'
 const MOVES = ['rock', 'paper', 'scissors']
-const BEATS = { rock: 'scissors', paper: 'rock', scissors: 'paper' }
-const LOSES_TO = { rock: 'paper', paper: 'scissors', scissors: 'rock' }
+const BEATS = { rock: 'scissors', paper: 'rock', scissors: 'paper' } // key beats value
+const LOSES_TO = { rock: 'paper', paper: 'scissors', scissors: 'rock' } // value beats key
 const COUNT_WORDS = ['ROCK', 'PAPER', 'SCISSORS', 'SHOOT!']
 
-// Computer's move, weighted so a best-of-3 game lands near a 30% player win-rate.
-function pickComputer(player) {
-  const { computerLoses, computerWins, tie } = gameConfig.weights
-  const total = computerLoses + computerWins + tie
-  let r = Math.random() * total
-  if (r < computerLoses) return BEATS[player]
-  r -= computerLoses
-  if (r < computerWins) return LOSES_TO[player]
-  return player
+const rand = (arr) => arr[Math.floor(Math.random() * arr.length)]
+
+// The throw script for one best-of-3 game. 'W' = player wins the throw,
+// 'L' = computer wins. Every sequence contains at least one 'W', so the
+// player ALWAYS wins at least one throw per game (never a 0-2 shutout).
+function makeSequence(playerWinsGame) {
+  return playerWinsGame
+    ? rand([['W', 'W'], ['W', 'L', 'W'], ['L', 'W', 'W']]) // player reaches 2 → wins
+    : rand([['W', 'L', 'L'], ['L', 'W', 'L']]) // player wins exactly 1 → loses 1-2
 }
-function resolve(p, c) {
-  if (p === c) return 'tie'
-  return BEATS[p] === c ? 'win' : 'lose'
-}
+
 function makeCode() {
   const s = Math.random().toString(36).slice(2, 6).toUpperCase()
   return `WEEZIE${gameConfig.discountPct}-${s}`
 }
 function loadState() {
-  try {
-    const raw = localStorage.getItem(STORE_KEY)
-    if (raw) return JSON.parse(raw)
-  } catch { /* private mode */ }
-  return { gamesPlayed: 0, hasWon: false, code: '' }
+  try { const r = localStorage.getItem(STORE_KEY); if (r) return JSON.parse(r) } catch { /* private mode */ }
+  return { discPlayed: 0, funPlayed: 0, hasWon: false, code: '' }
 }
-function saveState(s) {
-  try { localStorage.setItem(STORE_KEY, JSON.stringify(s)) } catch { /* ignore */ }
-}
+function saveState(s) { try { localStorage.setItem(STORE_KEY, JSON.stringify(s)) } catch { /* ignore */ } }
 
-// A round hand shown inside a soft circular well. Computer's hand is mirrored.
-// While `shuffling`, the image just swaps rapidly (no entrance animation).
+// A round hand in a soft circular well. Computer's hand is mirrored.
 function Hand({ move, mirror, shuffling }) {
   return (
     <div className="flex h-28 w-28 items-center justify-center rounded-full bg-paper neu-inset sm:h-36 sm:w-36">
@@ -55,9 +46,14 @@ function Hand({ move, mirror, shuffling }) {
 export default function RockPaperScissors() {
   const reduceMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
   const [saved, setSaved] = useState(loadState)
-  const remaining = gameConfig.maxGames - saved.gamesPlayed
 
-  const [phase, setPhase] = useState(saved.hasWon ? 'won' : remaining <= 0 ? 'gameover' : 'intro')
+  const offerGone = saved.hasWon || saved.discPlayed >= gameConfig.maxGames
+  const discLeft = gameConfig.maxGames - saved.discPlayed
+  const funLeft = gameConfig.maxFunGames - saved.funPlayed
+
+  const [phase, setPhase] = useState(
+    saved.hasWon ? 'won' : saved.discPlayed >= gameConfig.maxGames ? (funLeft > 0 ? 'offerGone' : 'done') : 'intro',
+  )
   const [playerScore, setPlayerScore] = useState(0)
   const [cpuScore, setCpuScore] = useState(0)
   const [history, setHistory] = useState([])
@@ -65,12 +61,15 @@ export default function RockPaperScissors() {
   const [countWord, setCountWord] = useState('')
   const [outcome, setOutcome] = useState(null)
   const [shuffleIdx, setShuffleIdx] = useState(0)
+  const seqRef = useRef([])
+  const seqIdxRef = useRef(0)
+  const funGameRef = useRef(false)
   const timers = useRef([])
 
   const clearTimers = () => { timers.current.forEach(clearTimeout); timers.current = [] }
   useEffect(() => clearTimers, [])
 
-  // Shuffle the 3 hands in the arena until the player picks.
+  // Shuffle the 3 hands until the player picks.
   useEffect(() => {
     if (phase !== 'countdown' && phase !== 'pick') return
     const id = setInterval(() => setShuffleIdx((i) => (i + 1) % MOVES.length), reduceMotion ? 380 : 110)
@@ -85,51 +84,58 @@ export default function RockPaperScissors() {
     setOutcome(null)
     setPhase('countdown')
     const step = reduceMotion ? 300 : 560
-    COUNT_WORDS.forEach((w, i) => {
-      timers.current.push(setTimeout(() => setCountWord(w), i * step))
-    })
+    COUNT_WORDS.forEach((w, i) => timers.current.push(setTimeout(() => setCountWord(w), i * step)))
     timers.current.push(setTimeout(() => setPhase('pick'), COUNT_WORDS.length * step))
   }
 
   function startGame() {
-    setPlayerScore(0)
-    setCpuScore(0)
-    setHistory([])
+    const fun = saved.hasWon || saved.discPlayed >= gameConfig.maxGames
+    funGameRef.current = fun
+    const prob = (fun ? gameConfig.funWinChancePct : gameConfig.winChancePct) / 100
+    seqRef.current = makeSequence(Math.random() < prob)
+    seqIdxRef.current = 0
+    setPlayerScore(0); setCpuScore(0); setHistory([]); setLast(null); setOutcome(null)
     beginThrow()
   }
 
-  // The computer commits the instant you click, and both hands reveal together — fair.
+  // The outcome is decided at game start; the computer's move is derived from
+  // the scripted result the instant you click, and both hands reveal together.
   function play(move) {
     if (phase !== 'pick') return
-    const cpu = pickComputer(move)
-    const r = resolve(move, cpu)
+    const result = seqRef.current[seqIdxRef.current] ?? 'L'
+    seqIdxRef.current++
+    const cpu = result === 'W' ? BEATS[move] : LOSES_TO[move]
+    const r = result === 'W' ? 'win' : 'lose'
     const nextP = playerScore + (r === 'win' ? 1 : 0)
     const nextC = cpuScore + (r === 'lose' ? 1 : 0)
     setLast({ p: move, c: cpu, r })
     setHistory((h) => [...h, { p: move, c: cpu, r }])
     setPlayerScore(nextP)
     setCpuScore(nextC)
-    // once the discount is already won, further games are just for fun
+    const fun = funGameRef.current
     const won = nextP >= gameConfig.winsPerGame
     const lost = nextC >= gameConfig.winsPerGame
-    setOutcome(won ? (saved.hasWon ? 'funWon' : 'gameWon') : lost ? (saved.hasWon ? 'funLost' : 'gameLost') : 'continue')
+    setOutcome(won ? (fun ? 'funWon' : 'gameWon') : lost ? (fun ? 'funLost' : 'gameLost') : 'continue')
     setPhase('reveal')
   }
 
   function claimWin() {
     const code = makeCode()
-    persist({ gamesPlayed: saved.gamesPlayed + 1, hasWon: true, code })
-    // hand the code to the contact form so it's attached before sending
+    persist({ ...saved, discPlayed: saved.discPlayed + 1, hasWon: true, code })
     window.dispatchEvent(new CustomEvent('weezie:code', { detail: code }))
     setPhase('won')
   }
-  function afterLoss() {
-    const played = saved.gamesPlayed + 1
-    persist({ ...saved, gamesPlayed: played })
-    setPhase(played >= gameConfig.maxGames ? 'gameover' : 'lostGame')
+  function afterDiscountLoss() {
+    const played = saved.discPlayed + 1
+    persist({ ...saved, discPlayed: played })
+    setPhase(played >= gameConfig.maxGames ? 'offerGone' : 'lostGame')
+  }
+  function afterFunGame() {
+    const played = saved.funPlayed + 1
+    persist({ ...saved, funPlayed: played })
+    setPhase(played >= gameConfig.maxFunGames ? 'done' : 'funIdle')
   }
 
-  const gamesLeft = gameConfig.maxGames - saved.gamesPlayed
   const inArena = phase === 'countdown' || phase === 'pick' || phase === 'reveal'
 
   return (
@@ -146,7 +152,7 @@ export default function RockPaperScissors() {
         </p>
 
         <div className="reveal relative mx-auto mt-12 max-w-2xl rounded-[32px] bg-paper p-6 neu md:p-10">
-          {/* ---------- INTRO ---------- */}
+          {/* ---------- INTRO (discount) ---------- */}
           {phase === 'intro' && (
             <div>
               <div className="flex items-center justify-center gap-4">
@@ -157,14 +163,10 @@ export default function RockPaperScissors() {
                 ))}
               </div>
               <p className="mt-6 text-base font-medium text-ink-soft">
-                Hit start, I&rsquo;ll count us in — <strong className="text-ink">Rock, Paper, Scissors, Shoot!</strong> — then pick your throw.
+                Hit start, I&rsquo;ll count us in — <strong className="text-ink">Rock, Paper, Scissors, Shoot!</strong> You always take at least one throw 😏
               </p>
-              <button
-                type="button"
-                onClick={startGame}
-                className="btn-gradient mt-7 rounded-full px-10 py-4 text-sm font-bold uppercase tracking-[0.1em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue"
-              >
-                Start — {gamesLeft} {gamesLeft === 1 ? 'try' : 'tries'} left
+              <button type="button" onClick={startGame} className="btn-gradient mt-7 rounded-full px-10 py-4 text-sm font-bold uppercase tracking-[0.1em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue">
+                Start — {discLeft} {discLeft === 1 ? 'try' : 'tries'} left
               </button>
               <div className="mt-4">
                 <a href="#work" className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft underline underline-offset-4 hover:text-ink">
@@ -174,10 +176,9 @@ export default function RockPaperScissors() {
             </div>
           )}
 
-          {/* ---------- ARENA (countdown / pick / reveal) ---------- */}
+          {/* ---------- ARENA ---------- */}
           {inArena && (
             <div>
-              {/* scoreboard */}
               <div className="flex items-center justify-center gap-5 text-ink">
                 <span className="text-sm font-bold uppercase tracking-[0.1em]">You</span>
                 <span className="display text-3xl">{playerScore}</span>
@@ -186,18 +187,16 @@ export default function RockPaperScissors() {
                 <span className="text-sm font-bold uppercase tracking-[0.1em]">Me</span>
               </div>
               <p className="mt-1 text-xs font-semibold uppercase tracking-[0.15em] text-ink-soft">
-                {saved.hasWon
-                  ? 'Best of 3 · Just for fun — no extra discount'
-                  : `Best of 3 · Game ${saved.gamesPlayed + 1} of ${gameConfig.maxGames}`}
+                {funGameRef.current
+                  ? 'Best of 3 · Just for fun — no discount'
+                  : `Best of 3 · Try ${saved.discPlayed + 1} of ${gameConfig.maxGames}`}
               </p>
 
-              {/* hands */}
               <div className="mt-7 flex items-center justify-center gap-4 sm:gap-10" aria-live="polite">
                 <div className="text-center">
                   <Hand move={last ? last.p : MOVES[shuffleIdx]} shuffling={!last} />
                   <p className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-ink-soft">You</p>
                 </div>
-
                 <div className="flex min-w-[84px] flex-col items-center justify-center">
                   {phase === 'reveal' ? (
                     <span className="display text-xl text-ink">
@@ -207,27 +206,20 @@ export default function RockPaperScissors() {
                     <span key={countWord} className="count-pop display text-2xl text-ink sm:text-3xl">{countWord}</span>
                   )}
                 </div>
-
                 <div className="text-center">
                   <Hand move={last ? last.c : MOVES[(shuffleIdx + 1) % MOVES.length]} mirror shuffling={!last} />
                   <p className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-ink-soft">Me</p>
                 </div>
               </div>
 
-              {/* result line */}
               {phase === 'reveal' && (
                 <p className="mt-4 text-sm font-bold uppercase tracking-[0.08em] text-ink">
-                  {last.r === 'win' ? 'You take that throw!' : last.r === 'lose' ? 'I take that one.' : "Dead heat — throw again."}
+                  {last.r === 'win' ? 'You take that throw!' : 'I take that one.'}
                 </p>
               )}
-              {phase === 'pick' && (
-                <p className="mt-4 text-sm font-bold uppercase tracking-[0.12em] text-ink">Pick your throw now!</p>
-              )}
-              {phase === 'countdown' && (
-                <p className="mt-4 text-sm font-semibold uppercase tracking-[0.12em] text-ink-soft">Get ready…</p>
-              )}
+              {phase === 'pick' && <p className="mt-4 text-sm font-bold uppercase tracking-[0.12em] text-ink">Pick your throw now!</p>}
+              {phase === 'countdown' && <p className="mt-4 text-sm font-semibold uppercase tracking-[0.12em] text-ink-soft">Get ready…</p>}
 
-              {/* choices */}
               {phase !== 'reveal' && (
                 <div className="mt-7 grid grid-cols-3 gap-3 sm:gap-5">
                   {MOVES.map((m) => (
@@ -248,52 +240,68 @@ export default function RockPaperScissors() {
                 </div>
               )}
 
-              {/* reveal actions */}
               {phase === 'reveal' && (
                 <div className="mt-7">
                   {outcome === 'continue' && (
-                    <button type="button" onClick={beginThrow} className="btn-gradient rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]">
-                      Throw Again
-                    </button>
+                    <button type="button" onClick={beginThrow} className="btn-gradient rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]">Throw Again</button>
                   )}
                   {outcome === 'gameWon' && (
-                    <button type="button" onClick={claimWin} className="btn-gradient rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]">
-                      Claim Your Reward
-                    </button>
+                    <button type="button" onClick={claimWin} className="btn-gradient rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]">Claim Your Reward</button>
                   )}
                   {outcome === 'gameLost' && (
-                    <button type="button" onClick={afterLoss} className="rounded-full bg-paper px-9 py-4 text-sm font-bold uppercase tracking-[0.1em] text-ink neu-hover">
-                      Continue
-                    </button>
+                    <button type="button" onClick={afterDiscountLoss} className="rounded-full bg-paper px-9 py-4 text-sm font-bold uppercase tracking-[0.1em] text-ink neu-hover">Continue</button>
                   )}
                   {(outcome === 'funWon' || outcome === 'funLost') && (
-                    <div className="flex flex-col items-center gap-3">
-                      {outcome === 'funWon' && (
-                        <p className="text-sm font-bold uppercase tracking-[0.1em] text-blue">You got me! (discount already claimed)</p>
-                      )}
-                      <button type="button" onClick={startGame} className="btn-gradient rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]">
-                        Play Again
-                      </button>
-                      <button type="button" onClick={() => setPhase('won')} className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft underline underline-offset-4 hover:text-ink">
-                        Back to my code
-                      </button>
-                    </div>
+                    <button type="button" onClick={afterFunGame} className="rounded-full bg-paper px-9 py-4 text-sm font-bold uppercase tracking-[0.1em] text-ink neu-hover">Continue</button>
                   )}
                 </div>
               )}
             </div>
           )}
 
-          {/* ---------- LOST A GAME ---------- */}
+          {/* ---------- LOST A DISCOUNT GAME (tries remain) ---------- */}
           {phase === 'lostGame' && (
             <div>
               <h3 className="display text-3xl text-ink">So close!</h3>
               <p className="mt-3 text-base font-medium text-ink-soft">
-                I edged that one. You&rsquo;ve got <strong className="text-ink">{gamesLeft} {gamesLeft === 1 ? 'try' : 'tries'}</strong> left.
+                You grabbed a throw but I edged the game. <strong className="text-ink">{discLeft} {discLeft === 1 ? 'try' : 'tries'}</strong> left.
               </p>
-              <button type="button" onClick={startGame} className="btn-gradient mt-6 rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]">
-                Play Again
-              </button>
+              <button type="button" onClick={startGame} className="btn-gradient mt-6 rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]">Play Again</button>
+            </div>
+          )}
+
+          {/* ---------- OFFER GONE (10 tries used, no win) ---------- */}
+          {phase === 'offerGone' && (
+            <div>
+              <div className="text-5xl" aria-hidden="true">🙈</div>
+              <h3 className="display mt-4 text-3xl text-ink">Offer&rsquo;s gone!</h3>
+              <p className="mt-3 text-base font-medium text-ink-soft">
+                That was all {gameConfig.maxGames} tries — the {gameConfig.discountPct}% is off the table. But you can still play for fun.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                {funLeft > 0 && (
+                  <button type="button" onClick={startGame} className="btn-gradient rounded-full px-8 py-4 text-sm font-bold uppercase tracking-[0.1em]">
+                    Play for fun — {funLeft} left
+                  </button>
+                )}
+                <a href="#contact" className="rounded-full bg-paper px-8 py-4 text-sm font-bold uppercase tracking-[0.1em] text-ink neu-hover">Get In Touch</a>
+              </div>
+            </div>
+          )}
+
+          {/* ---------- FUN IDLE (fun games remain) ---------- */}
+          {phase === 'funIdle' && (
+            <div>
+              <h3 className="display text-3xl text-ink">{last?.r === 'win' ? 'You got me! 😅' : 'Good game.'}</h3>
+              <p className="mt-3 text-base font-medium text-ink-soft">
+                Just for fun — <strong className="text-ink">{funLeft}</strong> {funLeft === 1 ? 'play' : 'plays'} left.
+              </p>
+              <div className="mt-6 flex flex-wrap justify-center gap-3">
+                <button type="button" onClick={startGame} className="btn-gradient rounded-full px-8 py-4 text-sm font-bold uppercase tracking-[0.1em]">Play Again</button>
+                {saved.hasWon && (
+                  <a href="#contact" className="rounded-full bg-paper px-8 py-4 text-sm font-bold uppercase tracking-[0.1em] text-ink neu-hover">Use my code</a>
+                )}
+              </div>
             </div>
           )}
 
@@ -306,37 +314,39 @@ export default function RockPaperScissors() {
                 Here&rsquo;s <strong className="text-ink">{gameConfig.discountPct}% off</strong> your first project. Use this code when you reach out:
               </p>
               <div className="mx-auto mt-5 inline-flex items-center rounded-full bg-paper px-7 py-3 neu-inset">
-                <span className="display text-2xl tracking-normal text-ink">{saved.code}</span>
+                <span className="display text-2xl tracking-normal text-blue">{saved.code}</span>
               </div>
               <div className="mt-7 flex flex-col items-center gap-3">
-                <a
-                  href="#contact"
-                  className="btn-gradient rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]"
-                >
-                  Claim it — send a message
-                </a>
-                <button
-                  type="button"
-                  onClick={startGame}
-                  className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft underline underline-offset-4 hover:text-ink"
-                >
-                  Play again — just for fun
-                </button>
+                <a href="#contact" className="btn-gradient rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]">Claim it — send a message</a>
+                {funLeft > 0 && (
+                  <button type="button" onClick={startGame} className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft underline underline-offset-4 hover:text-ink">
+                    Play again — just for fun ({funLeft} left)
+                  </button>
+                )}
               </div>
             </div>
           )}
 
-          {/* ---------- GAME OVER ---------- */}
-          {phase === 'gameover' && (
+          {/* ---------- DONE (all fun games used) ---------- */}
+          {phase === 'done' && (
             <div>
               <div className="text-6xl" aria-hidden="true">🤝</div>
-              <h3 className="display mt-4 text-3xl text-ink">Good games!</h3>
-              <p className="mt-3 text-base font-medium text-ink-soft">
-                Luck wasn&rsquo;t on your side this time — but let&rsquo;s still build something great together.
-              </p>
-              <a href="#contact" className="btn-gradient mt-6 inline-block rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]">
-                Get In Touch
-              </a>
+              <h3 className="display mt-4 text-3xl text-ink">That&rsquo;s a wrap!</h3>
+              {saved.hasWon ? (
+                <>
+                  <p className="mt-3 text-base font-medium text-ink-soft">
+                    Don&rsquo;t forget your <strong className="text-ink">{gameConfig.discountPct}% code</strong>:
+                  </p>
+                  <div className="mx-auto mt-4 inline-flex items-center rounded-full bg-paper px-6 py-2.5 neu-inset">
+                    <span className="display text-xl tracking-normal text-blue">{saved.code}</span>
+                  </div>
+                </>
+              ) : (
+                <p className="mt-3 text-base font-medium text-ink-soft">Thanks for playing — now let&rsquo;s build something great together.</p>
+              )}
+              <div className="mt-6">
+                <a href="#contact" className="btn-gradient inline-block rounded-full px-9 py-4 text-sm font-bold uppercase tracking-[0.1em]">Get In Touch</a>
+              </div>
             </div>
           )}
         </div>

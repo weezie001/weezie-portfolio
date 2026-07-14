@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { site } from '../data.js'
 import { DoodleScatter } from './Doodles.jsx'
 
-const RPS_KEY = 'weezie_rps_v3'
+const RPS_KEY = 'weezie_rps_v4'
 
 function readWonCode() {
   try {
