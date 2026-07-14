@@ -132,7 +132,7 @@ export default function ProjectBrief() {
               </div>
               <div>
                 <label htmlFor="b-industry" className={label}>Industry / niche *</label>
-                <input id="b-industry" name="industry" required className={field} placeholder="e.g. Celebrity Booking, E-commerce, Real Estate" />
+                <input id="b-industry" name="industry" required className={field} placeholder="e.g. SaaS, Fintech, Consulting, Real Estate, Healthcare" />
               </div>
             </Section>
 
@@ -154,7 +154,7 @@ export default function ProjectBrief() {
               </div>
               <div>
                 <label htmlFor="b-goal" className={label}>Main goal of the website *</label>
-                <textarea id="b-goal" name="main_goal" required rows="3" className={field} placeholder="e.g. Allow fans to book celebrity meet & greets and purchase VIP packages…" />
+                <textarea id="b-goal" name="main_goal" required rows="3" className={field} placeholder="e.g. Generate qualified leads and let clients book consultations or request a quote online…" />
               </div>
             </Section>
 
