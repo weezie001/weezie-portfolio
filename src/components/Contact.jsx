@@ -72,12 +72,11 @@ export default function Contact() {
           GET IN <span className="text-gradient">TOUCH</span>
         </h2>
 
-        {/* intake-form callout */}
-        <a
-          href={site.intakeForm}
-          target="_blank"
-          rel="noreferrer"
-          className="reveal neu-hover mt-8 flex flex-col gap-1 rounded-2xl bg-paper p-5 neu-sm sm:flex-row sm:items-center sm:justify-between"
+        {/* project-brief callout — opens the on-page brief modal */}
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent('weezie:open-brief'))}
+          className="reveal neu-hover mt-8 flex w-full flex-col gap-1 rounded-2xl bg-paper p-5 text-left neu-sm sm:flex-row sm:items-center sm:justify-between"
         >
           <span>
             <span className="block text-sm font-bold uppercase tracking-[0.12em] text-blue">Start a project</span>
@@ -86,9 +85,9 @@ export default function Contact() {
             </span>
           </span>
           <span className="btn-gradient mt-3 shrink-0 rounded-full px-6 py-3 text-center text-xs font-bold uppercase tracking-[0.1em] sm:mt-0">
-            Open the brief ↗
+            Open the brief
           </span>
-        </a>
+        </button>
 
         <div className="mt-12 grid gap-12 md:grid-cols-2">
           <form onSubmit={handleSubmit} className="reveal flex flex-col gap-4" aria-label="Contact form">

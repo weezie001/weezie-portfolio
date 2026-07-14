@@ -1,4 +1,6 @@
-import { characters, site } from '../data.js'
+import { characters } from '../data.js'
+
+const openBrief = () => window.dispatchEvent(new CustomEvent('weezie:open-brief'))
 
 export default function CollabCTA() {
   return (
@@ -29,14 +31,13 @@ export default function CollabCTA() {
             Feeling lucky? Win our game and take 30% off your first project.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3 md:justify-end">
-            <a
-              href={site.intakeForm}
-              target="_blank"
-              rel="noreferrer"
+            <button
+              type="button"
+              onClick={openBrief}
               className="btn-gradient rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
             >
-              Start a Project ↗
-            </a>
+              Start a Project
+            </button>
             <a
               href="#play"
               className="rounded-full bg-white/95 px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] text-ink transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"

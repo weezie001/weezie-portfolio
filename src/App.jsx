@@ -12,6 +12,7 @@ import Testimonials from './components/Testimonials.jsx'
 import CollabCTA from './components/CollabCTA.jsx'
 import Contact from './components/Contact.jsx'
 import Footer from './components/Footer.jsx'
+import ProjectBrief from './components/ProjectBrief.jsx'
 import { useReveal } from './hooks/useReveal.js'
 
 export default function App() {
@@ -35,6 +36,7 @@ export default function App() {
         <Contact />
       </main>
       <Footer />
+      <ProjectBrief />
     </>
   )
 }
