@@ -286,6 +286,7 @@ export const gameConfig = {
   winsPerGame: 2,     // best-of-3 → first to 2 throws wins the game
   discountPct: 30,    // reward on a win
   // computer move weights relative to the player's throw. Tuned so each
-  // best-of-3 game lands at ~30% player win-rate. (see note in the component)
-  weights: { computerLoses: 30, computerWins: 52, tie: 18 },
+  // best-of-3 game lands at ~10% player win-rate.
+  // per-throw player win ≈ 16/(16+66) ≈ 0.195 → P(win best-of-3) ≈ 0.10
+  weights: { computerLoses: 16, computerWins: 66, tie: 18 },
 }
