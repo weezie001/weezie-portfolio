@@ -5,6 +5,7 @@ import RockPaperScissors from './components/RockPaperScissors.jsx'
 import Marquee from './components/Marquee.jsx'
 import About from './components/About.jsx'
 import Services from './components/Services.jsx'
+import RateCard from './components/RateCard.jsx'
 import Work from './components/Work.jsx'
 import CodeShowcase from './components/CodeShowcase.jsx'
 import Partnership from './components/Partnership.jsx'
@@ -38,6 +39,7 @@ export default function App() {
         <Work />
         <Marquee />
         <Services />
+        <RateCard />
         <Clients />
         <About />
         <Partnership />
