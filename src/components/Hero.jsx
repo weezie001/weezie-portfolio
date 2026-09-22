@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { site } from '../data.js'
 import { useMediaQuery } from '../hooks/useMediaQuery.js'
+import { ev } from '../lib/analytics.js'
 
 // Types a word, pauses, deletes it, moves to the next — forever.
 function useTypewriter(words) {
@@ -72,9 +73,9 @@ export default function Hero() {
     if (!next) { v.currentTime = 0; v.play?.().catch(() => {}) }
   }
 
-  // When the intro finishes, glide down to the game.
+  // When the intro finishes, glide down to the work — proof first, not the game.
   function handleEnded() {
-    document.querySelector('#play')?.scrollIntoView({ behavior: 'smooth' })
+    document.querySelector('#work')?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
@@ -108,18 +109,23 @@ export default function Hero() {
         </h1>
         <p className="sr-only">Enang Weezie — Web Designer and Product Builder</p>
 
+        {/* One primary ask (see the proof), one secondary (start the conversation).
+            The game is no longer a hero CTA: it competed for the same click and
+            intercepted visitors before they had any reason to trust the work. */}
         <div className="mt-9 flex flex-wrap items-center justify-center gap-4">
           <a
             href="#work"
+            onClick={() => ev('hero_cta', { target: 'work' })}
             className="btn-gradient rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           >
             View My Work
           </a>
           <a
-            href="#play"
+            href="#contact"
+            onClick={() => ev('hero_cta', { target: 'contact' })}
             className="rounded-full bg-white/95 px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] text-ink transition-transform hover:scale-105 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
           >
-            Win 30% Off
+            Start a Project
           </a>
         </div>
       </div>
@@ -146,7 +152,7 @@ export default function Hero() {
 
       {/* scroll cue */}
       <a
-        href="#play"
+        href="#work"
         aria-label="Scroll down"
         className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-white/80 transition-colors hover:text-white"
       >

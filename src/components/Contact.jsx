@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { site } from '../data.js'
 import { DoodleScatter } from './Doodles.jsx'
+import { ev } from '../lib/analytics.js'
 
 const RPS_KEY = 'weezie_rps_v4'
 
@@ -18,6 +19,15 @@ function readWonCode() {
 export default function Contact() {
   const [status, setStatus] = useState('idle') // idle | sending | ok | error | mailed
   const [code, setCode] = useState('')
+  const started = useRef(false)
+
+  // Fires once, the first time anyone touches the form. Paired with form_submit
+  // this gives the start-to-finish drop-off, which is the number worth watching.
+  function handleFirstInput() {
+    if (started.current) return
+    started.current = true
+    ev('form_start', { hasDiscount: Boolean(code) })
+  }
 
   // Pull in the discount code from the game — on load and the moment it's won.
   useEffect(() => {
@@ -45,7 +55,10 @@ export default function Contact() {
     data.set('_subject', `New project inquiry from ${data.get('name')}`)
 
     // No backend configured → open the visitor's mail app instead.
-    if (!site.formEndpoint) return mailtoFallback(data)
+    if (!site.formEndpoint) {
+      ev('form_submit', { via: 'mailto', hasDiscount: Boolean(code) })
+      return mailtoFallback(data)
+    }
 
     setStatus('sending')
     try {
@@ -54,9 +67,16 @@ export default function Contact() {
         body: data,
         headers: { Accept: 'application/json' },
       })
-      if (res.ok) { setStatus('ok'); form.reset() }
-      else setStatus('error')
+      if (res.ok) {
+        ev('form_submit', { via: 'formspree', hasDiscount: Boolean(code) })
+        setStatus('ok')
+        form.reset()
+      } else {
+        ev('form_error', { stage: 'response' })
+        setStatus('error')
+      }
     } catch {
+      ev('form_error', { stage: 'network' })
       setStatus('error')
     }
   }
@@ -75,7 +95,10 @@ export default function Contact() {
         {/* project-brief callout — opens the on-page brief modal */}
         <button
           type="button"
-          onClick={() => window.dispatchEvent(new CustomEvent('weezie:open-brief'))}
+          onClick={() => {
+            ev('brief_open')
+            window.dispatchEvent(new CustomEvent('weezie:open-brief'))
+          }}
           className="reveal neu-hover mt-8 flex w-full flex-col gap-1 rounded-2xl bg-paper p-5 text-left neu-sm sm:flex-row sm:items-center sm:justify-between"
         >
           <span>
@@ -90,7 +113,12 @@ export default function Contact() {
         </button>
 
         <div className="mt-12 grid gap-12 md:grid-cols-2">
-          <form onSubmit={handleSubmit} className="reveal flex flex-col gap-4" aria-label="Contact form">
+          <form
+            onSubmit={handleSubmit}
+            onFocusCapture={handleFirstInput}
+            className="reveal flex flex-col gap-4"
+            aria-label="Contact form"
+          >
             <div>
               <label htmlFor="name" className="mb-1.5 block text-xs font-bold uppercase tracking-[0.1em] text-ink-soft">Name</label>
               <input id="name" name="name" type="text" required autoComplete="name" className={inputCls} placeholder="Your name" />

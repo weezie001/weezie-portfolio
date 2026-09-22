@@ -8,7 +8,7 @@ import Services from './components/Services.jsx'
 import Work from './components/Work.jsx'
 import CodeShowcase from './components/CodeShowcase.jsx'
 import Partnership from './components/Partnership.jsx'
-import Testimonials from './components/Testimonials.jsx'
+import Clients from './components/Clients.jsx'
 import CollabCTA from './components/CollabCTA.jsx'
 import Contact from './components/Contact.jsx'
 import Footer from './components/Footer.jsx'
@@ -22,18 +22,26 @@ export default function App() {
     <>
       <Loader />
       <Navbar />
+      {/*
+        Ordered around the buyer's questions, in the order they ask them:
+        can you do this? (Work) → what can I buy? (Services) → who else trusted
+        you? (Clients) → who are you? (About) → is this a fit? (Partnership) →
+        then the game as delight, then the ask. CodeShowcase sits below Contact:
+        it sells to a technical evaluator, not to a business buying a site, so
+        it must not stand between the visitor and the form.
+      */}
       <main>
         <Hero />
-        <RockPaperScissors />
-        <Marquee />
-        <About />
-        <Services />
         <Work />
-        <CodeShowcase />
+        <Marquee />
+        <Services />
+        <Clients />
+        <About />
         <Partnership />
-        <Testimonials />
+        <RockPaperScissors />
         <CollabCTA />
         <Contact />
+        <CodeShowcase />
       </main>
       <Footer />
       <ProjectBrief />

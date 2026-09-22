@@ -1,5 +1,6 @@
 import { projects } from '../data.js'
 import { DoodleScatter } from './Doodles.jsx'
+import { ev } from '../lib/analytics.js'
 
 export default function Work() {
   return (
@@ -8,7 +9,7 @@ export default function Work() {
       <div className="relative z-10 mx-auto max-w-6xl">
         <p className="reveal text-xs font-bold uppercase tracking-[0.2em] text-ink">// selected work</p>
         <h2 className="reveal display mt-4 max-w-3xl text-4xl text-ink md:text-6xl">
-          Websites I&rsquo;ve designed &amp; built.
+          Work I&rsquo;ve designed &amp; built.
         </h2>
 
         <div className="mt-14 grid gap-8 md:grid-cols-2">
@@ -41,6 +42,7 @@ export default function Work() {
                   href={p.href}
                   target={p.href === '#' ? undefined : '_blank'}
                   rel="noreferrer"
+                  onClick={() => ev('work_live_click', { project: p.client })}
                   className="neu-hover shrink-0 rounded-full bg-paper px-5 py-2 text-xs font-bold uppercase tracking-[0.1em] text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue"
                 >
                   Live ↗
@@ -49,6 +51,24 @@ export default function Work() {
               <p className="mt-3 px-1 text-sm font-medium leading-relaxed text-ink-soft">{p.desc}</p>
             </article>
           ))}
+        </div>
+
+        {/* Every card above is an outbound link. This is the one way back in,
+            so the most persuasive section on the page has an inward path. */}
+        <div className="reveal mt-12 flex flex-col items-center gap-4 rounded-[28px] bg-paper p-8 text-center neu-sm sm:flex-row sm:justify-between sm:text-left">
+          <div>
+            <p className="display text-2xl text-ink md:text-3xl">Want one like these?</p>
+            <p className="mt-1.5 text-sm font-medium text-ink-soft">
+              Tell me what you are building. I reply within 24 hours.
+            </p>
+          </div>
+          <a
+            href="#contact"
+            onClick={() => ev('work_cta', { target: 'contact' })}
+            className="btn-gradient shrink-0 rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue"
+          >
+            Start a Project
+          </a>
         </div>
       </div>
     </section>

@@ -157,39 +157,55 @@ export const projects = [
   },
 ]
 
-// EDIT ME: swap for real client quotes when you have them.
-export const testimonials = [
+// Real businesses shipped for. This is the honest social proof: every name
+// here maps to a project in `projects` above or a repo in `githubRepos` below.
+export const clients = [
   {
-    quote: 'Weezie brought our concept to life in a way we never thought possible. The design was detailed and stylish, and it helped us convert far more visitors.',
-    name: 'Michael T.',
-    role: 'Protosphere Innovations',
+    name: 'PadUp Creations',
+    sector: 'Manufacturing',
+    delivered: 'Business platform with Paystack payments, plus staff, distributor and payroll portals.',
   },
   {
-    quote: 'Fast, communicative and wildly creative. Our brand finally feels like it stands out. I would recommend Weezie to anyone serious about growth.',
-    name: 'Sarah K.',
-    role: 'Westech Visuals',
+    name: 'ASH.CO',
+    sector: 'Fashion',
+    delivered: 'E-commerce storefront, lookbook and an orders admin with WhatsApp checkout.',
   },
   {
-    quote: 'The prototype Weezie created was perfect for pitching to investors. Precise, polished and delivered ahead of schedule.',
-    name: 'James E.',
-    role: 'Innovertero Design',
+    name: 'Maxi Innovation',
+    sector: 'Real Estate',
+    delivered: 'AI lead engine that qualifies, nurtures and books buyers around the clock.',
   },
   {
-    quote: 'A dynamic edge to our whole brand. Attention to detail on every screen, and always a step ahead of the brief. Seriously impressive.',
-    name: 'Megan S.',
-    role: 'Boldedge Marketing',
+    name: 'HEIS KITS',
+    sector: 'Sportswear',
+    delivered: 'Football-kit store with AI virtual try-on, a size advisor and live scores.',
   },
   {
-    quote: 'We came with a rough idea and left with a product that looked like a funded startup. Weezie just gets it — fast, clean and on-brand.',
-    name: 'David R.',
-    role: 'Apex Interactive',
+    name: 'SpagKing',
+    sector: 'Restaurant',
+    delivered: 'Menu experience and online ordering for Lokoja No.1 food brand.',
   },
   {
-    quote: 'Easily the smoothest project I have run this year. Clear updates, zero drama, and a site our customers actually compliment.',
-    name: 'Aisha B.',
-    role: 'Northlane Studio',
+    name: 'B&D Renovations',
+    sector: 'Construction',
+    delivered: 'Instant 3-minute estimate flow, master portfolio and review integration.',
+  },
+  {
+    name: 'ESPEFAWIS',
+    sector: 'Agriculture',
+    delivered: 'Agro supply-chain platform connecting Nigerian farmers to markets.',
+  },
+  {
+    name: 'EK Construction',
+    sector: 'Construction',
+    delivered: 'Brand site and identity for a New York building contractor.',
   },
 ]
+
+// REAL client quotes only. Deliberately empty: the clients section renders the
+// roster above without it, and each quote appears automatically once added.
+// Never fill this with invented names.
+export const testimonials = []
 
 export const socials = [
   { label: 'GitHub', href: 'https://github.com/weezie001' },
