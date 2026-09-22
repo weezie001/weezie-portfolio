@@ -73,9 +73,9 @@ export default function Hero() {
     if (!next) { v.currentTime = 0; v.play?.().catch(() => {}) }
   }
 
-  // When the intro finishes, glide down to the work — proof first, not the game.
+  // When the intro finishes, glide straight down into the game.
   function handleEnded() {
-    document.querySelector('#work')?.scrollIntoView({ behavior: 'smooth' })
+    document.querySelector('#play')?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
@@ -152,7 +152,7 @@ export default function Hero() {
 
       {/* scroll cue */}
       <a
-        href="#work"
+        href="#play"
         aria-label="Scroll down"
         className="absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-white/80 transition-colors hover:text-white"
       >

@@ -23,22 +23,24 @@ export default function App() {
       <Loader />
       <Navbar />
       {/*
-        Ordered around the buyer's questions, in the order they ask them:
-        can you do this? (Work) → what can I buy? (Services) → who else trusted
-        you? (Clients) → who are you? (About) → is this a fit? (Partnership) →
-        then the game as delight, then the ask. CodeShowcase sits below Contact:
-        it sells to a technical evaluator, not to a business buying a site, so
-        it must not stand between the visitor and the form.
+        The game sits directly under the hero by design: the intro video ends
+        and scrolls straight into it, so the hook is the first thing a visitor
+        meets. Everything after it follows the buyer's questions in order:
+        can you do this? (Work) → what can I buy? (Services/Pricing) → who else
+        trusted you? (Clients) → who are you? (About) → is this a fit?
+        (Partnership) → the ask. CodeShowcase sits below Contact: it sells to a
+        technical evaluator, not to a business buying a site, so it must not
+        stand between the visitor and the form.
       */}
       <main>
         <Hero />
+        <RockPaperScissors />
         <Work />
         <Marquee />
         <Services />
         <Clients />
         <About />
         <Partnership />
-        <RockPaperScissors />
         <CollabCTA />
         <Contact />
         <CodeShowcase />
