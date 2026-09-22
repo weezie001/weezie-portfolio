@@ -1,4 +1,4 @@
-import { characters } from '../data.js'
+import { characters, gameConfig } from '../data.js'
 
 const openBrief = () => window.dispatchEvent(new CustomEvent('weezie:open-brief'))
 
@@ -28,7 +28,7 @@ export default function CollabCTA() {
         <div className="reveal from-right order-3 text-center md:text-right">
           <p className="text-xs font-bold uppercase tracking-[0.25em] text-white/60">// or beat me first</p>
           <p className="mt-4 text-base leading-relaxed text-white/75">
-            Feeling lucky? Win our game and take 30% off your first project.
+            Feeling lucky? Win our game and take {gameConfig.discountPct}% off your first project.
           </p>
           <div className="mt-6 flex flex-wrap justify-center gap-3 md:justify-end">
             <button

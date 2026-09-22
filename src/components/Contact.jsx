@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { site } from '../data.js'
+import { site, gameConfig } from '../data.js'
 import { DoodleScatter } from './Doodles.jsx'
 import { ev } from '../lib/analytics.js'
 
@@ -38,7 +38,7 @@ export default function Contact() {
   }, [])
 
   function mailtoFallback(data) {
-    const codeLine = code ? `\n\n🎉 Discount code: ${code} (30% off my first project)` : ''
+    const codeLine = code ? `\n\n🎉 Discount code: ${code} (${gameConfig.discountPct}% off my first project)` : ''
     const subject = encodeURIComponent(
       code ? `Project inquiry from ${data.get('name')} — code ${code}` : `Project inquiry from ${data.get('name')}`,
     )
@@ -132,7 +132,7 @@ export default function Contact() {
             {code && (
               <div>
                 <label htmlFor="code" className="mb-1.5 flex items-center gap-2 text-xs font-bold uppercase tracking-[0.1em] text-blue">
-                  🎉 Your discount code — 30% off
+                  🎉 Your discount code — {gameConfig.discountPct}% off
                 </label>
                 <input id="code" name="code" type="text" readOnly value={code} className={`${inputCls} font-bold tracking-wider text-blue`} />
               </div>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { site } from '../data.js'
+import { site, gameConfig } from '../data.js'
 
 const WEBSITE_TYPES = ['Business / Landing page', 'E-commerce store', 'Portfolio', 'Blog / Content', 'Web app / SaaS', 'Booking platform', 'Other']
 const STYLES = ['Modern & minimal', 'Bold & colourful', 'Corporate / professional', 'Playful / fun', 'Luxury / elegant', 'Not sure — you decide']
@@ -98,7 +98,7 @@ export default function ProjectBrief() {
             <img src="/party.png" alt="" aria-hidden="true" className="mx-auto h-20 w-auto" />
             <h3 className="display mt-4 text-3xl text-ink">Brief sent!</h3>
             <p className="mt-3 text-base font-medium text-ink-soft">
-              I&rsquo;ll review your responses{code ? ' (with your 30% code)' : ''} and get back to you within 24 hours. 🚀
+              I&rsquo;ll review your responses{code ? ` (with your ${gameConfig.discountPct}% code)` : ''} and get back to you within 24 hours. 🚀
             </p>
             <button type="button" onClick={() => setOpen(false)} className="btn-gradient mt-6 rounded-full px-8 py-3.5 text-sm font-bold uppercase tracking-[0.1em]">Done</button>
           </div>
@@ -108,7 +108,7 @@ export default function ProjectBrief() {
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue">Start a project</p>
               <h3 className="display mt-2 text-3xl text-ink">Project brief.</h3>
               <p className="mt-2 text-sm font-medium text-ink-soft">The more you share, the sharper my first reply. Fields marked * are required.</p>
-              {code && <p className="mt-2 text-xs font-bold uppercase tracking-[0.08em] text-blue">🎉 Your 30% code {code} will be attached</p>}
+              {code && <p className="mt-2 text-xs font-bold uppercase tracking-[0.08em] text-blue">🎉 Your {gameConfig.discountPct}% code {code} will be attached</p>}
             </div>
 
             <Section title="👤 Personal & business info">

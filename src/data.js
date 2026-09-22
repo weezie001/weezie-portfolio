@@ -82,6 +82,76 @@ export const services = [
   },
 ]
 
+// ⚠️ EDIT ME — RATE CARD. Every number below is a PLACEHOLDER I guessed.
+// Replace them with your real rates before this goes near a client.
+// Prices are set per currency on purpose (not converted), so you can charge
+// local and international rates independently.
+export const rateCard = {
+  currencies: ['NGN', 'USD'],
+  note: 'Starting points, not final quotes. Every project gets priced properly after we talk.',
+  tiers: [
+    {
+      name: 'Landing Page',
+      blurb: 'One page that sells one thing: a launch, a product, a campaign.',
+      price: { NGN: '₦500,000', USD: '$450' },
+      timeline: '1 week',
+      popular: false,
+      includes: [
+        'Single page, custom designed',
+        'Mobile and tablet responsive',
+        'Contact or waitlist form',
+        'Basic SEO and social share cards',
+        '1 round of revisions',
+      ],
+    },
+    {
+      name: 'Business Website',
+      blurb: 'The full site your business is judged by. Multi-page, built to convert.',
+      price: { NGN: '₦1,000,000', USD: '$900' },
+      timeline: '2 to 3 weeks',
+      popular: true,
+      includes: [
+        'Up to 6 custom pages',
+        'Brand-matched design system',
+        'CMS so you can edit content',
+        'Full SEO setup and analytics',
+        'Speed and accessibility pass',
+        '2 rounds of revisions',
+      ],
+    },
+    {
+      name: 'Online Store',
+      blurb: 'Sell properly: products, payments, orders and an admin you control.',
+      price: { NGN: '₦2,000,000', USD: '$1,800' },
+      timeline: '3 to 4 weeks',
+      popular: false,
+      includes: [
+        'Everything in Business Website',
+        'Product catalogue and cart',
+        'Paystack or Stripe checkout',
+        'Orders dashboard and admin',
+        'Stock and delivery setup',
+        'Staff training walkthrough',
+      ],
+    },
+    {
+      name: 'Web App / AI Build',
+      blurb: 'Custom software: dashboards, portals, automations, AI tools.',
+      price: { NGN: 'from ₦4,000,000', USD: 'from $3,500' },
+      timeline: 'scoped together',
+      popular: false,
+      includes: [
+        'Discovery and technical scoping',
+        'Custom backend and database',
+        'User accounts and role-based access',
+        'Third-party and AI integrations',
+        'Deployment and handover docs',
+        'Post-launch support window',
+      ],
+    },
+  ],
+}
+
 // Real projects. Screenshots live in /public/projects.
 // Products & apps lead; client websites follow.
 export const projects = [
@@ -310,10 +380,10 @@ export const rpsHands = {
 
 // --- Rock-Paper-Scissors discount game config (tweak freely) ---
 export const gameConfig = {
-  maxGames: 10,        // tries to win the 30% discount (saved on the visitor's device)
+  maxGames: 10,        // tries to win the discount (saved on the visitor's device)
   maxFunGames: 8,      // extra games "just for fun" once the offer is gone
   winsPerGame: 2,      // best-of-3 → first to 2 throws wins the game
-  discountPct: 30,     // reward on a win
+  discountPct: 15,     // reward on a win (drives every "% off" string on the site)
   winChancePct: 10,    // % chance to win the discount, per game
   funWinChancePct: 45, // % chance to win a "just for fun" game
 }
