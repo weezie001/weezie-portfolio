@@ -25,7 +25,7 @@ function useTypewriter(words) {
   return text
 }
 
-const NAMES = ['ENANG WEEZIE', 'WEB DESIGNER', 'PRODUCT BUILDER']
+const NAMES = ['ENANG WEEZIE', 'WEB DESIGNER', 'FULL-STACK DEV', 'AI ENGINEER']
 
 export default function Hero() {
   const isDesktop = useMediaQuery('(min-width: 768px)')
@@ -95,8 +95,12 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-black/70" aria-hidden="true" />
 
       <div className="relative z-10 px-6 text-center">
+        <span className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-white/90 backdrop-blur-md">
+          <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
+          Available for new projects
+        </span>
         <p className="text-xs font-bold uppercase tracking-[0.3em] text-white/80">
-          &lt;/&gt; Designer &amp; Product Builder
+          &lt;/&gt; Design · Full-Stack · AI
         </p>
         <h1 className="display mt-5 min-h-[1.1em] text-[13vw] leading-none text-white sm:text-7xl md:text-8xl">
           {typed || ' '}

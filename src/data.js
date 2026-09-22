@@ -11,17 +11,15 @@ export const site = {
   wordmark: 'enang weezie',
   email: 'enangweezie@gmail.com',
   cv: '/enang-weezie-cv.pdf', // downloadable résumé hosted on the site
-  // Client intake form — visitors click this to send full project details
-  intakeForm: 'https://cl-intake-form.netlify.app/',
   // Contact form endpoint (Formspree) — submissions land in enangweezie@gmail.com.
   formEndpoint: 'https://formspree.io/f/xlgqezad',
 
-  location: 'Abuja, Nigeria — working worldwide',
-  roles: ['Web Designer', 'UI/UX Designer', 'Product Builder'],
+  location: 'Abuja, Nigeria · working worldwide',
+  roles: ['Web Designer', 'Full-Stack Developer', 'AI / Product Engineer'],
   heroBlurb:
-    'A designer & product builder passionate about crafting bold, memorable websites and interfaces.',
+    'A designer and full-stack developer who ships real products: websites, web apps, e-commerce and AI tools.',
   aboutBlurb:
-    "With years of hands-on experience, I specialise in web design, UI/UX and brand identity. I love partnering with businesses that want to stand out and showcase their very best side. Let's build something people remember.",
+    "I design and build products end to end: marketing sites, e-commerce, web apps and AI tools. From a live business platform with payments and staff portals to a desktop AI assistant, I take ideas from a blank repo to shipped. Let's build something people remember.",
   // homepage intro videos (Weezie waking up) — landscape for desktop, portrait for mobile
   video: {
     landscape: '/intro/intro-landscape.mp4',
@@ -85,8 +83,22 @@ export const services = [
 ]
 
 // Real projects. Screenshots live in /public/projects.
-// Set `href` to each live URL when ready (EDIT ME).
+// Products & apps lead; client websites follow.
 export const projects = [
+  {
+    client: 'PadUp Creations',
+    tag: 'Business Platform · Live',
+    desc: 'Full business platform: a Paystack storefront with geo-pricing, plus four role-based portals for staff, distributors, orders, payroll and compliance.',
+    href: 'https://padupcreations.com',
+    image: '/projects/padup.jpg',
+  },
+  {
+    client: 'ASH.CO',
+    tag: 'E-commerce · Live',
+    desc: 'Street-fashion store and admin: product drops, a lookbook, an orders inbox and WhatsApp checkout, with a dark/light theme.',
+    href: 'https://ash-co-silk.vercel.app',
+    image: '/projects/ashco.jpg',
+  },
   {
     n: '01',
     client: 'Maxi Innovation',

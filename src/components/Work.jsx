@@ -31,7 +31,7 @@ export default function Work() {
               {/* meta */}
               <div className="mt-5 flex items-start justify-between gap-4 px-1">
                 <div className="flex items-start gap-3">
-                  <span className="display text-2xl text-ink/25">{p.n}</span>
+                  <span className="display text-2xl text-ink/25">{String(i + 1).padStart(2, '0')}</span>
                   <div>
                     <h3 className="display text-xl text-ink">{p.client}</h3>
                     <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">{p.tag}</p>
