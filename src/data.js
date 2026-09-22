@@ -82,23 +82,21 @@ export const services = [
   },
 ]
 
-// ⚠️ EDIT ME — RATE CARD. These are my recommended starting rates, not gospel.
-// Two deliberate choices baked in:
-//  1. NGN and USD are set independently, NOT converted. Local runs roughly half
-//     the international rate on purpose. Change one without touching the other.
-//  2. Timelines are delivery windows you get HELD TO, not your personal best.
-//     They carry buffer for the client being slow with copy, logos and feedback,
-//     which is what actually delays projects. Sell your real speed as `rush`
-//     below, so being fast earns money instead of being given away free.
+// RATE CARD (EDIT ME). These figures were reviewed and kept deliberately: a
+// higher set was trialled and rolled back to these.
+// Prices are set per currency on purpose (not converted), so local and
+// international rates move independently.
+// The component also supports two optional fields, both currently unused:
+//   rush: 'string'                    → a band under the cards
+//   from: { NGN: '…', USD: '…' }      → a sub-line under a tier's price
 export const rateCard = {
   currencies: ['NGN', 'USD'],
   note: 'Starting points, not final quotes. Every project gets priced properly after we talk.',
-  rush: 'Need it sooner? Rush delivery is available on any tier for +40%.',
   tiers: [
     {
       name: 'Landing Page',
       blurb: 'One page that sells one thing: a launch, a product, a campaign.',
-      price: { NGN: '₦650,000', USD: '$750' },
+      price: { NGN: '₦500,000', USD: '$450' },
       timeline: '1 week',
       popular: false,
       includes: [
@@ -112,7 +110,7 @@ export const rateCard = {
     {
       name: 'Business Website',
       blurb: 'The full site your business is judged by. Multi-page, built to convert.',
-      price: { NGN: '₦1,800,000', USD: '$2,200' },
+      price: { NGN: '₦1,000,000', USD: '$900' },
       timeline: '2 to 3 weeks',
       popular: true,
       includes: [
@@ -127,7 +125,7 @@ export const rateCard = {
     {
       name: 'Online Store',
       blurb: 'Sell properly: products, payments, orders and an admin you control.',
-      price: { NGN: '₦3,200,000', USD: '$4,200' },
+      price: { NGN: '₦2,000,000', USD: '$1,800' },
       timeline: '3 to 4 weeks',
       popular: false,
       includes: [
@@ -140,22 +138,18 @@ export const rateCard = {
       ],
     },
     {
-      // No hard number here on purpose: this work varies far too much to anchor,
-      // and an anchor is exactly what gets quoted back at you later. The `from`
-      // line still filters out anyone who was never going to buy.
       name: 'Web App / AI Build',
-      blurb: 'Custom software: platforms, portals, payments, automations, AI tools.',
-      price: { NGN: 'Let us talk', USD: 'Let us talk' },
-      from: { NGN: 'Most start around ₦6,000,000', USD: 'Most start around $8,000' },
+      blurb: 'Custom software: dashboards, portals, automations, AI tools.',
+      price: { NGN: 'from ₦4,000,000', USD: 'from $3,500' },
       timeline: 'scoped together',
       popular: false,
       includes: [
         'Discovery and technical scoping',
         'Custom backend and database',
         'User accounts and role-based access',
-        'Payments and third-party integrations',
-        'AI features where they earn their place',
-        'Deployment, handover docs and support',
+        'Third-party and AI integrations',
+        'Deployment and handover docs',
+        'Post-launch support window',
       ],
     },
   ],
