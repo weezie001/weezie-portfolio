@@ -236,35 +236,27 @@ export default function ProjectBrief() {
               <div className="rounded-2xl bg-paper p-5 neu-inset" aria-live="polite">
                 <div className="flex flex-wrap items-baseline justify-between gap-2">
                   <p className="text-xs font-bold uppercase tracking-[0.15em] text-blue">
-                    Your ballpark estimate
+                    Your estimate
                   </p>
                   <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-ink-soft">
                     {estimate.tier}
                   </p>
                 </div>
 
-                <p className="display mt-3 text-3xl leading-none text-ink">
-                  {estimate.openEnded && 'from '}
-                  {estimate.range.USD.low}
-                  <span className="text-ink-soft"> to </span>
-                  {estimate.range.USD.high}
+                <p className="display mt-3 flex flex-wrap items-baseline gap-3 text-4xl leading-none text-ink">
+                  {estimate.price.USD}
+                  {estimate.discounted && (
+                    <span className="text-lg text-ink-soft line-through">{estimate.listed.USD}</span>
+                  )}
                 </p>
-                <p className="mt-1.5 text-sm font-semibold text-ink-soft">
-                  {estimate.openEnded && 'from '}
-                  {estimate.range.NGN.low} to {estimate.range.NGN.high}
+                <p className="mt-2 text-sm font-semibold text-ink-soft">
+                  {estimate.price.NGN}
                   <span className="mx-2">·</span>
                   {estimate.timeline}
                 </p>
 
-                {estimate.extras.length > 0 && (
-                  <p className="mt-3 text-xs font-medium text-ink-soft">
-                    Includes {estimate.extras.length} feature{estimate.extras.length > 1 ? 's' : ''} beyond the
-                    standard {estimate.tier} scope.
-                  </p>
-                )}
-
                 {estimate.discounted && (
-                  <p className="mt-2 text-xs font-bold text-blue">
+                  <p className="mt-3 text-xs font-bold text-blue">
                     🎉 Your {gameConfig.discountPct}% code is already applied.
                   </p>
                 )}
