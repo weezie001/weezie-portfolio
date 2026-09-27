@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { site, gameConfig } from '../data.js'
+import { estimateFrom } from '../lib/estimate.js'
+import { ev } from '../lib/analytics.js'
 
 const WEBSITE_TYPES = ['Business / Landing page', 'E-commerce store', 'Portfolio', 'Blog / Content', 'Web app / SaaS', 'Booking platform', 'Other']
 const STYLES = ['Modern & minimal', 'Bold & colourful', 'Corporate / professional', 'Playful / fun', 'Luxury / elegant', 'Not sure — you decide']
@@ -46,10 +48,22 @@ export default function ProjectBrief() {
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState('idle') // idle | sending | ok | error
   const [code, setCode] = useState('')
+  const [estimate, setEstimate] = useState(null)
   const firstRef = useRef(null)
+  const formRef = useRef(null)
+
+  // Recomputed on every change, so the range tracks what they have picked.
+  function recalc() {
+    if (!formRef.current) return
+    const next = estimateFrom(new FormData(formRef.current), code)
+    setEstimate((prev) => {
+      if (next && next.tier !== prev?.tier) ev('brief_estimate', { tier: next.tier })
+      return next
+    })
+  }
 
   useEffect(() => {
-    const onOpen = () => { setCode(readWonCode()); setStatus('idle'); setOpen(true) }
+    const onOpen = () => { setCode(readWonCode()); setStatus('idle'); setEstimate(null); setOpen(true) }
     window.addEventListener('weezie:open-brief', onOpen)
     return () => window.removeEventListener('weezie:open-brief', onOpen)
   }, [])
@@ -68,6 +82,8 @@ export default function ProjectBrief() {
     const form = e.target
     const data = new FormData(form)
     if (code) data.set('discount_code', code)
+    // Send the same figure the visitor saw, so the brief email and the screen agree.
+    data.set('estimate_shown', estimate ? estimate.summary : 'not calculated')
     data.set('_subject', `New project brief from ${data.get('name')}`)
 
     if (!site.formEndpoint) {
@@ -103,7 +119,7 @@ export default function ProjectBrief() {
             <button type="button" onClick={() => setOpen(false)} className="btn-gradient mt-6 rounded-full px-8 py-3.5 text-sm font-bold uppercase tracking-[0.1em]">Done</button>
           </div>
         ) : (
-          <form onSubmit={submit} className="-mt-6 flex flex-col gap-6">
+          <form ref={formRef} onSubmit={submit} onChange={recalc} className="-mt-6 flex flex-col gap-6">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue">Start a project</p>
               <h3 className="display mt-2 text-3xl text-ink">Project brief.</h3>
@@ -213,6 +229,59 @@ export default function ProjectBrief() {
                 <textarea id="b-notes" name="notes" rows="3" className={field} placeholder="Any specific requirements, concerns, or details not covered above…" />
               </div>
             </Section>
+
+            {/* Live ballpark. Appears once they choose a website type, and
+                tracks every feature they tick after that. */}
+            {estimate && (
+              <div className="rounded-2xl bg-paper p-5 neu-inset" aria-live="polite">
+                <div className="flex flex-wrap items-baseline justify-between gap-2">
+                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-blue">
+                    Your ballpark estimate
+                  </p>
+                  <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-ink-soft">
+                    {estimate.tier}
+                  </p>
+                </div>
+
+                <p className="display mt-3 text-3xl leading-none text-ink">
+                  {estimate.openEnded && 'from '}
+                  {estimate.range.USD.low}
+                  <span className="text-ink-soft"> to </span>
+                  {estimate.range.USD.high}
+                </p>
+                <p className="mt-1.5 text-sm font-semibold text-ink-soft">
+                  {estimate.openEnded && 'from '}
+                  {estimate.range.NGN.low} to {estimate.range.NGN.high}
+                  <span className="mx-2">·</span>
+                  {estimate.timeline}
+                </p>
+
+                {estimate.extras.length > 0 && (
+                  <p className="mt-3 text-xs font-medium text-ink-soft">
+                    Includes {estimate.extras.length} feature{estimate.extras.length > 1 ? 's' : ''} beyond the
+                    standard {estimate.tier} scope.
+                  </p>
+                )}
+
+                {estimate.discounted && (
+                  <p className="mt-2 text-xs font-bold text-blue">
+                    🎉 Your {gameConfig.discountPct}% code is already applied.
+                  </p>
+                )}
+
+                {estimate.overBudget && (
+                  <p className="mt-3 rounded-xl bg-paper p-3 text-xs font-semibold text-ink neu-sm">
+                    This sits above the budget range you picked. Send the brief anyway: we can usually
+                    cut scope to fit, or phase it.
+                  </p>
+                )}
+
+                <p className="mt-3 text-[11px] font-medium leading-relaxed text-ink-soft">
+                  An estimate, not a quote. The real number depends on scope, and I confirm it in writing
+                  before any work starts.
+                </p>
+              </div>
+            )}
 
             {/* honeypot */}
             <input type="text" name="_gotcha" tabIndex="-1" autoComplete="off" className="hidden" aria-hidden="true" />
