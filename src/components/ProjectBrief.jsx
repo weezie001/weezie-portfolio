@@ -230,51 +230,6 @@ export default function ProjectBrief() {
               </div>
             </Section>
 
-            {/* Live ballpark. Appears once they choose a website type, and
-                tracks every feature they tick after that. */}
-            {estimate && (
-              <div className="rounded-2xl bg-paper p-5 neu-inset" aria-live="polite">
-                <div className="flex flex-wrap items-baseline justify-between gap-2">
-                  <p className="text-xs font-bold uppercase tracking-[0.15em] text-blue">
-                    Your estimate
-                  </p>
-                  <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-ink-soft">
-                    {estimate.tier}
-                  </p>
-                </div>
-
-                <p className="display mt-3 flex flex-wrap items-baseline gap-3 text-4xl leading-none text-ink">
-                  {estimate.price.USD}
-                  {estimate.discounted && (
-                    <span className="text-lg text-ink-soft line-through">{estimate.listed.USD}</span>
-                  )}
-                </p>
-                <p className="mt-2 text-sm font-semibold text-ink-soft">
-                  {estimate.price.NGN}
-                  <span className="mx-2">·</span>
-                  {estimate.timeline}
-                </p>
-
-                {estimate.discounted && (
-                  <p className="mt-3 text-xs font-bold text-blue">
-                    🎉 Your {gameConfig.discountPct}% code is already applied.
-                  </p>
-                )}
-
-                {estimate.overBudget && (
-                  <p className="mt-3 rounded-xl bg-paper p-3 text-xs font-semibold text-ink neu-sm">
-                    This sits above the budget range you picked. Send the brief anyway: we can usually
-                    cut scope to fit, or phase it.
-                  </p>
-                )}
-
-                <p className="mt-3 text-[11px] font-medium leading-relaxed text-ink-soft">
-                  An estimate, not a quote. The real number depends on scope, and I confirm it in writing
-                  before any work starts.
-                </p>
-              </div>
-            )}
-
             {/* honeypot */}
             <input type="text" name="_gotcha" tabIndex="-1" autoComplete="off" className="hidden" aria-hidden="true" />
 
@@ -287,6 +242,54 @@ export default function ProjectBrief() {
               </p>
             )}
             <p className="text-center text-xs font-medium text-ink-soft">I&rsquo;ll review and get back to you within 24 hours. 🚀</p>
+
+            {/* Pinned to the bottom of the modal so the number is on screen while
+                they are still choosing. The form is ~3000px tall and only ~690px
+                of it is visible, so anything placed inline here is never seen at
+                the moment it changes. Sits last in the DOM so it settles above
+                nothing and never covers the submit button. */}
+            {estimate && (
+              <div
+                className="sticky bottom-0 z-20 -mx-1 rounded-2xl bg-paper p-4 neu"
+                aria-live="polite"
+              >
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue">
+                      Your estimate
+                    </p>
+                    <p className="truncate text-[11px] font-bold uppercase tracking-[0.1em] text-ink-soft">
+                      {estimate.tier} · {estimate.timeline}
+                    </p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="display text-2xl leading-none text-ink">
+                      {estimate.price.USD}
+                      {estimate.discounted && (
+                        <span className="ml-2 text-sm text-ink-soft line-through">{estimate.listed.USD}</span>
+                      )}
+                    </p>
+                    <p className="mt-1 text-xs font-semibold text-ink-soft">{estimate.price.NGN}</p>
+                  </div>
+                </div>
+
+                {estimate.discounted && (
+                  <p className="mt-2 text-[11px] font-bold text-blue">
+                    🎉 Your {gameConfig.discountPct}% code is applied.
+                  </p>
+                )}
+
+                {estimate.overBudget && (
+                  <p className="mt-2 text-[11px] font-semibold text-ink">
+                    Above the budget you picked. Send it anyway: scope can be cut or phased.
+                  </p>
+                )}
+
+                <p className="mt-2 text-[10px] font-medium leading-relaxed text-ink-soft">
+                  An estimate, not a quote. Confirmed in writing before any work starts.
+                </p>
+              </div>
+            )}
           </form>
         )}
       </div>
