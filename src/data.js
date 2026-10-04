@@ -155,6 +155,117 @@ export const rateCard = {
   ],
 }
 
+// PROJECT BRIEF ADD-ONS (EDIT ME)
+// Every feature a visitor can tick in the project brief, with its price.
+//
+//   Brief total = plan price for the website type they pick
+//               + every add-on they tick (plus anything those depend on)
+//
+//   includedFrom: the cheapest plan that already covers it. On that plan and
+//                 every plan above it, the feature adds nothing.
+//   requires:     features it cannot work without. They are counted
+//                 automatically, so a wallet can never be priced without the
+//                 accounts and admin panel it needs to function.
+export const briefFeatureGroups = [
+  {
+    group: 'Content & pages',
+    items: [
+      { label: 'Blog / News Section', price: { NGN: 150000, USD: 150 }, includedFrom: 'Business Website' },
+      { label: 'Gallery / Portfolio Showcase', price: { NGN: 100000, USD: 100 }, includedFrom: 'Business Website' },
+      { label: 'Multi-language', price: { NGN: 250000, USD: 250 } },
+    ],
+  },
+  {
+    group: 'Accounts & admin',
+    items: [
+      { label: 'User Registration / Login', price: { NGN: 300000, USD: 300 }, includedFrom: 'Web App / AI Build' },
+      { label: 'User Dashboard / Profiles', price: { NGN: 400000, USD: 350 }, requires: ['User Registration / Login'] },
+      { label: 'Admin Dashboard', price: { NGN: 450000, USD: 400 }, includedFrom: 'Online Store' },
+      {
+        label: 'Staff Roles & Permissions',
+        price: { NGN: 350000, USD: 300 },
+        includedFrom: 'Web App / AI Build',
+        requires: ['User Registration / Login', 'Admin Dashboard'],
+      },
+    ],
+  },
+  {
+    group: 'Payments & commerce',
+    items: [
+      { label: 'Payment Processing (Paystack / Stripe)', price: { NGN: 350000, USD: 300 }, includedFrom: 'Online Store' },
+      {
+        label: 'Subscriptions / Recurring Billing',
+        price: { NGN: 450000, USD: 400 },
+        requires: ['Payment Processing (Paystack / Stripe)', 'User Registration / Login'],
+      },
+      { label: 'Invoices & Receipts', price: { NGN: 300000, USD: 250 }, requires: ['Payment Processing (Paystack / Stripe)'] },
+      { label: 'Coupons & Discount Codes', price: { NGN: 150000, USD: 150 }, requires: ['Payment Processing (Paystack / Stripe)'] },
+      {
+        label: 'Multi-vendor Marketplace',
+        price: { NGN: 1400000, USD: 1200 },
+        requires: ['User Registration / Login', 'Admin Dashboard', 'Payment Processing (Paystack / Stripe)'],
+      },
+    ],
+  },
+  {
+    group: 'Finance & fintech',
+    items: [
+      { label: 'Wallet & Balance System', price: { NGN: 700000, USD: 600 }, requires: ['User Registration / Login', 'Admin Dashboard'] },
+      {
+        label: 'Deposits & Withdrawals',
+        price: { NGN: 600000, USD: 500 },
+        requires: ['Wallet & Balance System', 'Payment Processing (Paystack / Stripe)'],
+      },
+      { label: 'Money Transfers (user to user)', price: { NGN: 600000, USD: 500 }, requires: ['Wallet & Balance System'] },
+      { label: 'Investment Plans & ROI Tracking', price: { NGN: 900000, USD: 800 }, requires: ['Wallet & Balance System'] },
+      { label: 'Transaction History & Statements', price: { NGN: 300000, USD: 250 }, requires: ['Wallet & Balance System'] },
+      { label: 'KYC / Identity Verification', price: { NGN: 450000, USD: 400 }, requires: ['User Registration / Login'] },
+      { label: 'Referral & Affiliate Program', price: { NGN: 400000, USD: 350 }, requires: ['User Registration / Login'] },
+      { label: 'Crypto Payments', price: { NGN: 600000, USD: 500 } },
+    ],
+  },
+  {
+    group: 'Business tools',
+    items: [
+      { label: 'CRM (leads, clients, pipeline)', price: { NGN: 800000, USD: 700 }, requires: ['User Registration / Login', 'Admin Dashboard'] },
+      { label: 'Online Booking / Reservations', price: { NGN: 450000, USD: 400 } },
+      { label: 'Inventory / Stock Management', price: { NGN: 500000, USD: 450 }, includedFrom: 'Online Store', requires: ['Admin Dashboard'] },
+      { label: 'HR & Payroll', price: { NGN: 800000, USD: 700 }, requires: ['Staff Roles & Permissions'] },
+      { label: 'Reports & Analytics Dashboard', price: { NGN: 450000, USD: 400 }, requires: ['Admin Dashboard'] },
+      { label: 'Live Chat / Support Desk', price: { NGN: 300000, USD: 250 } },
+      { label: 'Email Newsletter / Notifications', price: { NGN: 150000, USD: 150 } },
+      { label: 'SMS / WhatsApp Notifications', price: { NGN: 300000, USD: 250 } },
+    ],
+  },
+  {
+    group: 'AI & automation',
+    items: [
+      { label: 'AI Chatbot', price: { NGN: 600000, USD: 500 } },
+      { label: 'AI Recommendations / Content', price: { NGN: 700000, USD: 600 } },
+      { label: 'Workflow Automations', price: { NGN: 450000, USD: 400 } },
+    ],
+  },
+  {
+    group: 'Apps & integrations',
+    items: [
+      { label: 'Mobile App (iOS / Android)', price: { NGN: 3000000, USD: 2500 } },
+      { label: 'Third-party API Integrations', price: { NGN: 400000, USD: 350 }, includedFrom: 'Web App / AI Build' },
+      { label: 'Real-time Features (live updates, chat)', price: { NGN: 450000, USD: 400 } },
+    ],
+  },
+]
+
+// Other priced answers in the brief.
+export const briefPricing = {
+  branding: {
+    full: { label: 'Branding package (logo, colours, fonts)', price: { NGN: 300000, USD: 250 } },
+    partial: { label: 'Colour & type system around your logo', price: { NGN: 150000, USD: 120 } },
+  },
+  editsOnlyRate: 0.5, // "just edits" to an existing site pays half the plan price
+  // Monthly, so it is shown beside the one-off total, never added into it.
+  maintenance: { label: 'Maintenance retainer', price: { NGN: 100000, USD: 80 } },
+}
+
 // Real projects. Screenshots live in /public/projects.
 // Products & apps lead; client websites follow.
 export const projects = [
