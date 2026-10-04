@@ -1,4 +1,16 @@
+# Every crawler is welcome, including AI search and assistant tools.
 User-agent: *
+Allow: /
+
+# AI crawlers named explicitly, so they can see they are allowed in.
+User-agent: GPTBot
+User-agent: OAI-SearchBot
+User-agent: ChatGPT-User
+User-agent: ClaudeBot
+User-agent: Claude-SearchBot
+User-agent: Claude-User
+User-agent: PerplexityBot
+User-agent: Google-Extended
 Allow: /
 
 Sitemap: https://weezie-portfolio.vercel.app/sitemap.xml

@@ -521,3 +521,47 @@ export const gameConfig = {
   winChancePct: 10,    // % chance to win the discount, per game
   funWinChancePct: 45, // % chance to win a "just for fun" game
 }
+
+// FAQ (EDIT ME). Shown on the site, and handed to search engines and AI
+// assistants as structured data and in /llms.txt, so these are the answers
+// they quote. Prices, timelines and the discount are read from the config
+// above, so a price change here updates every answer automatically.
+const planBy = name => rateCard.tiers.find(t => t.name === name)
+const bare = price => price.replace(/^from\s+/i, '')
+const pricePair = name => `${bare(planBy(name).price.USD)} (${bare(planBy(name).price.NGN)})`
+const care = briefPricing.maintenance.price
+
+export const faqs = [
+  {
+    q: 'How much does a website cost?',
+    a: `A landing page starts at ${pricePair('Landing Page')}, a full business website at ${pricePair('Business Website')} and an online store at ${pricePair('Online Store')}. Custom web apps, fintech platforms and AI builds start at ${pricePair('Web App / AI Build')}. The project brief on this site shows an estimate for your exact features.`,
+  },
+  {
+    q: 'How long does it take to build a website?',
+    a: `About ${planBy('Landing Page').timeline} for a landing page, ${planBy('Business Website').timeline} for a business website and ${planBy('Online Store').timeline} for an online store. Web apps are scheduled together after a short discovery call.`,
+  },
+  {
+    q: 'Do you build fintech and investment platforms?',
+    a: 'Yes. I build wallets and ledgers, deposits and withdrawals with limits and approvals, identity checks (KYC), investment plans with portfolio tracking, and admin panels with audit logs, with Paystack or Stripe payments.',
+  },
+  {
+    q: 'Do you work with clients outside Nigeria?',
+    a: 'Yes. I am based in Abuja, Nigeria and work with clients worldwide, with prices in US dollars or naira.',
+  },
+  {
+    q: 'Can you add AI features to my website or app?',
+    a: 'Yes. AI chatbots, AI recommendations and content, and workflow automations, built into your site or app and connected to your own data.',
+  },
+  {
+    q: 'Do you offer maintenance after launch?',
+    a: `Yes, from $${care.USD} (₦${care.NGN.toLocaleString('en-US')}) a month for updates, backups and small fixes.`,
+  },
+  {
+    q: 'How do I start a project?',
+    a: 'Fill the 2-minute project brief on this site. It shows an estimate as you pick your plan and features, and I reply within 24 hours.',
+  },
+  {
+    q: 'Is there a discount?',
+    a: `Beat me at rock-paper-scissors on this site and you win ${gameConfig.discountPct}% off your first project.`,
+  },
+]

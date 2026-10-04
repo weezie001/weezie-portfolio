@@ -10,6 +10,7 @@ import Work from './components/Work.jsx'
 import CodeShowcase from './components/CodeShowcase.jsx'
 import Partnership from './components/Partnership.jsx'
 import Clients from './components/Clients.jsx'
+import FAQ from './components/FAQ.jsx'
 import CollabCTA from './components/CollabCTA.jsx'
 import Contact from './components/Contact.jsx'
 import Footer from './components/Footer.jsx'
@@ -29,9 +30,10 @@ export default function App() {
         meets. Everything after it follows the buyer's questions in order:
         can you do this? (Work) → what can I buy? (Services/Pricing) → who else
         trusted you? (Clients) → who are you? (About) → is this a fit?
-        (Partnership) → the ask. CodeShowcase sits below Contact: it sells to a
-        technical evaluator, not to a business buying a site, so it must not
-        stand between the visitor and the form.
+        (Partnership) → what will it cost and how long? (FAQ) → the ask.
+        CodeShowcase sits below Contact: it sells to a technical evaluator,
+        not to a business buying a site, so it must not stand between the
+        visitor and the form.
       */}
       <main>
         <Hero />
@@ -43,6 +45,7 @@ export default function App() {
         <Clients />
         <About />
         <Partnership />
+        <FAQ />
         <CollabCTA />
         <Contact />
         <CodeShowcase />
