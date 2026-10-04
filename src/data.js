@@ -90,7 +90,7 @@ export const services = [
 //   rush: 'string'                    → a band under the cards
 //   from: { NGN: '…', USD: '…' }      → a sub-line under a tier's price
 export const rateCard = {
-  currencies: ['NGN', 'USD'],
+  currencies: ['USD', 'NGN'], // first one is the default everywhere
   note: 'Starting points, not final quotes. Every project gets priced properly after we talk.',
   tiers: [
     {
@@ -157,13 +157,13 @@ export const rateCard = {
 
 // PROJECT BRIEF FEATURES (EDIT ME)
 // Every feature a visitor can tick in the project brief, with its price.
+// Prices are NEVER shown to visitors: they only feed the total.
 //
-//   Brief total = base build for the website type
-//               + the price of every feature ticked
+//   Brief total = the chosen plan's rate-card price
+//               + the prices of extra features ticked beyond the plan
 //
-// It is a straight sum of what is ticked. Picking a website type ticks the
-// features its plan comes with (briefPricing.planFeatures below), so with
-// those still ticked the total equals the rate-card price exactly.
+// Features the plan already includes (briefPricing.planFeatures below) show
+// as ticked and locked "In your plan" and are never charged on top.
 //
 //   requires:  features it cannot work without. Ticking it ticks them too,
 //              so a wallet can never be priced without the accounts and
@@ -258,10 +258,9 @@ export const briefFeatureGroups = [
 
 // Other priced answers in the brief.
 export const briefPricing = {
-  // Features each plan comes with. Picking a website type ticks them, and the
-  // plan's rate-card price is split so they each carry their own price: with
-  // all of them ticked the total equals the rate-card price, and unticking
-  // one lowers it. Base build = rate-card price minus these.
+  // Features each plan already includes. In the brief they show ticked and
+  // locked as "In your plan", and they are covered by the plan price, so the
+  // total for a plan with no extras is exactly its rate-card price.
   planFeatures: {
     'Landing Page': [],
     'Business Website': ['Blog / News Section'],
@@ -278,19 +277,11 @@ export const briefPricing = {
       'Third-party API Integrations',
     ],
   },
-  // Features a website type almost always needs, ticked on top of its plan's
-  // and priced on top of the plan (they are not part of the rate-card price).
-  typeFeatures: {
-    'Marketplace (multi-vendor)': ['Multi-vendor Marketplace'],
-    'Booking platform': ['Online Booking / Reservations'],
-    'Fintech / Investment platform': ['Wallet & Balance System', 'Deposits & Withdrawals'],
-    'CRM / Business tool': ['CRM (leads, clients, pipeline)'],
-  },
   branding: {
     full: { label: 'Branding package (logo, colours, fonts)', price: { NGN: 300000, USD: 250 } },
     partial: { label: 'Colour & type system around your logo', price: { NGN: 150000, USD: 120 } },
   },
-  editsOnlyRate: 0.5, // "just edits" to an existing site pays half the base build
+  editsOnlyRate: 0.5, // "just edits" to an existing site pays half the plan price
   // Monthly, so it is shown beside the one-off total, never added into it.
   maintenance: { label: 'Maintenance retainer', price: { NGN: 100000, USD: 80 } },
 }

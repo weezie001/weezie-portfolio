@@ -104,17 +104,22 @@ export default function RateCard() {
                   ))}
                 </ul>
 
-                <a
-                  href="#contact"
-                  onClick={() => ev('pricing_cta', { tier: t.name, currency })}
+                {/* Opens the project brief with this plan already chosen, in the
+                    currency they were viewing, so the brief starts at this price. */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    ev('pricing_cta', { tier: t.name, currency })
+                    window.dispatchEvent(new CustomEvent('weezie:open-brief', { detail: { plan: t.name, currency } }))
+                  }}
                   className={`mt-7 rounded-full px-6 py-3.5 text-center text-xs font-bold uppercase tracking-[0.1em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-blue ${
                     t.popular
                       ? 'btn-gradient'
                       : 'neu-hover bg-paper text-ink'
                   }`}
                 >
-                  Start this
-                </a>
+                  Choose this plan
+                </button>
               </article>
             ))}
           </div>
@@ -137,7 +142,7 @@ export default function RateCard() {
             type="button"
             onClick={() => {
               ev('brief_open', { from: 'pricing' })
-              window.dispatchEvent(new CustomEvent('weezie:open-brief'))
+              window.dispatchEvent(new CustomEvent('weezie:open-brief', { detail: { currency } }))
             }}
             className="font-bold text-blue underline underline-offset-4 hover:text-ink"
           >

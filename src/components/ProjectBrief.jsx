@@ -3,11 +3,8 @@ import { site, gameConfig, rateCard, briefFeatureGroups } from '../data.js'
 import {
   quote,
   readFields,
-  swapDefaults,
-  featurePrice,
-  brandingTag,
-  existingTag,
-  maintenanceTag,
+  suggestedPlan,
+  planFeatureSet,
   WEBSITE_TYPES,
   BUDGETS,
   EMPTY_FIELDS,
@@ -30,6 +27,14 @@ function readWonCode() {
 const field = 'w-full rounded-xl bg-paper px-4 py-3 text-base font-medium text-ink placeholder-ink-soft/60 outline-none neu-inset focus:ring-2 focus:ring-blue/50'
 const label = 'mb-1.5 block text-xs font-bold uppercase tracking-[0.1em] text-ink-soft'
 
+function Check() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-blue" aria-hidden="true">
+      <path d="M20 6L9 17l-5-5" />
+    </svg>
+  )
+}
+
 function Section({ title, children }) {
   return (
     <fieldset className="border-t border-line pt-6">
@@ -39,27 +44,70 @@ function Section({ title, children }) {
   )
 }
 
-function Choice({ type, name, options, required, tag }) {
+function Choice({ type, name, options, required }) {
   return (
     <div className="flex flex-col gap-2">
-      {options.map((o, i) => {
-        const t = tag?.(o)
-        return (
-          <label key={o} className="neu-sm flex cursor-pointer items-center gap-3 rounded-xl bg-paper px-4 py-2.5">
-            <input type={type} name={name} value={o} required={required && type === 'radio' && i === 0} className="h-4 w-4 shrink-0 accent-[color:var(--color-blue)]" />
-            <span className="flex-1 text-sm font-medium text-ink">{o}</span>
-            {t && <span className="shrink-0 text-[11px] font-bold text-blue">{t}</span>}
-          </label>
-        )
-      })}
+      {options.map((o, i) => (
+        <label key={o} className="neu-sm flex cursor-pointer items-center gap-3 rounded-xl bg-paper px-4 py-2.5">
+          <input type={type} name={name} value={o} required={required && type === 'radio' && i === 0} className="h-4 w-4 shrink-0 accent-[color:var(--color-blue)]" />
+          <span className="text-sm font-medium text-ink">{o}</span>
+        </label>
+      ))}
     </div>
   )
 }
 
-// Controlled checkboxes: what shows ticked is exactly what is being charged,
-// so the prices beside the ticked boxes always add up to the total. A feature
-// that something else needs is ticked and locked, with the reason under it.
-function FeaturePicker({ picked, counted, currency, onToggle }) {
+// The four rate-card plans, priced exactly as on the pricing section.
+function PlanPicker({ plan, currency, onChoose }) {
+  const tier = rateCard.tiers.find((t) => t.name === plan)
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Plan">
+        {rateCard.tiers.map((t, i) => (
+          <label
+            key={t.name}
+            className={`neu-sm flex cursor-pointer flex-col rounded-xl bg-paper px-3 py-3 ${plan === t.name ? 'ring-2 ring-blue' : ''}`}
+          >
+            <span className="flex items-start gap-2">
+              <input
+                type="radio"
+                name="plan"
+                value={t.name}
+                required={i === 0}
+                checked={plan === t.name}
+                onChange={() => onChoose(t.name)}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-blue)]"
+              />
+              <span className="text-[13px] font-bold leading-snug text-ink">{t.name}</span>
+            </span>
+            <span className="mt-1.5 pl-6 text-sm font-bold text-blue">{t.price[currency]}</span>
+            <span className="pl-6 text-[11px] font-semibold text-ink-soft">{t.timeline}</span>
+          </label>
+        ))}
+      </div>
+
+      {tier && (
+        <div className="rounded-xl bg-paper p-4 neu-inset">
+          <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink">Your {tier.name} plan includes</p>
+          <ul className="mt-2 grid gap-1.5 sm:grid-cols-2">
+            {tier.includes.map((line) => (
+              <li key={line} className="flex gap-2 text-[12px] font-medium leading-snug text-ink-soft">
+                <Check />
+                {line}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// No prices here, by design: the plan's features come ticked as one package,
+// and extras only show up in the total. A box that something else needs is
+// ticked and locked, with the reason under it.
+function FeaturePicker({ plan, picked, extras, onToggle }) {
+  const inPlan = planFeatureSet(plan)
   return (
     <div className="flex flex-col gap-5">
       {briefFeatureGroups.map((g) => (
@@ -67,9 +115,11 @@ function FeaturePicker({ picked, counted, currency, onToggle }) {
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-ink">{g.group}</p>
           <div className="grid gap-2 sm:grid-cols-2">
             {g.items.map((f) => {
-              const neededFor = counted.get(f.label)
-              const ticked = counted.has(f.label)
-              const locked = ticked && neededFor && !picked.includes(f.label)
+              const covered = inPlan.has(f.label)
+              const neededFor = extras.get(f.label)
+              const ticked = covered || extras.has(f.label)
+              const locked = covered || Boolean(neededFor)
+              const note = covered ? 'In your plan' : neededFor ? `Needed for ${neededFor}` : ''
               return (
                 <label
                   key={f.label}
@@ -78,16 +128,13 @@ function FeaturePicker({ picked, counted, currency, onToggle }) {
                   <input
                     type="checkbox"
                     checked={ticked}
-                    disabled={Boolean(locked)}
+                    disabled={locked}
                     onChange={() => onToggle(f.label)}
                     className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-blue)]"
                   />
                   <span className="flex-1 text-[13px] font-medium leading-snug text-ink">
                     {f.label}
-                    {locked && <span className="mt-0.5 block text-[10px] font-semibold text-ink-soft">Needed for {neededFor}</span>}
-                  </span>
-                  <span className={`shrink-0 text-[11px] font-bold ${ticked ? 'text-blue' : 'text-ink-soft'}`}>
-                    {(ticked ? '+' : '') + featurePrice(f.label, currency)}
+                    {note && <span className="mt-0.5 block text-[10px] font-bold uppercase tracking-[0.06em] text-blue">{note}</span>}
                   </span>
                 </label>
               )
@@ -103,13 +150,13 @@ function FeaturePicker({ picked, counted, currency, onToggle }) {
           className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-blue)]"
         />
         <span className="flex-1 text-[13px] font-medium leading-snug text-ink">Something else (describe below)</span>
-        <span className="shrink-0 text-[11px] font-bold text-ink-soft">Quoted after we talk</span>
       </label>
     </div>
   )
 }
 
 // Open from anywhere: window.dispatchEvent(new CustomEvent('weezie:open-brief'))
+// A plan picked on the pricing section arrives as detail: { plan, currency }.
 export default function ProjectBrief() {
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState('idle') // idle | sending | ok | error
@@ -117,13 +164,11 @@ export default function ProjectBrief() {
   const [fields, setFields] = useState(EMPTY_FIELDS)
   const [picked, setPicked] = useState([])
   const [currency, setCurrency] = useState(rateCard.currencies[0])
-  const [showBreakdown, setShowBreakdown] = useState(false)
-  const typeRef = useRef('')
   const firstRef = useRef(null)
   const formRef = useRef(null)
 
   const estimate = useMemo(() => quote(fields, picked, code), [fields, picked, code])
-  const counted = estimate?.counted || new Map()
+  const extras = estimate?.extras || new Map()
   const other = rateCard.currencies.find((c) => c !== currency)
 
   const plan = estimate?.plan
@@ -134,31 +179,31 @@ export default function ProjectBrief() {
   function recalc() {
     if (!formRef.current) return
     const next = readFields(new FormData(formRef.current))
-    // A new website type swaps in the features that type comes with.
-    if (next.type !== typeRef.current) {
-      const from = typeRef.current
-      typeRef.current = next.type
-      setPicked((p) => swapDefaults(p, from, next.type))
-    }
-    setFields(next)
+    setFields((f) => {
+      const merged = { ...f, ...next }
+      // Choosing what they are building suggests a plan, but only until they
+      // have picked one themselves; it never overrides their choice.
+      if (!f.plan && next.type !== f.type && suggestedPlan(next.type)) merged.plan = suggestedPlan(next.type)
+      return merged
+    })
+  }
+
+  function choosePlan(name) {
+    setFields((f) => ({ ...f, plan: name }))
   }
 
   function toggle(featureLabel) {
     setPicked((p) => (p.includes(featureLabel) ? p.filter((f) => f !== featureLabel) : [...p, featureLabel]))
   }
 
-  function resetBrief() {
-    typeRef.current = ''
-    setFields(EMPTY_FIELDS)
-    setPicked([])
-    setShowBreakdown(false)
-  }
-
   useEffect(() => {
-    const onOpen = () => {
+    const onOpen = (e) => {
+      const detail = e.detail || {}
       setCode(readWonCode())
       setStatus('idle')
-      resetBrief()
+      setFields({ ...EMPTY_FIELDS, plan: rateCard.tiers.some((t) => t.name === detail.plan) ? detail.plan : '' })
+      setPicked([])
+      if (rateCard.currencies.includes(detail.currency)) setCurrency(detail.currency)
       setOpen(true)
     }
     window.addEventListener('weezie:open-brief', onOpen)
@@ -170,7 +215,9 @@ export default function ProjectBrief() {
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
     document.addEventListener('keydown', onKey)
     document.body.style.overflow = 'hidden'
-    const t = setTimeout(() => firstRef.current?.focus(), 50)
+    // preventScroll keeps the modal at the top, so a plan chosen on the pricing
+    // section is the first thing they see rather than scrolled past.
+    const t = setTimeout(() => firstRef.current?.focus({ preventScroll: true }), 50)
     return () => { document.removeEventListener('keydown', onKey); document.body.style.overflow = ''; clearTimeout(t) }
   }, [open])
 
@@ -180,13 +227,15 @@ export default function ProjectBrief() {
     const data = new FormData(form)
     if (code) data.set('discount_code', code)
     // Feature boxes are controlled (and locked ones are disabled, which the
-    // browser leaves out of FormData), so attach the real list explicitly.
+    // browser leaves out of FormData), so attach the real lists explicitly.
     data.delete('features')
-    picked.forEach((f) => data.append('features', f))
+    const inPlan = [...planFeatureSet(fields.plan)]
+    if (inPlan.length) data.set('features_in_plan', inPlan.join(', '))
+    picked.filter((f) => !inPlan.includes(f)).forEach((f) => data.append('features', f))
     if (estimate?.autoAdded.length) data.set('features_auto_added', estimate.autoAdded.join(', '))
     // Send the same figure the visitor saw, so the brief email and the screen agree.
     data.set('estimate_shown', estimate ? estimate.summary : 'not calculated')
-    data.set('_subject', `New project brief from ${data.get('name')}`)
+    data.set('_subject', `New project brief from ${data.get('name')}${fields.plan ? ` (${fields.plan})` : ''}`)
 
     if (!site.formEndpoint) {
       const body = encodeURIComponent([...data.entries()].filter(([k]) => !k.startsWith('_')).map(([k, v]) => `${k}: ${v}`).join('\n'))
@@ -196,7 +245,12 @@ export default function ProjectBrief() {
     setStatus('sending')
     try {
       const res = await fetch(site.formEndpoint, { method: 'POST', body: data, headers: { Accept: 'application/json' } })
-      if (res.ok) { setStatus('ok'); form.reset(); resetBrief() } else setStatus('error')
+      if (res.ok) {
+        setStatus('ok')
+        form.reset()
+        setFields(EMPTY_FIELDS)
+        setPicked([])
+      } else setStatus('error')
     } catch { setStatus('error') }
   }
 
@@ -229,6 +283,13 @@ export default function ProjectBrief() {
               {code && <p className="mt-2 text-xs font-bold uppercase tracking-[0.08em] text-blue">🎉 Your {gameConfig.discountPct}% code {code} will be attached</p>}
             </div>
 
+            <Section title="📦 Your plan">
+              <span className="-mb-1 text-[12px] font-medium text-ink-soft">
+                Same prices as the pricing section. Not sure? Pick the closest and I&rsquo;ll confirm after reading your brief.
+              </span>
+              <PlanPicker plan={fields.plan} currency={currency} onChoose={choosePlan} />
+            </Section>
+
             <Section title="👤 Personal & business info">
               <div className="grid gap-4 sm:grid-cols-2">
                 <div>
@@ -257,7 +318,7 @@ export default function ProjectBrief() {
             <Section title="🌐 Website details">
               <div>
                 <span className={label}>Do you have an existing website?</span>
-                <Choice type="radio" name="existing_site" options={EXISTING} required tag={existingTag} />
+                <Choice type="radio" name="existing_site" options={EXISTING} required />
               </div>
               <div>
                 <label htmlFor="b-url" className={label}>Existing website URL (if any)</label>
@@ -279,9 +340,9 @@ export default function ProjectBrief() {
             <Section title="⚙️ Features & functionality">
               <div>
                 <span className={label}>
-                  Tick what you need. Your website type pre-ticks its standard features; untick any you don&rsquo;t want.
+                  Features in your plan are already ticked. Tick anything else you need and your estimate updates.
                 </span>
-                <FeaturePicker picked={picked} counted={counted} currency={currency} onToggle={toggle} />
+                <FeaturePicker plan={fields.plan} picked={picked} extras={extras} onToggle={toggle} />
               </div>
               <div>
                 <label htmlFor="b-feat" className={label}>Any other features?</label>
@@ -292,7 +353,7 @@ export default function ProjectBrief() {
             <Section title="🎨 Design preferences">
               <div>
                 <span className={label}>Do you have a brand kit? (logo, colours, fonts)</span>
-                <Choice type="radio" name="brand_kit" options={BRANDKIT} tag={(o) => brandingTag(o, currency)} />
+                <Choice type="radio" name="brand_kit" options={BRANDKIT} />
               </div>
               <div>
                 <label htmlFor="b-style" className={label}>Website style preference</label>
@@ -323,7 +384,7 @@ export default function ProjectBrief() {
               </div>
               <div>
                 <span className={label}>Ongoing maintenance after launch?</span>
-                <Choice type="radio" name="maintenance" options={MAINTENANCE} tag={(o) => maintenanceTag(o, currency)} />
+                <Choice type="radio" name="maintenance" options={MAINTENANCE} />
               </div>
             </Section>
 
@@ -358,7 +419,7 @@ export default function ProjectBrief() {
                     <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue">Your estimate</p>
                     <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-ink-soft">{estimate.label}</p>
                     <p className="text-[11px] font-semibold text-ink-soft">
-                      {estimate.plan ? estimate.timeline : 'Pick a website type to add the base build'}
+                      {estimate.plan ? estimate.timeline : 'Choose a plan above to complete your estimate'}
                     </p>
                   </div>
                   <div className="shrink-0 text-right">
@@ -370,51 +431,30 @@ export default function ProjectBrief() {
                   </div>
                 </div>
 
-                <div className="mt-3 flex items-center justify-between gap-3">
-                  <div className="flex gap-1 rounded-full bg-paper p-1 neu-inset" role="group" aria-label="Currency">
-                    {rateCard.currencies.map((c) => (
-                      <button
-                        key={c}
-                        type="button"
-                        aria-pressed={currency === c}
-                        onClick={() => setCurrency(c)}
-                        className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${
-                          currency === c ? 'bg-paper text-ink neu-sm' : 'text-ink-soft hover:text-ink'
-                        }`}
-                      >
-                        {c}
-                      </button>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    aria-expanded={showBreakdown}
-                    onClick={() => setShowBreakdown((v) => !v)}
-                    className="text-[11px] font-bold uppercase tracking-[0.1em] text-blue underline underline-offset-4 hover:text-ink"
-                  >
-                    {showBreakdown ? 'Hide breakdown' : 'See breakdown'}
-                  </button>
-                </div>
-
-                {showBreakdown && (
-                  <ul className="mt-3 max-h-48 overflow-y-auto border-t border-line pt-2 pr-2">
-                    {estimate.lines.map((l) => (
-                      <li key={l.label} className="flex justify-between gap-3 py-1 text-[12px]">
-                        <span className="font-medium text-ink">
-                          {l.label}
-                          {l.note && <span className="block text-[10px] text-ink-soft">{l.note}</span>}
-                        </span>
-                        <span className="shrink-0 font-bold text-ink">{l.amount[currency]}</span>
-                      </li>
-                    ))}
-                    {estimate.discounted && (
-                      <li className="flex justify-between gap-3 py-1 text-[12px]">
-                        <span className="font-medium text-blue">{gameConfig.discountPct}% game code</span>
-                        <span className="shrink-0 font-bold text-blue">{estimate.saving[currency]}</span>
-                      </li>
-                    )}
-                  </ul>
+                {estimate.planPart && estimate.extrasPart && (
+                  <p className="mt-2 text-[11px] font-semibold text-ink">
+                    Plan {estimate.planPart[currency]} + extras {estimate.extrasPart[currency]}
+                  </p>
                 )}
+                {estimate.editsOnly && (
+                  <p className="mt-1 text-[11px] font-semibold text-ink-soft">Edits to an existing site: half the plan price.</p>
+                )}
+
+                <div className="mt-3 flex gap-1 self-start rounded-full bg-paper p-1 neu-inset" role="group" aria-label="Currency" style={{ width: 'fit-content' }}>
+                  {rateCard.currencies.map((c) => (
+                    <button
+                      key={c}
+                      type="button"
+                      aria-pressed={currency === c}
+                      onClick={() => setCurrency(c)}
+                      className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${
+                        currency === c ? 'bg-paper text-ink neu-sm' : 'text-ink-soft hover:text-ink'
+                      }`}
+                    >
+                      {c}
+                    </button>
+                  ))}
+                </div>
 
                 {estimate.monthly && (
                   <p className="mt-2 text-[11px] font-semibold text-ink">
