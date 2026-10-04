@@ -2,14 +2,15 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { site, gameConfig, rateCard, briefFeatureGroups } from '../data.js'
 import {
   quote,
-  featureTags,
-  readBrief,
+  readFields,
+  swapDefaults,
+  featurePrice,
   brandingTag,
   existingTag,
   maintenanceTag,
   WEBSITE_TYPES,
   BUDGETS,
-  EMPTY_BRIEF,
+  EMPTY_FIELDS,
 } from '../lib/estimate.js'
 import { ev } from '../lib/analytics.js'
 
@@ -28,14 +29,6 @@ function readWonCode() {
 
 const field = 'w-full rounded-xl bg-paper px-4 py-3 text-base font-medium text-ink placeholder-ink-soft/60 outline-none neu-inset focus:ring-2 focus:ring-blue/50'
 const label = 'mb-1.5 block text-xs font-bold uppercase tracking-[0.1em] text-ink-soft'
-
-// Colour of a price tag by what it means: costs money, already covered, or
-// pulled in because something else they ticked needs it.
-const TAG_TONE = {
-  add: 'text-blue',
-  included: 'text-ink-soft',
-  required: 'text-ink-soft italic',
-}
 
 function Section({ title, children }) {
   return (
@@ -63,8 +56,10 @@ function Choice({ type, name, options, required, tag }) {
   )
 }
 
-// Every feature shows what it adds to THIS brief, so the total is never a mystery.
-function FeaturePicker({ tags }) {
+// Controlled checkboxes: what shows ticked is exactly what is being charged,
+// so the prices beside the ticked boxes always add up to the total. A feature
+// that something else needs is ticked and locked, with the reason under it.
+function FeaturePicker({ picked, counted, currency, onToggle }) {
   return (
     <div className="flex flex-col gap-5">
       {briefFeatureGroups.map((g) => (
@@ -72,12 +67,28 @@ function FeaturePicker({ tags }) {
           <p className="mb-2 text-[11px] font-bold uppercase tracking-[0.12em] text-ink">{g.group}</p>
           <div className="grid gap-2 sm:grid-cols-2">
             {g.items.map((f) => {
-              const t = tags[f.label]
+              const neededFor = counted.get(f.label)
+              const ticked = counted.has(f.label)
+              const locked = ticked && neededFor && !picked.includes(f.label)
               return (
-                <label key={f.label} className="neu-sm flex cursor-pointer items-start gap-2.5 rounded-xl bg-paper px-3 py-2.5">
-                  <input type="checkbox" name="features" value={f.label} className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-blue)]" />
-                  <span className="flex-1 text-[13px] font-medium leading-snug text-ink">{f.label}</span>
-                  {t && <span className={`shrink-0 text-[11px] font-bold ${TAG_TONE[t.kind]}`}>{t.text}</span>}
+                <label
+                  key={f.label}
+                  className={`neu-sm flex items-start gap-2.5 rounded-xl bg-paper px-3 py-2.5 ${locked ? 'cursor-default' : 'cursor-pointer'}`}
+                >
+                  <input
+                    type="checkbox"
+                    checked={ticked}
+                    disabled={Boolean(locked)}
+                    onChange={() => onToggle(f.label)}
+                    className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-blue)]"
+                  />
+                  <span className="flex-1 text-[13px] font-medium leading-snug text-ink">
+                    {f.label}
+                    {locked && <span className="mt-0.5 block text-[10px] font-semibold text-ink-soft">Needed for {neededFor}</span>}
+                  </span>
+                  <span className={`shrink-0 text-[11px] font-bold ${ticked ? 'text-blue' : 'text-ink-soft'}`}>
+                    {(ticked ? '+' : '') + featurePrice(f.label, currency)}
+                  </span>
                 </label>
               )
             })}
@@ -85,7 +96,12 @@ function FeaturePicker({ tags }) {
         </div>
       ))}
       <label className="neu-sm flex cursor-pointer items-start gap-2.5 rounded-xl bg-paper px-3 py-2.5">
-        <input type="checkbox" name="features" value={OTHER_FEATURE} className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-blue)]" />
+        <input
+          type="checkbox"
+          checked={picked.includes(OTHER_FEATURE)}
+          onChange={() => onToggle(OTHER_FEATURE)}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-blue)]"
+        />
         <span className="flex-1 text-[13px] font-medium leading-snug text-ink">Something else (describe below)</span>
         <span className="shrink-0 text-[11px] font-bold text-ink-soft">Quoted after we talk</span>
       </label>
@@ -98,16 +114,16 @@ export default function ProjectBrief() {
   const [open, setOpen] = useState(false)
   const [status, setStatus] = useState('idle') // idle | sending | ok | error
   const [code, setCode] = useState('')
-  const [input, setInput] = useState(EMPTY_BRIEF)
+  const [fields, setFields] = useState(EMPTY_FIELDS)
+  const [picked, setPicked] = useState([])
   const [currency, setCurrency] = useState(rateCard.currencies[0])
   const [showBreakdown, setShowBreakdown] = useState(false)
+  const typeRef = useRef('')
   const firstRef = useRef(null)
   const formRef = useRef(null)
 
-  // Derived, never stored: the total and every option's tag come from the same
-  // pricing function, so they cannot disagree with each other.
-  const estimate = useMemo(() => (input.type ? quote(input, code) : null), [input, code])
-  const tags = useMemo(() => featureTags(input, currency), [input, currency])
+  const estimate = useMemo(() => quote(fields, picked, code), [fields, picked, code])
+  const counted = estimate?.counted || new Map()
   const other = rateCard.currencies.find((c) => c !== currency)
 
   const plan = estimate?.plan
@@ -116,15 +132,33 @@ export default function ProjectBrief() {
   }, [plan])
 
   function recalc() {
-    if (formRef.current) setInput(readBrief(new FormData(formRef.current)))
+    if (!formRef.current) return
+    const next = readFields(new FormData(formRef.current))
+    // A new website type swaps in the features that type comes with.
+    if (next.type !== typeRef.current) {
+      const from = typeRef.current
+      typeRef.current = next.type
+      setPicked((p) => swapDefaults(p, from, next.type))
+    }
+    setFields(next)
+  }
+
+  function toggle(featureLabel) {
+    setPicked((p) => (p.includes(featureLabel) ? p.filter((f) => f !== featureLabel) : [...p, featureLabel]))
+  }
+
+  function resetBrief() {
+    typeRef.current = ''
+    setFields(EMPTY_FIELDS)
+    setPicked([])
+    setShowBreakdown(false)
   }
 
   useEffect(() => {
     const onOpen = () => {
       setCode(readWonCode())
       setStatus('idle')
-      setInput(EMPTY_BRIEF)
-      setShowBreakdown(false)
+      resetBrief()
       setOpen(true)
     }
     window.addEventListener('weezie:open-brief', onOpen)
@@ -145,9 +179,13 @@ export default function ProjectBrief() {
     const form = e.target
     const data = new FormData(form)
     if (code) data.set('discount_code', code)
+    // Feature boxes are controlled (and locked ones are disabled, which the
+    // browser leaves out of FormData), so attach the real list explicitly.
+    data.delete('features')
+    picked.forEach((f) => data.append('features', f))
+    if (estimate?.autoAdded.length) data.set('features_auto_added', estimate.autoAdded.join(', '))
     // Send the same figure the visitor saw, so the brief email and the screen agree.
     data.set('estimate_shown', estimate ? estimate.summary : 'not calculated')
-    if (estimate?.autoAdded.length) data.set('features_auto_added', estimate.autoAdded.join(', '))
     data.set('_subject', `New project brief from ${data.get('name')}`)
 
     if (!site.formEndpoint) {
@@ -158,7 +196,7 @@ export default function ProjectBrief() {
     setStatus('sending')
     try {
       const res = await fetch(site.formEndpoint, { method: 'POST', body: data, headers: { Accept: 'application/json' } })
-      if (res.ok) { setStatus('ok'); form.reset(); setInput(EMPTY_BRIEF) } else setStatus('error')
+      if (res.ok) { setStatus('ok'); form.reset(); resetBrief() } else setStatus('error')
     } catch { setStatus('error') }
   }
 
@@ -240,8 +278,10 @@ export default function ProjectBrief() {
 
             <Section title="⚙️ Features & functionality">
               <div>
-                <span className={label}>Pick what you need. Each one shows what it adds to your estimate.</span>
-                <FeaturePicker tags={tags} />
+                <span className={label}>
+                  Tick what you need. Your website type pre-ticks its standard features; untick any you don&rsquo;t want.
+                </span>
+                <FeaturePicker picked={picked} counted={counted} currency={currency} onToggle={toggle} />
               </div>
               <div>
                 <label htmlFor="b-feat" className={label}>Any other features?</label>
@@ -317,7 +357,9 @@ export default function ProjectBrief() {
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-blue">Your estimate</p>
                     <p className="mt-0.5 text-[11px] font-bold uppercase tracking-[0.08em] text-ink-soft">{estimate.label}</p>
-                    <p className="text-[11px] font-semibold text-ink-soft">{estimate.timeline}</p>
+                    <p className="text-[11px] font-semibold text-ink-soft">
+                      {estimate.plan ? estimate.timeline : 'Pick a website type to add the base build'}
+                    </p>
                   </div>
                   <div className="shrink-0 text-right">
                     <p className="display text-2xl leading-none text-ink">{estimate.total[currency]}</p>

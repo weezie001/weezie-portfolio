@@ -155,36 +155,37 @@ export const rateCard = {
   ],
 }
 
-// PROJECT BRIEF ADD-ONS (EDIT ME)
+// PROJECT BRIEF FEATURES (EDIT ME)
 // Every feature a visitor can tick in the project brief, with its price.
 //
-//   Brief total = plan price for the website type they pick
-//               + every add-on they tick (plus anything those depend on)
+//   Brief total = base build for the website type
+//               + the price of every feature ticked
 //
-//   includedFrom: the cheapest plan that already covers it. On that plan and
-//                 every plan above it, the feature adds nothing.
-//   requires:     features it cannot work without. They are counted
-//                 automatically, so a wallet can never be priced without the
-//                 accounts and admin panel it needs to function.
+// It is a straight sum of what is ticked. Picking a website type ticks the
+// features its plan comes with (briefPricing.planFeatures below), so with
+// those still ticked the total equals the rate-card price exactly.
+//
+//   requires:  features it cannot work without. Ticking it ticks them too,
+//              so a wallet can never be priced without the accounts and
+//              admin panel it needs to function.
 export const briefFeatureGroups = [
   {
     group: 'Content & pages',
     items: [
-      { label: 'Blog / News Section', price: { NGN: 150000, USD: 150 }, includedFrom: 'Business Website' },
-      { label: 'Gallery / Portfolio Showcase', price: { NGN: 100000, USD: 100 }, includedFrom: 'Business Website' },
+      { label: 'Blog / News Section', price: { NGN: 150000, USD: 150 } },
+      { label: 'Gallery / Portfolio Showcase', price: { NGN: 100000, USD: 100 } },
       { label: 'Multi-language', price: { NGN: 250000, USD: 250 } },
     ],
   },
   {
     group: 'Accounts & admin',
     items: [
-      { label: 'User Registration / Login', price: { NGN: 300000, USD: 300 }, includedFrom: 'Web App / AI Build' },
+      { label: 'User Registration / Login', price: { NGN: 300000, USD: 300 } },
       { label: 'User Dashboard / Profiles', price: { NGN: 400000, USD: 350 }, requires: ['User Registration / Login'] },
-      { label: 'Admin Dashboard', price: { NGN: 450000, USD: 400 }, includedFrom: 'Online Store' },
+      { label: 'Admin Dashboard', price: { NGN: 450000, USD: 400 } },
       {
         label: 'Staff Roles & Permissions',
         price: { NGN: 350000, USD: 300 },
-        includedFrom: 'Web App / AI Build',
         requires: ['User Registration / Login', 'Admin Dashboard'],
       },
     ],
@@ -192,7 +193,7 @@ export const briefFeatureGroups = [
   {
     group: 'Payments & commerce',
     items: [
-      { label: 'Payment Processing (Paystack / Stripe)', price: { NGN: 350000, USD: 300 }, includedFrom: 'Online Store' },
+      { label: 'Payment Processing (Paystack / Stripe)', price: { NGN: 350000, USD: 300 } },
       {
         label: 'Subscriptions / Recurring Billing',
         price: { NGN: 450000, USD: 400 },
@@ -229,7 +230,7 @@ export const briefFeatureGroups = [
     items: [
       { label: 'CRM (leads, clients, pipeline)', price: { NGN: 800000, USD: 700 }, requires: ['User Registration / Login', 'Admin Dashboard'] },
       { label: 'Online Booking / Reservations', price: { NGN: 450000, USD: 400 } },
-      { label: 'Inventory / Stock Management', price: { NGN: 500000, USD: 450 }, includedFrom: 'Online Store', requires: ['Admin Dashboard'] },
+      { label: 'Inventory / Stock Management', price: { NGN: 500000, USD: 450 }, requires: ['Admin Dashboard'] },
       { label: 'HR & Payroll', price: { NGN: 800000, USD: 700 }, requires: ['Staff Roles & Permissions'] },
       { label: 'Reports & Analytics Dashboard', price: { NGN: 450000, USD: 400 }, requires: ['Admin Dashboard'] },
       { label: 'Live Chat / Support Desk', price: { NGN: 300000, USD: 250 } },
@@ -249,7 +250,7 @@ export const briefFeatureGroups = [
     group: 'Apps & integrations',
     items: [
       { label: 'Mobile App (iOS / Android)', price: { NGN: 3000000, USD: 2500 } },
-      { label: 'Third-party API Integrations', price: { NGN: 400000, USD: 350 }, includedFrom: 'Web App / AI Build' },
+      { label: 'Third-party API Integrations', price: { NGN: 400000, USD: 350 } },
       { label: 'Real-time Features (live updates, chat)', price: { NGN: 450000, USD: 400 } },
     ],
   },
@@ -257,11 +258,39 @@ export const briefFeatureGroups = [
 
 // Other priced answers in the brief.
 export const briefPricing = {
+  // Features each plan comes with. Picking a website type ticks them, and the
+  // plan's rate-card price is split so they each carry their own price: with
+  // all of them ticked the total equals the rate-card price, and unticking
+  // one lowers it. Base build = rate-card price minus these.
+  planFeatures: {
+    'Landing Page': [],
+    'Business Website': ['Blog / News Section'],
+    'Online Store': [
+      'Blog / News Section',
+      'Payment Processing (Paystack / Stripe)',
+      'Admin Dashboard',
+      'Inventory / Stock Management',
+    ],
+    'Web App / AI Build': [
+      'User Registration / Login',
+      'Admin Dashboard',
+      'Staff Roles & Permissions',
+      'Third-party API Integrations',
+    ],
+  },
+  // Features a website type almost always needs, ticked on top of its plan's
+  // and priced on top of the plan (they are not part of the rate-card price).
+  typeFeatures: {
+    'Marketplace (multi-vendor)': ['Multi-vendor Marketplace'],
+    'Booking platform': ['Online Booking / Reservations'],
+    'Fintech / Investment platform': ['Wallet & Balance System', 'Deposits & Withdrawals'],
+    'CRM / Business tool': ['CRM (leads, clients, pipeline)'],
+  },
   branding: {
     full: { label: 'Branding package (logo, colours, fonts)', price: { NGN: 300000, USD: 250 } },
     partial: { label: 'Colour & type system around your logo', price: { NGN: 150000, USD: 120 } },
   },
-  editsOnlyRate: 0.5, // "just edits" to an existing site pays half the plan price
+  editsOnlyRate: 0.5, // "just edits" to an existing site pays half the base build
   // Monthly, so it is shown beside the one-off total, never added into it.
   maintenance: { label: 'Maintenance retainer', price: { NGN: 100000, USD: 80 } },
 }

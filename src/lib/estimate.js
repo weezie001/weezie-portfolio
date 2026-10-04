@@ -1,21 +1,20 @@
 import { rateCard, gameConfig, briefFeatureGroups, briefPricing } from '../data.js'
 
 // ---------------------------------------------------------------------------
-// Prices the project brief live, as one number:
+// Prices the project brief as a straight sum of what is ticked:
 //
-//   plan price for the website type  (straight from rateCard)
-// + every add-on ticked              (briefFeatureGroups)
-// + anything those add-ons depend on (their `requires`, counted automatically)
+//   base build for the website type
+// + the price of every ticked feature
 // + branding, if they have no brand kit
 //
-// Every priced option moves the total, and every option can be tagged with
-// exactly what it adds, because the tags come from this same function.
+// Picking a website type ticks the features its plan comes with, and the base
+// build is the plan's rate-card price minus those. So with the plan's features
+// still ticked the total equals the rate card, and every tick or untick after
+// that moves it by exactly the price shown beside the feature.
 // All figures live in data.js; this file holds rules only.
 // ---------------------------------------------------------------------------
 
-export const TIER_ORDER = ['Landing Page', 'Business Website', 'Online Store', 'Web App / AI Build']
-
-// Website type -> the plan its base price comes from. Also the brief's dropdown
+// Website type -> the plan its base build comes from. Also the brief's dropdown
 // options, in display order, so the list and the pricing cannot drift apart.
 export const WEBSITE_TYPES = [
   ['Business / Landing page', 'Business Website'],
@@ -40,7 +39,7 @@ export const BUDGETS = [
   ['Not sure yet', null],
 ]
 
-// Delivery window by total size (USD), once add-ons push past a plain plan.
+// Delivery window by total size (USD), once a brief moves off a plain plan.
 const TIMELINES = [
   [600, '1 week'],
   [1200, '2 to 3 weeks'],
@@ -52,12 +51,11 @@ const TIMELINES = [
 // Fine-grained so a discount never visibly under-delivers what it advertises.
 const DISCOUNT_STEP = { NGN: 5000, USD: 5 }
 
-export const EMPTY_BRIEF = { type: '', features: [], brandKit: '', existing: '', maintenance: '', budget: '' }
+export const EMPTY_FIELDS = { type: '', brandKit: '', existing: '', maintenance: '', budget: '' }
 
 const TYPE_PLAN = Object.fromEntries(WEBSITE_TYPES)
 const BUDGET_CEILING = Object.fromEntries(BUDGETS)
-const FEATURES = briefFeatureGroups.flatMap((g) => g.items)
-const BY_LABEL = Object.fromEntries(FEATURES.map((f) => [f.label, f]))
+const BY_LABEL = Object.fromEntries(briefFeatureGroups.flatMap((g) => g.items).map((f) => [f.label, f]))
 
 // '₦500,000' -> 500000 | 'from $3,500' -> 3500
 function toNumber(price) {
@@ -72,36 +70,49 @@ function both(fn) {
   return Object.fromEntries(rateCard.currencies.map((c) => [c, fn(c)]))
 }
 
-function isIncluded(feature, plan) {
-  if (!plan || !feature.includedFrom) return false
-  return TIER_ORDER.indexOf(plan) >= TIER_ORDER.indexOf(feature.includedFrom)
-}
-
-// Picked features plus everything they depend on, recursively.
-// Map of label -> null when picked directly, or the label that pulled it in.
-function resolve(picked) {
-  const out = new Map()
-  picked.forEach((label) => out.set(label, null))
-  const visit = (label, by) => {
-    if (out.has(label)) return
-    out.set(label, by)
-    ;(BY_LABEL[label]?.requires || []).forEach((r) => visit(r, label))
-  }
-  picked.forEach((label) => (BY_LABEL[label]?.requires || []).forEach((r) => visit(r, label)))
-  return out
-}
-
 function brandingFor(brandKit) {
   if (/^no/i.test(brandKit)) return briefPricing.branding.full
   if (/^partial/i.test(brandKit)) return briefPricing.branding.partial
   return null
 }
 
-/** Reads the brief form into a plain object the pricing functions accept. */
-export function readBrief(formData) {
+/** The features a website type starts with: its plan's, then its own. */
+export function defaultsFor(type) {
+  const plan = TYPE_PLAN[type]
+  return [...new Set([...(briefPricing.planFeatures[plan] || []), ...(briefPricing.typeFeatures[type] || [])])]
+}
+
+/**
+ * When the website type changes, swap the old type's starting features for the
+ * new type's, keeping everything else the visitor ticked themselves.
+ */
+export function swapDefaults(picked, fromType, toType) {
+  const drop = new Set(defaultsFor(fromType))
+  return [...new Set([...picked.filter((f) => !drop.has(f)), ...defaultsFor(toType)])]
+}
+
+/**
+ * Everything that gets charged: what was ticked plus whatever that needs,
+ * recursively. Map of label -> null when ticked directly, or the label of the
+ * feature that needs it.
+ */
+export function resolveFeatures(picked) {
+  const out = new Map()
+  const known = picked.filter((f) => BY_LABEL[f])
+  known.forEach((f) => out.set(f, null))
+  const visit = (label, by) => {
+    if (out.has(label)) return
+    out.set(label, by)
+    ;(BY_LABEL[label]?.requires || []).forEach((r) => visit(r, label))
+  }
+  known.forEach((f) => (BY_LABEL[f].requires || []).forEach((r) => visit(r, f)))
+  return out
+}
+
+/** Reads the non-feature answers. Features are tracked as state, not read here. */
+export function readFields(formData) {
   return {
     type: formData.get('website_type') || '',
-    features: formData.getAll('features'),
     brandKit: formData.get('brand_kit') || '',
     existing: formData.get('existing_site') || '',
     maintenance: formData.get('maintenance') || '',
@@ -109,17 +120,29 @@ export function readBrief(formData) {
   }
 }
 
+/** A feature's own price, formatted. */
+export function featurePrice(label, currency) {
+  const f = BY_LABEL[label]
+  return f ? fmt(f.price[currency], currency) : ''
+}
+
 /**
- * Prices a brief.
- * @param {object} input  shape of EMPTY_BRIEF (see readBrief)
- * @param {string} code   a won game code, or '' for none
+ * Prices a brief. Returns null until there is something to price.
+ * @param {object}   fields  shape of EMPTY_FIELDS (see readFields)
+ * @param {string[]} picked  features the visitor has ticked
+ * @param {string}   code    a won game code, or '' for none
  */
-export function quote(input, code = '') {
-  const { type, features, brandKit, existing, maintenance, budget } = { ...EMPTY_BRIEF, ...input }
+export function quote(fields, picked, code = '') {
+  const { type, brandKit, existing, maintenance, budget } = { ...EMPTY_FIELDS, ...fields }
   const plan = TYPE_PLAN[type] || null
   const tier = plan ? rateCard.tiers.find((t) => t.name === plan) : null
+  const counted = resolveFeatures(picked)
+  if (!tier && !counted.size) return null
+
   const openEnded = Boolean(tier && /^from/i.test(String(tier.price.USD).trim()))
   const editsOnly = /just edits/i.test(existing)
+  const starting = new Set(defaultsFor(type))
+  const planFeatures = briefPricing.planFeatures[plan] || []
 
   const lines = []
   const sum = both(() => 0)
@@ -130,17 +153,16 @@ export function quote(input, code = '') {
 
   if (tier) {
     const rate = editsOnly ? briefPricing.editsOnlyRate : 1
-    add(`${plan} plan`, both((c) => toNumber(tier.price[c]) * rate), editsOnly ? 'Edits to an existing site, half rate' : '')
+    // Never negative, even if feature prices are edited above the plan price.
+    const base = both((c) =>
+      Math.max(0, toNumber(tier.price[c]) - planFeatures.reduce((s, f) => s + (BY_LABEL[f]?.price[c] || 0), 0)) * rate,
+    )
+    add(`${plan} base build`, base, editsOnly ? 'Edits to an existing site, half rate' : '')
   }
 
-  const addons = []
-  const autoAdded = []
-  for (const [label, by] of resolve(features.filter((f) => BY_LABEL[f]))) {
-    const feature = BY_LABEL[label]
-    if (isIncluded(feature, plan)) continue
-    add(label, feature.price, by ? `Needed for ${by}` : '')
-    addons.push(label)
-    if (by) autoAdded.push(label)
+  for (const [label, by] of counted) {
+    const note = by ? `Needed for ${by}` : starting.has(label) ? `Comes with ${plan}` : ''
+    add(label, BY_LABEL[label].price, note)
   }
 
   const brand = brandingFor(brandKit)
@@ -151,27 +173,31 @@ export function quote(input, code = '') {
     discounted ? Math.round((sum[c] * (1 - gameConfig.discountPct / 100)) / DISCOUNT_STEP[c]) * DISCOUNT_STEP[c] : sum[c],
   )
 
-  const prefix = openEnded ? 'from ' : ''
-  const extraCount = addons.length + (brand ? 1 : 0)
+  // How far the brief has moved off the plain plan, for the label and timeline.
+  const added = [...counted.keys()].filter((f) => !starting.has(f)).length + (brand ? 1 : 0)
+  const removed = [...starting].filter((f) => !counted.has(f)).length
+  const label = plan
+    ? plan + (added ? ` + ${added} add-on${added > 1 ? 's' : ''}` : '') + (removed ? `, ${removed} removed` : '')
+    : 'Features only'
   const timeline =
-    tier && !extraCount && !editsOnly ? tier.timeline : TIMELINES.find(([max]) => sum.USD <= max)[1]
+    tier && !added && !removed && !editsOnly ? tier.timeline : TIMELINES.find(([max]) => sum.USD <= max)[1]
 
+  const prefix = openEnded ? 'from ' : ''
+  const shown = both((c) => prefix + fmt(total[c], c))
   const ceiling = BUDGET_CEILING[budget]
   const monthly = /^(yes|maybe)/i.test(maintenance) ? both((c) => fmt(briefPricing.maintenance.price[c], c)) : null
-
-  const shown = both((c) => prefix + fmt(total[c], c))
-  const label = plan ? `${plan}${extraCount ? ` + ${extraCount} add-on${extraCount > 1 ? 's' : ''}` : ''}` : 'Add-ons'
+  const autoAdded = [...counted].filter(([, by]) => by).map(([l]) => l)
 
   return {
     plan,
     label,
     timeline,
+    counted, // Map label -> needed-by, drives which boxes show ticked
+    autoAdded,
     total: shown,
     listed: both((c) => prefix + fmt(sum[c], c)),
     saving: both((c) => '−' + fmt(sum[c] - total[c], c)),
-    raw: sum, // undiscounted numbers, used for per-option tags
     lines: lines.map((l) => ({ ...l, amount: both((c) => fmt(l.amount[c], c)) })),
-    autoAdded,
     discounted,
     overBudget: typeof ceiling === 'number' && ceiling !== Infinity && total.USD > ceiling,
     monthly,
@@ -184,40 +210,6 @@ export function quote(input, code = '') {
   }
 }
 
-/**
- * The price tag beside each feature, for THIS brief, in one currency:
- *   included  the plan already covers it, so it adds nothing
- *   add       ticked: what it costs. Unticked: what ticking it would add to the
- *             total, including anything it needs that is not counted yet
- *             (worked out by re-pricing, so it always matches the total)
- *   required  not ticked, but something ticked needs it, so it is already
- *             counted; its price shows in the breakdown
- * @returns {Record<string, {kind: 'add'|'included'|'required', text: string}>}
- */
-export function featureTags(input, currency) {
-  const base = { ...EMPTY_BRIEF, ...input }
-  const plan = TYPE_PLAN[base.type] || null
-  const picked = new Set(base.features)
-  const resolved = resolve([...picked].filter((f) => BY_LABEL[f]))
-  const now = quote(base).raw[currency]
-
-  const tags = {}
-  for (const feature of FEATURES) {
-    const { label } = feature
-    if (isIncluded(feature, plan)) {
-      tags[label] = { kind: 'included', text: 'Included' }
-    } else if (picked.has(label)) {
-      tags[label] = { kind: 'add', text: '+' + fmt(feature.price[currency], currency) }
-    } else if (resolved.has(label)) {
-      tags[label] = { kind: 'required', text: 'Auto-added' }
-    } else {
-      const delta = quote({ ...base, features: [...base.features, label] }).raw[currency] - now
-      tags[label] = { kind: 'add', text: '+' + fmt(delta, currency) }
-    }
-  }
-  return tags
-}
-
 // Tags for the priced radio answers.
 export function brandingTag(option, currency) {
   const b = brandingFor(option)
@@ -225,7 +217,7 @@ export function brandingTag(option, currency) {
 }
 
 export function existingTag(option) {
-  return /just edits/i.test(option) ? 'Half the plan price' : ''
+  return /just edits/i.test(option) ? 'Half the base build' : ''
 }
 
 export function maintenanceTag(option, currency) {
