@@ -210,6 +210,19 @@ export default function ProjectBrief() {
     return () => window.removeEventListener('weezie:open-brief', onOpen)
   }, [])
 
+  // A shared link to /#brief opens the brief straight away. The hash is then
+  // dropped, so closing the brief leaves a clean URL and the link works again.
+  useEffect(() => {
+    const fromHash = () => {
+      if (window.location.hash.toLowerCase() !== '#brief') return
+      window.dispatchEvent(new CustomEvent('weezie:open-brief'))
+      window.history.replaceState(null, '', window.location.pathname + window.location.search)
+    }
+    fromHash()
+    window.addEventListener('hashchange', fromHash)
+    return () => window.removeEventListener('hashchange', fromHash)
+  }, [])
+
   useEffect(() => {
     if (!open) return
     const onKey = (e) => { if (e.key === 'Escape') setOpen(false) }
