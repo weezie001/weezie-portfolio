@@ -1,10 +1,10 @@
-# Every crawler is welcome, including AI search and assistant tools.
+# Public portfolio and store pages are open to search and AI crawlers.
 User-agent: *
 Allow: /
-# Private client questionnaire, shared by link only.
 Disallow: /intake/
+Disallow: /api/
 
-# AI crawlers named explicitly, so they can see they are allowed in.
+# Generative search and assistant crawlers.
 User-agent: GPTBot
 User-agent: OAI-SearchBot
 User-agent: ChatGPT-User
@@ -15,5 +15,6 @@ User-agent: PerplexityBot
 User-agent: Google-Extended
 Allow: /
 Disallow: /intake/
+Disallow: /api/
 
 Sitemap: https://weezie.site/sitemap.xml

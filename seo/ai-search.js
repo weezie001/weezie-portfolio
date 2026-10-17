@@ -8,9 +8,15 @@
 //
 // index.html holds two placeholders that this plugin fills at dev and build
 // time. Edit content in src/data.js, never in the generated output.
-import { site, projects, services, rateCard, faqs, skills } from '../src/data.js'
+import { mkdir, readFile, writeFile } from 'node:fs/promises'
+import { resolve } from 'node:path'
+import { site, projects, services, rateCard, faqs, skills, storeProducts } from '../src/data.js'
 
 const URL = 'https://weezie.site/'
+const STORE_URL = `${URL}store/`
+const STORE_TITLE = 'Digital UI Kits, Templates & AI Packs | Enang Weezie'
+const STORE_DESCRIPTION =
+  'Browse production-ready website templates, React UI components, AI agents, workflows and design systems by Enang Weezie, a designer and developer in Abuja, Nigeria.'
 const ID = {
   person: URL + '#person',
   service: URL + '#service',
@@ -46,11 +52,9 @@ function planOffer(t) {
   }
 }
 
-export function jsonLd() {
+export function jsonLd(includeStore = false) {
   const usd = rateCard.tiers.map(t => toNumber(t.price.USD))
-  return {
-    '@context': 'https://schema.org',
-    '@graph': [
+  const graph = [
       {
         '@type': 'Person',
         '@id': ID.person,
@@ -115,8 +119,102 @@ export function jsonLd() {
         mainEntity: faqs.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
       },
       { '@type': 'WebSite', '@id': ID.website, url: URL, name: site.name, inLanguage: 'en', publisher: { '@id': ID.person } },
-    ],
+    ]
+
+  if (includeStore) {
+    graph.push(
+      {
+        '@type': 'CollectionPage',
+        '@id': `${STORE_URL}#page`,
+        url: STORE_URL,
+        name: STORE_TITLE,
+        description: STORE_DESCRIPTION,
+        isPartOf: { '@id': ID.website },
+        mainEntity: { '@id': `${STORE_URL}#products` },
+      },
+      {
+        '@type': 'ItemList',
+        '@id': `${STORE_URL}#products`,
+        name: 'Digital products by Enang Weezie',
+        numberOfItems: storeProducts.length,
+        itemListElement: storeProducts.map((product, index) => ({
+          '@type': 'ListItem',
+          position: index + 1,
+          item: {
+            '@type': 'Product',
+            name: product.title,
+            description: product.description,
+            category: product.category,
+            image: `${URL.replace(/\/$/, '')}${product.cover_image}`,
+            url: STORE_URL,
+            offers: [
+              { '@type': 'Offer', priceCurrency: 'USD', price: product.price_usd, url: STORE_URL, availability: 'https://schema.org/InStock' },
+              { '@type': 'Offer', priceCurrency: 'NGN', price: product.price_ngn, url: STORE_URL, availability: 'https://schema.org/InStock' },
+            ],
+          },
+        })),
+      },
+    )
   }
+
+  return { '@context': 'https://schema.org', '@graph': graph }
+}
+
+function escapeHtml(value) {
+  return esc(value).replace(/'/g, '&#39;')
+}
+
+function storeMirror() {
+  return `<noscript>
+    <main>
+      <h1>Digital UI Kits, Templates &amp; AI Packs</h1>
+      <p>${escapeHtml(STORE_DESCRIPTION)}</p>
+      <p><a href="/">Enang Weezie — designer and developer in Abuja, Nigeria</a></p>
+      <h2>Digital products</h2>
+      <ul>${storeProducts.map(product => `<li><strong>${escapeHtml(product.title)}</strong> — ${escapeHtml(product.category)}. ${escapeHtml(product.description)} Price: ${product.is_freebie ? 'Free' : `$${product.price_usd} USD or ₦${Number(product.price_ngn).toLocaleString('en-NG')} NGN`}.</li>`).join('')}</ul>
+      <p>Questions? Email <a href="mailto:${escapeHtml(site.email)}">${escapeHtml(site.email)}</a>.</p>
+    </main>
+  </noscript>`
+}
+
+function replaceMeta(html, attribute, key, replacement) {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+  const pattern = new RegExp(`<meta(?=[^>]*\\b${attribute}="${escapedKey}")[^>]*>`, 'i')
+  return html.replace(pattern, replacement)
+}
+
+function storeHtml(homeHtml) {
+  const title = escapeHtml(STORE_TITLE)
+  const description = escapeHtml(STORE_DESCRIPTION)
+  let html = homeHtml
+    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`)
+    .replace(/<link rel="canonical"[^>]*>/i, `<link rel="canonical" href="${STORE_URL}" />`)
+    .replace(/<noscript>[\s\S]*?<\/noscript>/i, storeMirror())
+
+  html = replaceMeta(html, 'name', 'description', `<meta name="description" content="${description}" />`)
+  html = replaceMeta(html, 'property', 'og:url', `<meta property="og:url" content="${STORE_URL}" />`)
+  html = replaceMeta(html, 'property', 'og:title', `<meta property="og:title" content="${title}" />`)
+  html = replaceMeta(html, 'property', 'og:description', `<meta property="og:description" content="${description}" />`)
+  html = replaceMeta(html, 'name', 'twitter:title', `<meta name="twitter:title" content="${title}" />`)
+  html = replaceMeta(html, 'name', 'twitter:description', `<meta name="twitter:description" content="${description}" />`)
+  html = html.replace(
+    /<script type="application\/ld\+json">[\s\S]*?<\/script>/i,
+    `<script type="application/ld+json">\n${JSON.stringify(jsonLd(true), null, 2).replace(/</g, '\\u003c')}\n    </script>`,
+  )
+  return html
+}
+
+function adminHtml(homeHtml) {
+  return homeHtml
+    .replace(/<title>[\s\S]*?<\/title>/i, '<title>Admin CRM | Enang Weezie</title>')
+    .replace(/<link rel="canonical"[^>]*>/i, '')
+    .replace(/<noscript>[\s\S]*?<\/noscript>/i, '<noscript><p>Admin sign-in requires JavaScript.</p></noscript>')
+    .replace('</head>', '<meta name="robots" content="noindex, nofollow" />\n  </head>')
+}
+
+function sitemap() {
+  const urls = [URL, STORE_URL, `${URL}privacy.html`]
+  return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(url => `  <url><loc>${url}</loc></url>`).join('\n')}\n</urlset>\n`
 }
 
 export function mirror() {
@@ -151,6 +249,7 @@ export function llmsTxt() {
     `> ${SUMMARY}`,
     '',
     `- Website: ${URL}`,
+    `- Digital products: ${STORE_URL}`,
     `- Email: ${site.email}`,
     '- GitHub: https://github.com/weezie001',
     `- Location: ${site.location}`,
@@ -170,6 +269,10 @@ export function llmsTxt() {
     '',
     ...projects.map(p => `- [${p.client}](${p.href}): ${p.tag}. ${p.desc}`),
     '',
+    '## Digital products',
+    '',
+    ...storeProducts.map(product => `- [${product.title}](${STORE_URL}): ${product.category}. ${product.description} ${product.is_freebie ? 'Free download.' : `Available for $${product.price_usd} USD or ₦${Number(product.price_ngn).toLocaleString('en-NG')} NGN.`}`),
+    '',
     '## Frequently asked questions',
     '',
     ...faqs.flatMap(f => [`### ${f.q}`, '', f.a, '']),
@@ -177,17 +280,25 @@ export function llmsTxt() {
 }
 
 export default function aiSearch() {
+  let outputDir
+  let command
+
   return {
     name: 'ai-search',
-    transformIndexHtml(html) {
+    configResolved(config) {
+      outputDir = resolve(config.root, config.build.outDir)
+      command = config.command
+    },
+    transformIndexHtml(html, ctx) {
       for (const mark of Object.values(MARK)) {
         if (!html.includes(mark)) throw new Error(`ai-search: placeholder ${mark} is missing from index.html`)
       }
       // < keeps a "<" in any string from ever closing the script tag early.
       const ld = JSON.stringify(jsonLd(), null, 2).replace(/</g, '\\u003c')
-      return html
+      const transformed = html
         .replace(MARK.jsonld, `<script type="application/ld+json">\n${ld}\n    </script>`)
         .replace(MARK.mirror, mirror())
+      return ctx.path.startsWith('/store') ? storeHtml(transformed) : transformed
     },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
@@ -198,6 +309,17 @@ export default function aiSearch() {
     },
     generateBundle() {
       this.emitFile({ type: 'asset', fileName: 'llms.txt', source: llmsTxt() })
+    },
+    async closeBundle() {
+      if (command !== 'build') return
+      const homeHtml = await readFile(resolve(outputDir, 'index.html'), 'utf8')
+      await mkdir(resolve(outputDir, 'store'), { recursive: true })
+      await mkdir(resolve(outputDir, 'admin'), { recursive: true })
+      await Promise.all([
+        writeFile(resolve(outputDir, 'store/index.html'), storeHtml(homeHtml)),
+        writeFile(resolve(outputDir, 'admin/index.html'), adminHtml(homeHtml)),
+        writeFile(resolve(outputDir, 'sitemap.xml'), sitemap()),
+      ])
     },
   }
 }

@@ -26,6 +26,59 @@ export default function App() {
   useReveal()
 
   useEffect(() => {
+    const isAdmin = path.startsWith('/admin')
+    const isStore = path.startsWith('/store')
+    const page = isAdmin
+      ? {
+          title: 'Admin CRM | Enang Weezie',
+          description: '',
+          canonical: '',
+          robots: 'noindex, nofollow',
+        }
+      : isStore
+        ? {
+            title: 'Digital UI Kits, Templates & AI Packs | Enang Weezie',
+            description:
+              'Browse production-ready website templates, React UI components, AI agents, workflows and design systems by Enang Weezie, a designer and developer in Abuja, Nigeria.',
+            canonical: 'https://weezie.site/store/',
+            robots: 'index, follow',
+          }
+        : {
+            title: 'Enang Weezie: Designer & Full-Stack Developer in Abuja, Nigeria',
+            description:
+              'Designer and full-stack developer in Abuja, Nigeria, working worldwide. Websites, e-commerce, fintech and investment platforms, web apps and AI tools, from $450.',
+            canonical: 'https://weezie.site/',
+            robots: 'index, follow',
+          }
+
+    document.title = page.title
+
+    const setMeta = (key, value, attribute = 'name') => {
+      let element = document.head.querySelector(`meta[${attribute}="${key}"]`)
+      if (!element) {
+        element = document.createElement('meta')
+        element.setAttribute(attribute, key)
+        document.head.appendChild(element)
+      }
+      if (value) element.setAttribute('content', value)
+      else element.remove()
+    }
+
+    const canonical = document.head.querySelector('link[rel="canonical"]')
+    if (canonical) {
+      if (page.canonical) canonical.setAttribute('href', page.canonical)
+      else canonical.remove()
+    }
+    setMeta('description', page.description)
+    setMeta('robots', page.robots)
+    setMeta('og:title', page.title, 'property')
+    setMeta('og:description', page.description, 'property')
+    setMeta('og:url', page.canonical, 'property')
+    setMeta('twitter:title', page.title)
+    setMeta('twitter:description', page.description)
+  }, [path])
+
+  useEffect(() => {
     const onPop = () => setPath(window.location.pathname)
     window.addEventListener('popstate', onPop)
     return () => window.removeEventListener('popstate', onPop)
