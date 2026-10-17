@@ -22,8 +22,12 @@ export function isAuthorizedAdmin(request, env) {
   const headerKey =
     request.headers.get('X-Admin-Key') ||
     (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
-  const expected = env?.ADMIN_PASSWORD || 'weezie-admin-2026'
-  return Boolean(headerKey && headerKey === expected)
+  // No fallback: if ADMIN_PASSWORD isn't set in Cloudflare, nobody gets in.
+  const expected = env?.ADMIN_PASSWORD
+  if (!expected || !headerKey || headerKey.length !== expected.length) return false
+  let diff = 0
+  for (let i = 0; i < expected.length; i++) diff |= headerKey.charCodeAt(i) ^ expected.charCodeAt(i)
+  return diff === 0
 }
 
 // Automatically ensures D1 tables exist and seeds initial store products on first run

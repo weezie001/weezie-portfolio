@@ -415,7 +415,7 @@ export default function AdminCRM({ onNavigate }) {
                 required
                 value={inputKey}
                 onChange={(e) => setInputKey(e.target.value)}
-                placeholder="Enter password (default: weezie-admin-2026)"
+                placeholder="Admin password"
                 className="w-full rounded-2xl bg-paper px-4 py-3.5 text-sm font-medium text-ink outline-none neu-inset focus:ring-2 focus:ring-blue/50"
               />
             </div>
