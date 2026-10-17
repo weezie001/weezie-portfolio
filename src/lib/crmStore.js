@@ -526,6 +526,7 @@ export async function postAdminAction(adminKey, payload) {
         website: p.website || '',
         niche: p.niche || '',
         custom_opener: p.custom_opener || '',
+        custom_subject: p.custom_subject || '',
         status: 'Pending',
         followup_count: 0,
         last_contacted_at: '',
@@ -548,21 +549,31 @@ export async function postAdminAction(adminKey, payload) {
     writeLocal(LS_KEYS.cold, list)
 
     const emails = readLocal(LS_KEYS.emails, [])
-    writeLocal(LS_KEYS.emails, [
-      {
-        id: Date.now(),
-        from_email: payload.from_email,
-        to_email: `Cold Campaign (${(payload.targets || []).length} prospects)`,
-        recipient_name: '',
-        subject: payload.subject,
-        body_text: payload.body,
-        email_type: isFollowup ? 'followup' : 'cold',
-        attachment_name: payload.attachment?.name || '',
-        status: 'sent',
-        created_at: new Date().toISOString(),
-      },
-      ...emails,
-    ])
+    const sentAt = new Date().toISOString()
+    const sentEmails = (payload.targets || [])
+      .filter((prospect) => prospect.email && prospect.status !== 'Unsubscribed')
+      .map((prospect, index) => {
+        const personalizedDraft = !isFollowup && prospect.custom_opener
+        const replaceTokens = (text) =>
+          String(text || '')
+            .replace(/\{\{\s*name\s*\}\}/gi, prospect.name || 'there')
+            .replace(/\{\{\s*business\s*\}\}/gi, prospect.business || 'your business')
+            .replace(/\{\{\s*website\s*\}\}/gi, prospect.website || 'your site')
+            .replace(/\{\{\s*niche\s*\}\}/gi, prospect.niche || 'your industry')
+        return {
+          id: Date.now() + index,
+          from_email: payload.from_email,
+          to_email: prospect.email,
+          recipient_name: prospect.name || '',
+          subject: replaceTokens(personalizedDraft ? prospect.custom_subject || payload.subject : payload.subject),
+          body_text: replaceTokens(personalizedDraft || payload.body),
+          email_type: isFollowup ? 'followup' : 'cold',
+          attachment_name: payload.attachment?.name || '',
+          status: 'sent',
+          created_at: sentAt,
+        }
+      })
+    writeLocal(LS_KEYS.emails, [...sentEmails, ...emails])
   } else if (action === 'delete_cold_prospect') {
     const list = readLocal(LS_KEYS.cold, []).filter((p) => p.id !== payload.id)
     writeLocal(LS_KEYS.cold, list)
@@ -628,6 +639,25 @@ export async function postAdminAction(adminKey, payload) {
       subject: `Quick idea for ${business}'s website`,
       pitch: `Hi ${name},\n\nI was checking out ${website || business} today — love what you're doing in the ${niche} space.\n\nI noticed 3 quick conversion upgrades that could help turn more visitors into paying clients:\n1. Adding an interactive quote/booking flow right below the hero section so visitors don't bounce.\n2. Tightening the mobile speed and headline hierarchy for first-time buyers.\n3. Adding structured AI search data so ChatGPT and Google rank ${business} higher.\n\nI'm Enang Weezie, a full-stack designer & developer (https://weezie.site). Would you be open to me sending over a quick 2-minute mockup of how this would look for ${business}?\n\nBest,\nEnang Weezie\nhttps://weezie.site`,
     }
+  }
+
+  if (action === 'generate_cold_drafts') {
+    const drafts = (payload.prospects || []).map((prospect) => {
+      const name = prospect.name || 'Founder'
+      const business = prospect.business || 'your business'
+      const niche = prospect.niche || 'your industry'
+      const website = prospect.website || ''
+      const subject = `A website idea for ${business}`
+      const body = `Hi ${name},\n\nFor a ${niche} business like ${business}, a clear path from first visit to inquiry can make a real difference. One useful idea to explore is making the main service and next step easy to find on mobile.${website ? `\n\nWith ${website} as your online home, one idea to explore is making your main service and next step easy to find on mobile. I would be happy to put together a focused mockup.` : '\n\nIf you are reviewing your website experience, I would be happy to put together a focused mockup.'}\n\nWould that be useful?\n\nIf this is not relevant, just let me know and I will not follow up.\n\nBest,\nEnang Weezie\nhttps://weezie.site`
+      return { ...prospect, email: String(prospect.email).toLowerCase(), subject, body }
+    })
+    const emails = new Set(drafts.map((draft) => draft.email))
+    const prospects = readLocal(LS_KEYS.cold, []).map((prospect) => {
+      const draft = drafts.find((item) => item.email === String(prospect.email).toLowerCase())
+      return draft ? { ...prospect, custom_subject: draft.subject, custom_opener: draft.body } : prospect
+    })
+    writeLocal(LS_KEYS.cold, prospects)
+    return { ok: true, draftedCount: emails.size, drafts, simulated: true }
   }
 
   return { ok: true, simulated: true }

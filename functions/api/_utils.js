@@ -155,6 +155,11 @@ export async function ensureDb(env) {
     )`),
   ])
 
+  const prospectColumns = await db.prepare('PRAGMA table_info(cold_prospects)').all()
+  if (!(prospectColumns.results || []).some((column) => column.name === 'custom_subject')) {
+    await db.prepare("ALTER TABLE cold_prospects ADD COLUMN custom_subject TEXT NOT NULL DEFAULT ''").run()
+  }
+
   const countRow = await db.prepare('SELECT COUNT(*) as count FROM products').first()
   if (!countRow || countRow.count === 0) {
     const inserts = storeProducts.map((p) =>

@@ -283,14 +283,16 @@ export async function onRequestPost({ request, env }) {
     // 7. Import Cold Prospects (CSV / Bulk list)
     if (action === 'import_cold_prospects') {
       const list = Array.isArray(body.prospects) ? body.prospects : []
+      if (list.length > 500) return json({ ok: false, error: 'Import up to 500 prospects at a time.' }, 400)
+      let importedCount = 0
       if (db && list.length > 0) {
         const stmts = list
-          .filter((p) => p.email && String(p.email).includes('@'))
+          .filter((p) => p.email && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(p.email)))
           .map((p) =>
             db
               .prepare(
-                `INSERT OR IGNORE INTO cold_prospects (name, email, business, website, niche, custom_opener, status)
-                 VALUES (?, ?, ?, ?, ?, ?, 'Pending')`,
+                `INSERT OR IGNORE INTO cold_prospects (name, email, business, website, niche, custom_opener, custom_subject, status)
+                 VALUES (?, ?, ?, ?, ?, ?, ?, 'Pending')`,
               )
               .bind(
                 String(p.name || 'Founder').trim(),
@@ -299,11 +301,95 @@ export async function onRequestPost({ request, env }) {
                 String(p.website || '').trim(),
                 String(p.niche || '').trim(),
                 String(p.custom_opener || '').trim(),
+                String(p.custom_subject || '').trim(),
               ),
           )
-        if (stmts.length > 0) await db.batch(stmts)
+        if (stmts.length > 0) {
+          const results = await db.batch(stmts)
+          importedCount = results.filter((result) => result?.meta?.changes > 0).length
+        }
       }
-      return json({ ok: true, importedCount: list.length })
+      return json({ ok: true, importedCount })
+    }
+
+    if (action === 'generate_cold_drafts') {
+      if (!db) return json({ ok: false, error: 'CRM database is unavailable.' }, 503)
+      const prospects = Array.isArray(body.prospects) ? body.prospects.slice(0, 10) : []
+      if (!prospects.length) return json({ ok: false, error: 'Select pending prospects to draft.' }, 400)
+
+      const cleanProspects = prospects
+        .filter((prospect) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(prospect.email || '')))
+        .map((prospect) => ({
+          name: String(prospect.name || 'Founder').trim().slice(0, 100),
+          email: String(prospect.email).trim().toLowerCase(),
+          business: String(prospect.business || 'your business').trim().slice(0, 120),
+          website: String(prospect.website || '').trim().slice(0, 200),
+          niche: String(prospect.niche || 'their industry').trim().slice(0, 120),
+        }))
+      if (!cleanProspects.length) return json({ ok: false, error: 'No valid prospects were selected.' }, 400)
+
+      let drafts = cleanProspects.map((prospect) => ({
+        email: prospect.email,
+        subject: `A website idea for ${prospect.business}`,
+        body: `Hi ${prospect.name},\n\nFor a ${prospect.niche} business like ${prospect.business}, a clear path from first visit to inquiry can make a real difference. One useful idea to explore is making the main service and next step easy to find on mobile.${prospect.website ? `\n\nWith ${prospect.website} as your online home, one idea to explore is making your main service and next step easy to find on mobile. I would be happy to put together a focused mockup.` : `\n\nIf you are reviewing your website experience, I would be happy to put together a focused mockup.`}\n\nWould that be useful?\n\nIf this is not relevant, just let me know and I will not follow up.\n\nBest,\nEnang Weezie\nhttps://weezie.site`,
+      }))
+
+      let usedAi = false
+      if (env?.AI) {
+        try {
+          const aiRes = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
+            messages: [
+              {
+                role: 'system',
+                content: 'Write concise, natural one-to-one business outreach drafts. Use only supplied facts; do not claim you visited a website or found issues. Return JSON only as {"drafts":[{"email":"...","subject":"...","body":"..."}]}.',
+              },
+              {
+                role: 'user',
+                content: `Write one distinct, polite, non-deceptive first-contact email for each prospect. Personalize using their name, business, niche, and website only as context. Offer one practical idea relevant to the niche, avoid invented observations/results, use a low-pressure question, and include a brief opt-out sentence. Return exactly one draft for each email in input order.\n${JSON.stringify(cleanProspects)}`,
+              },
+            ],
+            max_tokens: Math.min(2500, cleanProspects.length * 260),
+          })
+          const raw = String(aiRes?.response || '').trim()
+          const match = raw.match(/\{[\s\S]*\}/)
+          if (match) {
+            const parsed = JSON.parse(match[0])
+            if (Array.isArray(parsed.drafts)) {
+              const byEmail = new Map(parsed.drafts.map((draft) => [String(draft?.email || '').toLowerCase(), draft]))
+              drafts = drafts.map((fallback, index) => {
+                const generated = byEmail.get(cleanProspects[index].email)
+                if (!generated?.subject || !generated?.body) return fallback
+                const subject = String(generated.subject).trim()
+                const draftBody = String(generated.body).trim()
+                if (!subject || !draftBody) return fallback
+                usedAi = true
+                return {
+                  email: cleanProspects[index].email,
+                  subject: subject.slice(0, 180),
+                  body: draftBody.slice(0, 5000),
+                }
+              })
+            }
+          }
+        } catch (error) {
+          console.error('AI bulk draft generation failed; using personalized templates:', error)
+        }
+      }
+
+      const updates = drafts.map((draft) =>
+        db.prepare(
+          `UPDATE cold_prospects SET custom_subject = ?, custom_opener = ?
+           WHERE LOWER(email) = ? AND status = 'Pending'`,
+        ).bind(draft.subject, draft.body, draft.email),
+      )
+      const updateResults = await db.batch(updates)
+      const draftedCount = updateResults.filter((result) => result?.meta?.changes > 0).length
+      return json({
+        ok: true,
+        draftedCount,
+        usedAi,
+        drafts: drafts.map(({ email, subject, body }) => ({ email, subject, body })),
+      })
     }
 
     // 8. Send Cold Email or Follow-Up to Prospect(s)
@@ -319,10 +405,11 @@ export async function onRequestPost({ request, env }) {
       let sentCount = 0
       for (const t of targets) {
         if (!t.email || t.status === 'Unsubscribed') continue
-        const subj = subjectTpl
+        const personalizedDraft = !isFollowup && t.custom_opener
+        const subj = (personalizedDraft ? t.custom_subject || subjectTpl : subjectTpl)
           .replace(/\{\{\s*name\s*\}\}/gi, t.name || 'there')
           .replace(/\{\{\s*business\s*\}\}/gi, t.business || 'your website')
-        const msg = bodyTpl
+        const msg = (personalizedDraft || bodyTpl)
           .replace(/\{\{\s*name\s*\}\}/gi, t.name || 'there')
           .replace(/\{\{\s*business\s*\}\}/gi, t.business || 'your company')
           .replace(/\{\{\s*website\s*\}\}/gi, t.website || 'your site')

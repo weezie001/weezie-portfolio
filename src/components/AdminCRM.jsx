@@ -11,6 +11,7 @@ import {
   readFileAsBase64,
 } from '../lib/crmStore.js'
 import { analyzeSpamRisk } from '../lib/spamGuard.js'
+import { parseProspectCsv } from '../lib/prospectCsv.js'
 
 const STATUS_OPTIONS = ['New', 'Contacted', 'Quoted', 'Won', 'Archived']
 
@@ -78,6 +79,7 @@ export default function AdminCRM({ onNavigate }) {
   const [aiProspect, setAiProspect] = useState({ name: '', email: '', business: '', website: '', niche: '' })
   const [aiGenerating, setAiGenerating] = useState(false)
   const [csvText, setCsvText] = useState('')
+  const [draftGenerating, setDraftGenerating] = useState(false)
   const [coldFilter, setColdFilter] = useState('all') // 'all' | 'Pending' | 'Sent' | 'Follow-up 1' | 'Replied'
   const [coldSubject, setColdSubject] = useState('Quick idea for {{business}}')
   const [coldBody, setColdBody] = useState(
@@ -264,31 +266,24 @@ export default function AdminCRM({ onNavigate }) {
   // Cold Outreach Tool 2: CSV / Bulk Prospect Importer
   async function handleImportCSVText(e) {
     e.preventDefault()
-    const lines = csvText
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean)
-    const parsed = []
-    for (const line of lines) {
-      if (/^name\s*,\s*email/i.test(line)) continue // skip header row
-      const parts = line.split(',').map((s) => s.trim())
-      const emailPart = parts.find((p) => p.includes('@'))
-      if (!emailPart) continue
-      parsed.push({
-        name: parts[0] && !parts[0].includes('@') ? parts[0] : 'Founder',
-        email: emailPart,
-        business: parts[2] || parts[1] || 'your company',
-        website: parts[3] || '',
-        niche: parts[4] || 'digital business',
-      })
-    }
-    if (parsed.length === 0) {
-      setColdStatusMsg('❌ No valid emails found. Use format: Name, email@company.com, Business Name, https://site.com, Niche')
+    let parsed
+    try {
+      parsed = parseProspectCsv(csvText)
+    } catch (error) {
+      setColdStatusMsg(`❌ ${error.message}`)
       return
     }
-    await postAdminAction(adminKey, { action: 'import_cold_prospects', prospects: parsed })
+    if (parsed.length === 0) {
+      setColdStatusMsg('❌ No valid email addresses found. Include a name and email column, or use Name, email, Business, Website, Niche.')
+      return
+    }
+    const result = await postAdminAction(adminKey, { action: 'import_cold_prospects', prospects: parsed })
+    if (!result?.ok) {
+      setColdStatusMsg(`❌ ${result?.error || 'Could not import prospects.'}`)
+      return
+    }
     setCsvText('')
-    setColdStatusMsg(`✅ Imported ${parsed.length} prospects into your Cold Outreach pipeline!`)
+    setColdStatusMsg(`✅ Imported ${result.importedCount ?? parsed.length} prospects. Generate and review personalized drafts in the tracker before sending.`)
     setColdSubTab('tracker')
     loadDashboard()
   }
@@ -296,8 +291,52 @@ export default function AdminCRM({ onNavigate }) {
   async function handleCSVFileUpload(e) {
     const file = e.target.files?.[0]
     if (!file) return
-    const text = await file.text()
-    setCsvText(text)
+    try {
+      setCsvText(await file.text())
+      setColdStatusMsg(`Loaded ${file.name}. Review the rows, then import to your pipeline.`)
+    } catch (error) {
+      setColdStatusMsg(`❌ Could not read ${file.name}: ${error.message}`)
+    } finally {
+      e.target.value = ''
+    }
+  }
+
+  async function handleGenerateBulkDrafts(targets) {
+    const prospects = targets.filter((prospect) => prospect.status === 'Pending' && !prospect.custom_opener)
+    if (prospects.length === 0) {
+      setColdStatusMsg('All selected pending prospects already have drafts.')
+      return
+    }
+
+    setDraftGenerating(true)
+    let drafted = 0
+    let failed = 0
+    let failureMessage = ''
+    try {
+      for (let index = 0; index < prospects.length; index += 10) {
+        setColdStatusMsg(`Drafting personalized emails: ${Math.min(index + 10, prospects.length)} of ${prospects.length}…`)
+        const result = await postAdminAction(adminKey, {
+          action: 'generate_cold_drafts',
+          prospects: prospects.slice(index, index + 10),
+        })
+        if (!result?.ok) {
+          failed = prospects.length - index
+          failureMessage = result?.error || 'The server could not generate this batch.'
+          break
+        }
+        drafted += result.draftedCount || 0
+      }
+      await loadDashboard()
+      setColdStatusMsg(
+        failed
+          ? `⚠️ Drafted ${drafted}; ${failed} could not be drafted. ${failureMessage}`
+          : `✅ ${drafted} personalized drafts are ready to review. Nothing was sent.`,
+      )
+    } catch (error) {
+      setColdStatusMsg(`❌ Draft generation failed: ${error.message}`)
+    } finally {
+      setDraftGenerating(false)
+    }
   }
 
   // Cold Outreach Tool 3: Send Cold Campaign or Follow-Up
@@ -454,6 +493,7 @@ export default function AdminCRM({ onNavigate }) {
 
   const coldList = Array.isArray(data.coldProspects) ? data.coldProspects : []
   const filteredCold = coldList.filter((p) => coldFilter === 'all' || p.status === coldFilter)
+  const needsDraftList = coldList.filter((p) => p.status === 'Pending' && !p.custom_opener)
   const needsFollowupList = coldList.filter((p) => p.status === 'Sent' || p.status === 'Follow-up 1')
 
   const filteredLeads = data.leads.filter((l) => sourceFilter === 'all' || l.source === sourceFilter)
@@ -792,16 +832,32 @@ export default function AdminCRM({ onNavigate }) {
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h3 className="display text-xl text-ink">3. Prospect &amp; Follow-Up Tracker</h3>
-                      {needsFollowupList.length > 0 && (
+                      <div className="flex flex-wrap gap-2">
+                        {needsDraftList.length > 0 && (
+                          <button
+                            type="button"
+                            disabled={draftGenerating}
+                            onClick={() => handleGenerateBulkDrafts(needsDraftList)}
+                            className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60"
+                          >
+                            {draftGenerating ? 'Drafting…' : `Draft ${needsDraftList.length} Personalized Emails ✨`}
+                          </button>
+                        )}
+                        {needsFollowupList.length > 0 && (
                         <button
                           type="button"
+                          disabled={draftGenerating}
                           onClick={() => handleSendColdToTargets(needsFollowupList, true)}
-                          className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em]"
+                          className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60"
                         >
                           Send 1-Click Follow-Up to {needsFollowupList.length} Unreplied ↻
                         </button>
-                      )}
+                        )}
+                      </div>
                     </div>
+                    <p className="mt-2 text-xs font-medium text-ink-soft">
+                      Generate drafts from each prospect&rsquo;s details, review them below, then send individually. Drafting never sends email.
+                    </p>
 
                     <div className="mt-3 flex flex-wrap gap-1.5">
                       {['all', 'Pending', 'Sent', 'Follow-up 1', 'Replied', 'Unsubscribed'].map((st) => (
@@ -837,12 +893,22 @@ export default function AdminCRM({ onNavigate }) {
                                 {p.name} · {p.business || p.email}
                               </p>
                               <p className="text-[11px] font-medium text-ink-soft">{p.email}</p>
+                              {p.custom_opener && (
+                                <details className="mt-2 max-w-xl rounded-xl bg-paper p-3 neu-inset">
+                                  <summary className="cursor-pointer text-[10px] font-bold uppercase tracking-[0.08em] text-blue">
+                                    Review personalized draft
+                                  </summary>
+                                  <p className="mt-2 text-xs font-bold text-ink">{p.custom_subject || `A website idea for ${p.business || 'your business'}`}</p>
+                                  <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-soft">{p.custom_opener}</p>
+                                </details>
+                              )}
                             </div>
                             <div className="flex gap-1.5">
                               <button
                                 type="button"
+                                disabled={draftGenerating}
                                 onClick={() => handleSendColdToTargets([p], p.status !== 'Pending')}
-                                className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase"
+                                className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60"
                               >
                                 {p.status === 'Pending' ? 'Send Cold ✉️' : 'Follow Up ↻'}
                               </button>
@@ -937,13 +1003,14 @@ export default function AdminCRM({ onNavigate }) {
                   <div className="mt-2 flex flex-wrap gap-2">
                     <button
                       type="button"
+                      disabled={draftGenerating}
                       onClick={() =>
                         handleSendColdToTargets(
                           coldList.filter((p) => p.status === 'Pending'),
                           false,
                         )
                       }
-                      className="btn-gradient rounded-full px-6 py-3.5 text-xs font-bold uppercase tracking-[0.12em]"
+                      className="btn-gradient rounded-full px-6 py-3.5 text-xs font-bold uppercase tracking-[0.12em] disabled:opacity-60"
                     >
                       Send to All Pending Prospects ({coldList.filter((p) => p.status === 'Pending').length}) →
                     </button>

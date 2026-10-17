@@ -66,6 +66,21 @@ The CRM keeps the received message; the Gmail alert is only a preview and
 should not be used to reply. If the alert cannot be sent, Cloudflare logs the
 failure while the message remains saved in the CRM.
 
+## Personalized CRM outreach drafts
+
+In the CRM's CSV / Bulk Prospect Importer, upload or paste a CSV with an email
+column and optional name, business, website and niche columns. Header names
+such as `contact`, `company`, `url` and `industry` are also recognized. Headerless
+rows can use `Name, email, Business, Website, Niche`; quoted fields and commas
+inside quotes are supported. Imports are limited to 500 prospects per request.
+
+After importing, open the prospect tracker and choose **Draft Personalized
+Emails**. Drafts are generated in small batches, saved to each pending prospect
+for review, and are never sent automatically. Open **Review personalized
+draft** on a prospect to inspect its subject and message; sending that prospect
+uses its saved draft. Cloudflare AI personalizes drafts when configured, with
+contextual templates as a fallback.
+
 ## Editing content
 
 Almost everything — copy, projects, social links, testimonials and the game
