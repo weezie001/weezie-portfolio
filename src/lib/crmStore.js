@@ -413,39 +413,41 @@ export async function fetchAdminDashboard(adminKey) {
     if (res.status === 401) {
       return { ok: false, unauthorized: true, error: 'Incorrect admin password.' }
     }
-    if (res.ok) {
-      const data = await res.json()
+    if (!res.headers.get('content-type')?.includes('application/json')) {
       return {
-        ...data,
-        leads: data.leads?.length ? data.leads : readLocal(LS_KEYS.leads, []),
-        products: data.products?.length ? data.products : readLocal(LS_KEYS.products, seedProducts),
-        orders: data.orders?.length ? data.orders : readLocal(LS_KEYS.orders, []),
-        emails: data.emails?.length ? data.emails : readLocal(LS_KEYS.emails, []),
-        inbox: data.inbox?.length ? data.inbox : defaultInbox,
-        coldProspects: data.coldProspects?.length ? data.coldProspects : readLocal(LS_KEYS.cold, []),
-        uploadedFiles: data.uploadedFiles?.length ? data.uploadedFiles : readLocal(LS_KEYS.files, []),
+        ok: false,
+        error: import.meta.env.DEV
+          ? 'The Vite preview does not run the admin API. Use `npm run dev:pages` to test admin locally.'
+          : 'The admin API returned an unexpected response. Check the Cloudflare Pages deployment.',
       }
     }
-  } catch {
-    /* fallback to local in dev */
-  }
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null)
+      return {
+        ok: false,
+        error: errorData?.error || `Admin API returned HTTP ${res.status}.`,
+      }
+    }
 
-  if (adminKey !== 'weezie-admin-2026' && adminKey.length < 4) {
-    return { ok: false, unauthorized: true, error: 'Enter your admin password (default in local dev: weezie-admin-2026).' }
-  }
-
-  return {
-    ok: true,
-    d1Connected: false,
-    brevoConfigured: false,
-    paystackConfigured: Boolean(getPaystackPublicKey()),
-    leads: readLocal(LS_KEYS.leads, []),
-    products: readLocal(LS_KEYS.products, seedProducts),
-    orders: readLocal(LS_KEYS.orders, []),
-    emails: readLocal(LS_KEYS.emails, []),
-    inbox: defaultInbox,
-    coldProspects: readLocal(LS_KEYS.cold, []),
-    uploadedFiles: readLocal(LS_KEYS.files, []),
+    const data = await res.json()
+    return {
+      ...data,
+      leads: data.leads?.length ? data.leads : readLocal(LS_KEYS.leads, []),
+      products: data.products?.length ? data.products : readLocal(LS_KEYS.products, seedProducts),
+      orders: data.orders?.length ? data.orders : readLocal(LS_KEYS.orders, []),
+      emails: data.emails?.length ? data.emails : readLocal(LS_KEYS.emails, []),
+      inbox: data.inbox?.length ? data.inbox : defaultInbox,
+      coldProspects: data.coldProspects?.length ? data.coldProspects : readLocal(LS_KEYS.cold, []),
+      uploadedFiles: data.uploadedFiles?.length ? data.uploadedFiles : readLocal(LS_KEYS.files, []),
+    }
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : 'Unknown network error'
+    return {
+      ok: false,
+      error: import.meta.env.DEV
+        ? `Could not reach the admin API. Run \`npm run dev:pages\` for local admin access. (${detail})`
+        : `Could not reach the admin API. Check your connection and try again. (${detail})`,
+    }
   }
 }
 

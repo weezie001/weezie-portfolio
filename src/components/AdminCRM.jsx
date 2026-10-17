@@ -478,11 +478,11 @@ export default function AdminCRM({ onNavigate }) {
 
           <div className="flex flex-wrap items-center gap-3">
             <a
-              href="/store"
+              href="/store/"
               onClick={(e) => {
                 if (onNavigate) {
                   e.preventDefault()
-                  onNavigate('/store')
+                  onNavigate('/store/')
                 }
               }}
               className="neu-hover rounded-full bg-paper px-4 py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-ink neu-sm"

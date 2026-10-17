@@ -31,6 +31,20 @@ npm run build    # production build → dist/
 npm run preview  # preview the production build locally
 ```
 
+The Vite dev server is for frontend work and does not run Cloudflare Pages
+Functions, so admin login and `/api/*` features are unavailable there. To test
+the admin locally with its real API, copy `.dev.vars.example` to `.dev.vars`,
+set a private local `ADMIN_PASSWORD`, then run:
+
+```bash
+npm run dev:pages # build and run Pages + Functions → http://localhost:8788
+```
+
+This uses Wrangler's local D1 database; it does not connect to the production
+database. AI features still use the configured Cloudflare AI binding and may
+incur usage. For access from another device on your network, open
+`http://<computer-ip>:8788/admin/`.
+
 ## Editing content
 
 Almost everything — copy, projects, social links, testimonials and the game

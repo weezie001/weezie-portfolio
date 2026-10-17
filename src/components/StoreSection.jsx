@@ -291,11 +291,11 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
               ← Back to Portfolio
             </a>
             <a
-              href="/admin"
+              href="/admin/"
               onClick={(e) => {
                 if (onNavigate) {
                   e.preventDefault()
-                  onNavigate('/admin')
+                  onNavigate('/admin/')
                 }
               }}
               className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft hover:text-blue"
@@ -432,11 +432,11 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
               </p>
             </div>
             <a
-              href="/store"
+              href="/store/"
               onClick={(e) => {
                 if (onNavigate) {
                   e.preventDefault()
-                  onNavigate('/store')
+                  onNavigate('/store/')
                 }
               }}
               className="btn-gradient shrink-0 rounded-full px-7 py-3.5 text-xs font-bold uppercase tracking-[0.12em]"
