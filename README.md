@@ -71,8 +71,10 @@ failure while the message remains saved in the CRM.
 In the CRM's CSV / Bulk Prospect Importer, upload or paste a CSV with an email
 column and optional name, business, website and niche columns. Header names
 such as `contact`, `company`, `url` and `industry` are also recognized. Headerless
-rows can use `Name, email, Business, Website, Niche`; quoted fields and commas
-inside quotes are supported. Imports are limited to 500 prospects per request.
+rows can include extra columns (including numeric IDs); the importer locates
+the email and uses nearby values for the name, business, website and niche.
+Quoted fields and commas inside quotes are supported. Imports are limited to
+500 prospects per request.
 
 After importing, open the prospect tracker and choose **Draft Personalized
 Emails**. Drafts are generated in small batches, saved to each pending prospect
@@ -80,6 +82,10 @@ for review, and are never sent automatically. Open **Review personalized
 draft** on a prospect to inspect its subject and message; sending that prospect
 uses its saved draft. Cloudflare AI personalizes drafts when configured, with
 contextual templates as a fallback.
+
+Bulk sends are manual and limited to one batch at a time. In the tracker,
+choose a batch size (5, 10, 25 or 50) and click **Send Next Batch**; sent
+prospects leave the pending queue. Follow-ups are also sent in batches.
 
 ## Editing content
 

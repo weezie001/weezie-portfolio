@@ -1,10 +1,13 @@
 const FIELD_ALIASES = {
-  name: ['name', 'contact', 'contact name', 'full name', 'first name', 'person'],
-  email: ['email', 'e-mail', 'email address'],
-  business: ['business', 'company', 'company name', 'business name', 'brand'],
-  website: ['website', 'site', 'url', 'website url', 'domain'],
-  niche: ['niche', 'industry', 'sector', 'category'],
+  name: ['name', 'contact', 'contact name', 'full name', 'first name', 'person', 'owner', 'owner name'],
+  email: ['email', 'e-mail', 'email address', 'e-mail address', 'contact email', 'business email', 'email id'],
+  business: ['business', 'company', 'company name', 'business name', 'brand', 'organization', 'organisation'],
+  website: ['website', 'site', 'url', 'website url', 'domain', 'web address'],
+  niche: ['niche', 'industry', 'sector', 'category', 'business type'],
 }
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const URL_PATTERN = /^(?:https?:\/\/)?(?:www\.)?[\w-]+(?:\.[\w-]+)+(?:[/:?#].*)?$/i
 
 function parseRows(text) {
   const rows = []
@@ -46,7 +49,33 @@ function parseRows(text) {
 }
 
 function findHeaderIndex(headers, field) {
-  return headers.findIndex((header) => FIELD_ALIASES[field].includes(header.trim().toLowerCase()))
+  const normalize = (value) => value.toLowerCase().replace(/[_-]+/g, ' ').replace(/[^a-z0-9 ]/g, ' ').replace(/\s+/g, ' ').trim()
+  const aliases = FIELD_ALIASES[field].map(normalize)
+  return headers.findIndex((header) => aliases.includes(normalize(header)))
+}
+
+function inferHeaderlessRecord(record) {
+  const values = record.map((value) => String(value || '').trim())
+  const emailIndex = values.findIndex((value) => EMAIL_PATTERN.test(value))
+  if (emailIndex < 0) return null
+
+  const email = values[emailIndex].toLowerCase()
+  const beforeEmail = values.slice(0, emailIndex).filter((value) => value && !/^\d+$/.test(value))
+  const afterEmail = values.slice(emailIndex + 1).filter(Boolean)
+  const websiteIndex = afterEmail.findIndex((value) => URL_PATTERN.test(value))
+  const website = websiteIndex >= 0 ? afterEmail[websiteIndex] : ''
+  const business = afterEmail.find((value) => value !== website && !/^\d+$/.test(value)) || ''
+  const remaining = afterEmail.filter((value) => value !== website && value !== business && !/^\d+$/.test(value))
+  const name = beforeEmail[beforeEmail.length - 1] || ''
+  const niche = remaining[0] || ''
+
+  return {
+    name: name || 'Founder',
+    email,
+    business: business || email.split('@')[1].split('.')[0],
+    website,
+    niche,
+  }
 }
 
 export function parseProspectCsv(input) {
@@ -57,13 +86,18 @@ export function parseProspectCsv(input) {
     Object.keys(FIELD_ALIASES).map((field) => [field, findHeaderIndex(rows[0], field)]),
   )
   const hasHeader = headerIndexes.email >= 0
-  const records = hasHeader ? rows.slice(1) : rows
+  if (!hasHeader) return rows.flatMap((record) => {
+    const prospect = inferHeaderlessRecord(record)
+    return prospect ? [prospect] : []
+  })
+
+  const records = rows.slice(1)
   const indexFor = {
-    name: hasHeader ? headerIndexes.name : 0,
-    email: hasHeader ? headerIndexes.email : 1,
-    business: hasHeader ? headerIndexes.business : 2,
-    website: hasHeader ? headerIndexes.website : 3,
-    niche: hasHeader ? headerIndexes.niche : 4,
+    name: headerIndexes.name,
+    email: headerIndexes.email,
+    business: headerIndexes.business,
+    website: headerIndexes.website,
+    niche: headerIndexes.niche,
   }
 
   return records.flatMap((record) => {
@@ -72,7 +106,7 @@ export function parseProspectCsv(input) {
       return index >= 0 ? String(record[index] || '').trim() : ''
     }
     const email = value('email').toLowerCase()
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return []
+    if (!EMAIL_PATTERN.test(email)) return []
 
     return [{
       name: value('name') || 'Founder',

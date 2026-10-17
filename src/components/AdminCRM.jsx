@@ -80,6 +80,8 @@ export default function AdminCRM({ onNavigate }) {
   const [aiGenerating, setAiGenerating] = useState(false)
   const [csvText, setCsvText] = useState('')
   const [draftGenerating, setDraftGenerating] = useState(false)
+  const [coldSending, setColdSending] = useState(false)
+  const [coldBatchSize, setColdBatchSize] = useState(10)
   const [coldFilter, setColdFilter] = useState('all') // 'all' | 'Pending' | 'Sent' | 'Follow-up 1' | 'Replied'
   const [coldSubject, setColdSubject] = useState('Quick idea for {{business}}')
   const [coldBody, setColdBody] = useState(
@@ -349,26 +351,33 @@ export default function AdminCRM({ onNavigate }) {
       setColdStatusMsg('❌ No prospects in this filter to send to.')
       return
     }
+    setColdSending(true)
     setColdStatusMsg(`Sending ${isFollowup ? 'follow-up' : 'cold email'} to ${targets.length} prospect(s)…`)
     const useSubject = isFollowup && !coldSubject.startsWith('Re:') ? `Re: ${coldSubject}` : coldSubject
     const useBody = isFollowup
       ? `Hi {{name}},\n\nJust floating this to the top of your inbox in case you missed my note earlier this week about {{business}}.\n\nWould you be open to me sending over a quick 2-minute mockup showing the 3 conversion upgrades on your site?\n\nBest,\nEnang Weezie\nhttps://weezie.site`
       : coldBody
 
-    const res = await postAdminAction(adminKey, {
-      action: 'send_cold_campaign',
-      from_email: 'enang@weezie.site',
-      subject: useSubject,
-      body: useBody,
-      is_followup: isFollowup,
-      attachment: coldAttachment,
-      targets,
-    })
-    if (res?.ok) {
-      setColdStatusMsg(`✅ Sent ${isFollowup ? 'Follow-up' : 'Cold Campaign'} from enang@weezie.site to ${res.sentCount ?? targets.length} prospect(s)!`)
-      loadDashboard()
-    } else {
-      setColdStatusMsg(`❌ ${res?.error || 'Failed to send cold campaign'}`)
+    try {
+      const res = await postAdminAction(adminKey, {
+        action: 'send_cold_campaign',
+        from_email: 'enang@weezie.site',
+        subject: useSubject,
+        body: useBody,
+        is_followup: isFollowup,
+        attachment: coldAttachment,
+        targets,
+      })
+      if (res?.ok) {
+        setColdStatusMsg(`✅ Sent ${isFollowup ? 'Follow-up' : 'Cold Campaign'} from enang@weezie.site to ${res.sentCount ?? targets.length} prospect(s)!`)
+        await loadDashboard()
+      } else {
+        setColdStatusMsg(`❌ ${res?.error || 'Failed to send cold campaign'}`)
+      }
+    } catch (error) {
+      setColdStatusMsg(`❌ Send failed: ${error.message}`)
+    } finally {
+      setColdSending(false)
     }
   }
 
@@ -494,7 +503,8 @@ export default function AdminCRM({ onNavigate }) {
   const coldList = Array.isArray(data.coldProspects) ? data.coldProspects : []
   const filteredCold = coldList.filter((p) => coldFilter === 'all' || p.status === coldFilter)
   const needsDraftList = coldList.filter((p) => p.status === 'Pending' && !p.custom_opener)
-  const needsFollowupList = coldList.filter((p) => p.status === 'Sent' || p.status === 'Follow-up 1')
+  const needsFollowupList = coldList.filter((p) => p.status === 'Sent')
+  const pendingColdList = coldList.filter((p) => p.status === 'Pending')
 
   const filteredLeads = data.leads.filter((l) => sourceFilter === 'all' || l.source === sourceFilter)
   const totalNgnRevenue = data.orders
@@ -803,8 +813,8 @@ export default function AdminCRM({ onNavigate }) {
                   <form onSubmit={handleImportCSVText} className="flex flex-col gap-3.5">
                     <h3 className="display text-xl text-ink">2. CSV / Bulk Prospect Importer</h3>
                     <p className="text-xs font-medium text-ink-soft">
-                      Upload a `.csv` file or paste rows below in the format:{' '}
-                      <code>Name, email@domain.com, Business Name, https://website.com, Niche</code>
+                      Upload or paste a CSV with an email column. Name, business, website and industry columns are optional;
+                      extra columns such as IDs are ignored. Headerless rows are also supported when an email is present.
                     </p>
                     <div>
                       <label className="neu-hover inline-block cursor-pointer rounded-full bg-paper px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-blue neu-sm">
@@ -816,7 +826,7 @@ export default function AdminCRM({ onNavigate }) {
                       rows="7"
                       value={csvText}
                       onChange={(e) => setCsvText(e.target.value)}
-                      placeholder={`David Mark, david@skylinebuilders.com, Skyline Builders, https://skylinebuilders.com, Construction\nSarah Cole, sarah@velvetglow.co, Velvet Glow, https://velvetglow.co, E-commerce`}
+                      placeholder={`ID,Contact Name,Email,Company,Website,Industry\n5,Matt Meline,matt@example.com,Allgreen Tree Service,https://allgreen.example,Landscaping`}
                       className="w-full rounded-xl bg-paper p-3.5 font-mono text-xs text-ink outline-none neu-inset"
                     />
                     <button
@@ -832,11 +842,23 @@ export default function AdminCRM({ onNavigate }) {
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h3 className="display text-xl text-ink">3. Prospect &amp; Follow-Up Tracker</h3>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <label className="flex items-center gap-2 text-[10px] font-bold uppercase text-ink-soft">
+                          Batch size
+                          <select
+                            value={coldBatchSize}
+                            onChange={(event) => setColdBatchSize(Number(event.target.value))}
+                            className="rounded-full bg-paper px-3 py-2 text-xs text-ink neu-sm"
+                          >
+                            {[5, 10, 25, 50].map((size) => (
+                              <option key={size} value={size}>{size}</option>
+                            ))}
+                          </select>
+                        </label>
                         {needsDraftList.length > 0 && (
                           <button
                             type="button"
-                            disabled={draftGenerating}
+                            disabled={draftGenerating || coldSending}
                             onClick={() => handleGenerateBulkDrafts(needsDraftList)}
                             className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60"
                           >
@@ -846,12 +868,22 @@ export default function AdminCRM({ onNavigate }) {
                         {needsFollowupList.length > 0 && (
                         <button
                           type="button"
-                          disabled={draftGenerating}
-                          onClick={() => handleSendColdToTargets(needsFollowupList, true)}
+                          disabled={draftGenerating || coldSending}
+                          onClick={() => handleSendColdToTargets(needsFollowupList.slice(0, coldBatchSize), true)}
                           className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60"
                         >
-                          Send 1-Click Follow-Up to {needsFollowupList.length} Unreplied ↻
+                          Send Next Follow-Up Batch ({Math.min(needsFollowupList.length, coldBatchSize)} of {needsFollowupList.length}) ↻
                         </button>
+                        )}
+                        {pendingColdList.length > 0 && (
+                          <button
+                            type="button"
+                            disabled={draftGenerating || coldSending}
+                            onClick={() => handleSendColdToTargets(pendingColdList.slice(0, coldBatchSize), false)}
+                            className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60"
+                          >
+                            Send Next Batch ({Math.min(pendingColdList.length, coldBatchSize)} of {pendingColdList.length}) →
+                          </button>
                         )}
                       </div>
                     </div>
@@ -906,7 +938,7 @@ export default function AdminCRM({ onNavigate }) {
                             <div className="flex gap-1.5">
                               <button
                                 type="button"
-                                disabled={draftGenerating}
+                                disabled={draftGenerating || coldSending}
                                 onClick={() => handleSendColdToTargets([p], p.status !== 'Pending')}
                                 className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60"
                               >
@@ -1000,21 +1032,6 @@ export default function AdminCRM({ onNavigate }) {
 
                   {coldStatusMsg && <p className="text-xs font-bold text-blue">{coldStatusMsg}</p>}
 
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    <button
-                      type="button"
-                      disabled={draftGenerating}
-                      onClick={() =>
-                        handleSendColdToTargets(
-                          coldList.filter((p) => p.status === 'Pending'),
-                          false,
-                        )
-                      }
-                      className="btn-gradient rounded-full px-6 py-3.5 text-xs font-bold uppercase tracking-[0.12em] disabled:opacity-60"
-                    >
-                      Send to All Pending Prospects ({coldList.filter((p) => p.status === 'Pending').length}) →
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>

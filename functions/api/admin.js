@@ -401,6 +401,9 @@ export async function onRequestPost({ request, env }) {
       const isFollowup = Boolean(body.is_followup)
       const attachment = body.attachment || null
       const targets = Array.isArray(body.targets) ? body.targets : []
+      if (targets.length > 50) {
+        return json({ ok: false, error: 'Send no more than 50 prospects per batch.' }, 400)
+      }
 
       let sentCount = 0
       for (const t of targets) {
