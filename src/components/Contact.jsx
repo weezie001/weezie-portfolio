@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { site, gameConfig } from '../data.js'
 import { DoodleScatter } from './Doodles.jsx'
 import { ev } from '../lib/analytics.js'
+import { submitLeadToCRM } from '../lib/crmStore.js'
 
 const RPS_KEY = 'weezie_rps_v4'
 
@@ -54,23 +55,38 @@ export default function Contact() {
     if (code) data.set('discount_code', code)
     data.set('_subject', `New project inquiry from ${data.get('name')}`)
 
-    // No backend configured → open the visitor's mail app instead.
-    if (!site.formEndpoint) {
-      ev('form_submit', { via: 'mailto', hasDiscount: Boolean(code) })
-      return mailtoFallback(data)
-    }
-
     setStatus('sending')
     try {
-      const res = await fetch(site.formEndpoint, {
-        method: 'POST',
-        body: data,
-        headers: { Accept: 'application/json' },
+      // Save directly to weezie.site D1 CRM database + trigger Brevo confirmation email
+      const crmRes = await submitLeadToCRM({
+        name: data.get('name'),
+        email: data.get('email'),
+        source: 'contact',
+        discount_code: code || '',
+        message: data.get('message'),
       })
-      if (res.ok) {
-        ev('form_submit', { via: 'formspree', hasDiscount: Boolean(code) })
+
+      // Also forward to Formspree if configured
+      let fsOk = false
+      if (site.formEndpoint) {
+        try {
+          const res = await fetch(site.formEndpoint, {
+            method: 'POST',
+            body: data,
+            headers: { Accept: 'application/json' },
+          })
+          fsOk = res.ok
+        } catch {
+          /* ignore if CRM succeeded */
+        }
+      }
+
+      if (crmRes?.ok || fsOk) {
+        ev('form_submit', { via: 'crm', hasDiscount: Boolean(code) })
         setStatus('ok')
         form.reset()
+      } else if (!site.formEndpoint) {
+        return mailtoFallback(data)
       } else {
         ev('form_error', { stage: 'response' })
         setStatus('error')

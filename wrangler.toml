@@ -1,0 +1,13 @@
+name = "weezie-site"
+pages_build_output_dir = "dist"
+compatibility_date = "2025-04-01"
+
+# Cloudflare Workers AI binding (used by /api/ai for Website Auditor & Project Architect)
+[ai]
+binding = "AI"
+
+# Connected to your live Cloudflare D1 Database (weezie-db)
+[[d1_databases]]
+binding = "DB"
+database_name = "weezie-db"
+database_id = "54922fe1-4328-416f-90c7-6cfb04ed0b6d"

@@ -10,6 +10,7 @@ import {
   EMPTY_FIELDS,
 } from '../lib/estimate.js'
 import { ev } from '../lib/analytics.js'
+import { submitLeadToCRM } from '../lib/crmStore.js'
 
 const STYLES = ['Modern & minimal', 'Bold & colourful', 'Corporate / professional', 'Playful / fun', 'Luxury / elegant', 'Not sure — you decide']
 const EXISTING = ['Yes — rebuild / redesign it', 'Yes — just edits / additions', 'No — starting from scratch']
@@ -250,20 +251,46 @@ export default function ProjectBrief() {
     data.set('estimate_shown', estimate ? estimate.summary : 'not calculated')
     data.set('_subject', `New project brief from ${data.get('name')}${fields.plan ? ` (${fields.plan})` : ''}`)
 
-    if (!site.formEndpoint) {
-      const body = encodeURIComponent([...data.entries()].filter(([k]) => !k.startsWith('_')).map(([k, v]) => `${k}: ${v}`).join('\n'))
-      window.location.href = `mailto:${site.email}?subject=${encodeURIComponent('Project brief')}&body=${body}`
-      setStatus('ok'); return
-    }
     setStatus('sending')
     try {
-      const res = await fetch(site.formEndpoint, { method: 'POST', body: data, headers: { Accept: 'application/json' } })
-      if (res.ok) {
+      const briefObj = Object.fromEntries([...data.entries()].filter(([k]) => !k.startsWith('_')))
+      briefObj.extra_features = picked.filter((f) => !inPlan.includes(f))
+      const crmRes = await submitLeadToCRM({
+        name: data.get('name'),
+        email: data.get('email'),
+        phone: data.get('phone') || '',
+        source: 'brief',
+        plan: fields.plan || '',
+        budget: data.get('budget') || '',
+        currency,
+        estimated_total: estimate ? estimate.summary : '',
+        discount_code: code || '',
+        message: `${data.get('business') || ''} (${data.get('industry') || ''}) — Goal: ${data.get('main_goal') || ''}`,
+        brief: briefObj,
+      })
+
+      let fsOk = false
+      if (site.formEndpoint) {
+        try {
+          const res = await fetch(site.formEndpoint, { method: 'POST', body: data, headers: { Accept: 'application/json' } })
+          fsOk = res.ok
+        } catch {
+          /* ignore if CRM succeeded */
+        }
+      }
+
+      if (crmRes?.ok || fsOk) {
         setStatus('ok')
         form.reset()
         setFields(EMPTY_FIELDS)
         setPicked([])
-      } else setStatus('error')
+      } else if (!site.formEndpoint) {
+        const body = encodeURIComponent([...data.entries()].filter(([k]) => !k.startsWith('_')).map(([k, v]) => `${k}: ${v}`).join('\n'))
+        window.location.href = `mailto:${site.email}?subject=${encodeURIComponent('Project brief')}&body=${body}`
+        setStatus('ok')
+      } else {
+        setStatus('error')
+      }
     } catch { setStatus('error') }
   }
 

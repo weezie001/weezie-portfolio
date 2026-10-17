@@ -1,0 +1,4 @@
+/store /index.html 200
+/store/* /index.html 200
+/admin /index.html 200
+/admin/* /index.html 200

@@ -16,4 +16,4 @@ User-agent: Google-Extended
 Allow: /
 Disallow: /intake/
 
-Sitemap: https://weezie-portfolio.vercel.app/sitemap.xml
+Sitemap: https://weezie.site/sitemap.xml

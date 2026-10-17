@@ -565,3 +565,270 @@ export const faqs = [
     a: `Beat me at rock-paper-scissors on this site and you win ${gameConfig.discountPct}% off your first project.`,
   },
 ]
+
+// ============================================================
+// DIGITAL STORE & TEMPLATES (EDIT ME or manage from /admin)
+// ============================================================
+export const storeCategories = [
+  'All',
+  'Landing Pages',
+  'Components',
+  'AI Prompts & Agents',
+  'Workflows',
+  'UI/UX Systems',
+  'Freebies',
+]
+
+export const storeProducts = [
+  {
+    id: 1,
+    slug: 'neumorphic-agency-landing-template',
+    title: 'Neumorphic Portfolio & Agency Kit',
+    category: 'Landing Pages',
+    tagline: 'High-converting React 19 + Tailwind v4 landing page with interactive estimate calculator.',
+    description:
+      'Complete production-ready landing page template built with React 19, Vite, and Tailwind CSS v4. Includes a soft neumorphic design system, pricing calculator modal, scroll-reveal animations, and SEO structured data out of the box.',
+    price_ngn: 35000,
+    price_usd: 29,
+    is_freebie: false,
+    badge: 'Bestseller',
+    cover_image: '/projects/maxi.jpg',
+    preview_url: 'https://weezie.site',
+    file_url: '/downloads/neumorphic-agency-kit.zip',
+    features: [
+      'React 19 + Vite + Tailwind CSS v4 source code',
+      'Interactive Project Brief & Quote Calculator component',
+      'Built-in JSON-LD SEO & llms.txt generator',
+      'Responsive mobile & desktop layouts',
+    ],
+    downloads_count: 42,
+  },
+  {
+    id: 2,
+    slug: 'streetwear-ecommerce-starter',
+    title: 'Streetwear Drops & WhatsApp Checkout UI',
+    category: 'Landing Pages',
+    tagline: 'Drop-style fashion storefront with lookbook, cart drawer, and instant WhatsApp/Paystack checkout.',
+    description:
+      'Designed for modern fashion and merch brands. Features countdown product drops, lookbook gallery, size advisor modal, dark/light mode toggle, and dual Paystack + WhatsApp order routing.',
+    price_ngn: 45000,
+    price_usd: 39,
+    is_freebie: false,
+    badge: 'Popular',
+    cover_image: '/projects/ashco.jpg',
+    preview_url: 'https://ash-co-silk.vercel.app',
+    file_url: '/downloads/streetwear-ecommerce-starter.zip',
+    features: [
+      'Product drop countdown & lookbook grid',
+      'Slide-over cart with WhatsApp & Paystack checkout',
+      'Admin orders inbox view',
+      'Dark & light theme tokens',
+    ],
+    downloads_count: 31,
+  },
+  {
+    id: 3,
+    slug: 'fintech-glass-ui-components',
+    title: 'Fintech & Wallet UI Component Pack (40+ Blocks)',
+    category: 'Components',
+    tagline: 'Copy-paste React & Tailwind components for wallets, ROI charts, KYC flows, and ledgers.',
+    description:
+      'Everything you need to assemble a clean fintech dashboard or investment web app in hours instead of weeks. Includes balance cards, multi-currency toggles, transaction tables, KYC upload steps, and role-based sidebar layouts.',
+    price_ngn: 25000,
+    price_usd: 22,
+    is_freebie: false,
+    badge: '40+ Components',
+    cover_image: '/projects/padup.jpg',
+    preview_url: 'https://padupcreations.com',
+    file_url: '/downloads/fintech-ui-components.zip',
+    features: [
+      '40+ responsive React + Tailwind CSS components',
+      'Wallet balance cards, transfer modals & ledger tables',
+      'Multi-step KYC verification UI flow',
+      'Zero external UI library bloat',
+    ],
+    downloads_count: 27,
+  },
+  {
+    id: 4,
+    slug: 'ai-lead-qualifier-agent-pack',
+    title: '24/7 AI Sales & Lead Qualifier Agent + Prompts',
+    category: 'AI Prompts & Agents',
+    tagline: 'System prompts, qualification rubrics, and Worker endpoint to turn visitors into booked calls.',
+    description:
+      'The exact AI agent architecture used to qualify real-estate, construction, and agency leads around the clock. Includes battle-tested system prompts, objection-handling trees, JSON output schemas, and a Cloudflare Worker script.',
+    price_ngn: 30000,
+    price_usd: 25,
+    is_freebie: false,
+    badge: 'AI Agent',
+    cover_image: '/projects/heiskits.jpg',
+    preview_url: 'https://maxiinovation.vercel.app',
+    file_url: '/downloads/ai-lead-qualifier-agent.zip',
+    features: [
+      'Production system prompts for service & real-estate leads',
+      'Structured JSON lead-scoring schema',
+      'Ready-to-deploy Cloudflare Workers AI endpoint',
+      'Prompt tuning guide for custom niches',
+    ],
+    downloads_count: 54,
+  },
+  {
+    id: 5,
+    slug: 'client-onboarding-crm-workflow',
+    title: 'Automated Client Onboarding & Brief-to-CRM Workflow',
+    category: 'Workflows',
+    tagline: 'End-to-end automation blueprint: intake form → instant quote → CRM pipeline → Brevo email sequence.',
+    description:
+      'Stop losing leads in your DMs. This workflow pack connects your website intake form directly to a database and triggers personalized confirmation and follow-up emails automatically.',
+    price_ngn: 20000,
+    price_usd: 18,
+    is_freebie: false,
+    badge: 'Automation',
+    cover_image: '/projects/bnd.jpg',
+    preview_url: 'https://weezie.site/intake/',
+    file_url: '/downloads/client-onboarding-workflow.zip',
+    features: [
+      'Webhook & Cloudflare Worker automation scripts',
+      '5 high-converting client email templates (HTML + Plain text)',
+      'Auto-quote calculation logic',
+      'Step-by-step setup guide',
+    ],
+    downloads_count: 19,
+  },
+  {
+    id: 6,
+    slug: 'liquid-gold-nero-design-system',
+    title: 'Liquid Glass & Tactile Neumorphism Design System',
+    category: 'UI/UX Systems',
+    tagline: 'Figma tokens, typography scale, CSS variables, and tactile button/card recipes.',
+    description:
+      'Two complete signature visual systems in one pack: the Tactile Neumorphic Paper system and the Dark Liquid-Glass Gold system. Includes CSS custom properties, shadow recipes, and interactive button states.',
+    price_ngn: 22000,
+    price_usd: 19,
+    is_freebie: false,
+    badge: 'Design System',
+    cover_image: '/projects/spagking.jpg',
+    preview_url: 'https://spag-king.vercel.app',
+    file_url: '/downloads/weezie-design-systems.zip',
+    features: [
+      'Neumorphic & Liquid-Glass CSS token files',
+      'Typography pairings & responsive clamp() scales',
+      'Interactive card, badge, and input states',
+      'Figma variables & style guide reference',
+    ],
+    downloads_count: 38,
+  },
+  {
+    id: 7,
+    slug: 'free-high-converting-hero-pack',
+    title: 'Freebie: 5 High-Converting Hero Sections + AI Prompt Cheat Sheet',
+    category: 'Freebies',
+    tagline: 'Free starter pack: 5 responsive React + Tailwind hero sections and 15 UI/UX design prompts.',
+    description:
+      'Grab 5 ready-to-use hero layouts (Video Intro, SaaS Split, Dark Luxury, Product Waitlist, and Agency Bold) plus my personal cheat sheet of 15 prompts for generating sharp landing page copy and layouts.',
+    price_ngn: 0,
+    price_usd: 0,
+    is_freebie: true,
+    badge: '100% Free',
+    cover_image: '/projects/weeziestash.jpg',
+    preview_url: 'https://weezie-stash.vercel.app',
+    file_url: '/downloads/weezie-free-hero-pack.zip',
+    features: [
+      '5 copy-paste React + Tailwind CSS Hero components',
+      '15 curated prompts for landing page copy & UI critique',
+      ' SEO & OpenGraph head tag checklist',
+      'Commercial use allowed on unlimited projects',
+    ],
+    downloads_count: 164,
+  },
+]
+
+// ============================================================
+// AI LAB CONFIG (Freemium Preview + Paystack Deep-Dive Unlock)
+// ============================================================
+export const aiLabConfig = {
+  unlockPrice: {
+    NGN: 5000,
+    USD: 5,
+    displayNGN: '₦5,000',
+    displayUSD: '$5',
+  },
+  tools: [
+    {
+      id: 'audit',
+      name: 'AI Website Auditor & Roaster',
+      badge: 'Free Instant Score + Pro Pack',
+      desc: 'Paste your website URL and niche. Get an instant UX, Conversion & SEO score with 3 quick fixes for free — or unlock the full 10-point rewrite & rebuild blueprint.',
+    },
+    {
+      id: 'architect',
+      name: 'AI Project & Startup Architect',
+      badge: 'Free MVP Spec + Pro PRD',
+      desc: 'Describe the website, app, or AI tool you want to build. Get an instant stack & timeline recommendation for free — or unlock the full Technical PRD, Database Schema & Sitemap.',
+    },
+  ],
+}
+
+// ============================================================
+// CRM & EMAIL SENDER CONFIG
+// ============================================================
+export const senderEmails = [
+  { address: 'enang@weezie.site', name: 'Enang Weezie', label: 'enang@weezie.site (Personal / Founder)' },
+  { address: 'hello@weezie.site', name: 'Enang Weezie Studio', label: 'hello@weezie.site (Studio / Store)' },
+]
+
+export const crmEmailTemplates = [
+  {
+    id: 'brief_reply',
+    label: '1. Project Brief Follow-up',
+    subject: 'Re: Your project brief on weezie.site — Next steps',
+    body: `Hi {{name}},
+
+Thanks for sending over your project brief on weezie.site! I've reviewed your selections and estimate.
+
+I'd love to hop on a quick 15-minute call (or chat on WhatsApp) to lock in the scope so we can get started this week.
+
+What time works best for you tomorrow?
+
+Best,
+Enang Weezie
+https://weezie.site`,
+  },
+  {
+    id: 'quote_ready',
+    label: '2. Custom Proposal & Quote',
+    subject: 'Your project proposal & timeline — Enang Weezie',
+    body: `Hi {{name}},
+
+Following up on your inquiry — here is the proposed plan to bring your project to life:
+
+• Scope & Deliverables: Custom design, responsive build, and full deployment
+• Timeline: Ready to kick off immediately upon 50% deposit
+• Next Step: Reply to this email to confirm and I will send over the invoice and kickoff checklist.
+
+Let me know if you have any questions!
+
+Best,
+Enang Weezie
+https://weezie.site`,
+  },
+  {
+    id: 'broadcast_drop',
+    label: '3. New Template / Product Drop (Broadcast)',
+    subject: 'New drop on weezie.site: Ship your next project 5x faster ⚡',
+    body: `Hi {{name}},
+
+I just dropped a brand-new template and AI workflow pack in the weezie.site store!
+
+Whether you're launching a new product, upgrading your UI, or automating lead capture, you can grab it now (plus check out the new interactive AI Website Auditor & Project Architect on the site):
+
+👉 Explore the Store: https://weezie.site/store
+
+As always, reply directly to this email if you need a custom build.
+
+Cheers,
+Enang Weezie
+https://weezie.site`,
+  },
+]
+

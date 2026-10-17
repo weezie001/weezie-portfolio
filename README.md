@@ -6,7 +6,7 @@ A neumorphism-styled single page with a full-bleed video intro, an optional
 rock-paper-scissors discount game, real client work, and a live "On GitHub" code
 showcase — built with Vite, React and Tailwind.
 
-**Live:** _add your Vercel URL after deploying_
+**Live:** [https://weezie.site](https://weezie.site)
 
 ## Highlights
 

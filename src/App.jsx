@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import Loader from './components/Loader.jsx'
 import Navbar from './components/Navbar.jsx'
 import Hero from './components/Hero.jsx'
@@ -6,6 +7,8 @@ import Marquee from './components/Marquee.jsx'
 import About from './components/About.jsx'
 import Services from './components/Services.jsx'
 import RateCard from './components/RateCard.jsx'
+import StoreSection from './components/StoreSection.jsx'
+import AILab from './components/AILab.jsx'
 import Work from './components/Work.jsx'
 import CodeShowcase from './components/CodeShowcase.jsx'
 import Partnership from './components/Partnership.jsx'
@@ -15,26 +18,47 @@ import CollabCTA from './components/CollabCTA.jsx'
 import Contact from './components/Contact.jsx'
 import Footer from './components/Footer.jsx'
 import ProjectBrief from './components/ProjectBrief.jsx'
+import AdminCRM from './components/AdminCRM.jsx'
 import { useReveal } from './hooks/useReveal.js'
 
 export default function App() {
+  const [path, setPath] = useState(() => window.location.pathname)
   useReveal()
+
+  useEffect(() => {
+    const onPop = () => setPath(window.location.pathname)
+    window.addEventListener('popstate', onPop)
+    return () => window.removeEventListener('popstate', onPop)
+  }, [])
+
+  function navigate(nextPath) {
+    window.history.pushState({}, '', nextPath)
+    setPath(nextPath)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  // Dedicated /admin CRM dashboard route
+  if (path.startsWith('/admin')) {
+    return <AdminCRM onNavigate={navigate} />
+  }
+
+  // Dedicated /store digital products & freebies route
+  if (path.startsWith('/store')) {
+    return (
+      <>
+        <main>
+          <StoreSection fullPage onNavigate={navigate} />
+        </main>
+        <Footer />
+        <ProjectBrief />
+      </>
+    )
+  }
 
   return (
     <>
       <Loader />
       <Navbar />
-      {/*
-        The game sits directly under the hero by design: the intro video ends
-        and scrolls straight into it, so the hook is the first thing a visitor
-        meets. Everything after it follows the buyer's questions in order:
-        can you do this? (Work) → what can I buy? (Services/Pricing) → who else
-        trusted you? (Clients) → who are you? (About) → is this a fit?
-        (Partnership) → what will it cost and how long? (FAQ) → the ask.
-        CodeShowcase sits below Contact: it sells to a technical evaluator,
-        not to a business buying a site, so it must not stand between the
-        visitor and the form.
-      */}
       <main>
         <Hero />
         <RockPaperScissors />
@@ -42,6 +66,8 @@ export default function App() {
         <Marquee />
         <Services />
         <RateCard />
+        <StoreSection onNavigate={navigate} />
+        <AILab />
         <Clients />
         <About />
         <Partnership />

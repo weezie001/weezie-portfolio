@@ -10,7 +10,7 @@
 // time. Edit content in src/data.js, never in the generated output.
 import { site, projects, services, rateCard, faqs, skills } from '../src/data.js'
 
-const URL = 'https://weezie-portfolio.vercel.app/'
+const URL = 'https://weezie.site/'
 const ID = {
   person: URL + '#person',
   service: URL + '#service',

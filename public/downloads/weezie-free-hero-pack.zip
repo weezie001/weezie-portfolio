@@ -1,0 +1,4 @@
+WEEZIE STUDIO STARTER PACK (https://weezie.site)
+================================================
+Thank you for downloading from Enang Weezie Studio!
+Replace files inside /public/downloads/ (or upload to your Cloudflare R2 bucket and set the file_url in https://weezie.site/admin) with your production ZIP archives.
