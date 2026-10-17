@@ -1,0 +1,4 @@
+name = "weezie-inbound-email"
+main = "workers/inbound-email.js"
+compatibility_date = "2025-04-01"
+workers_dev = false

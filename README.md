@@ -45,6 +45,27 @@ database. AI features still use the configured Cloudflare AI binding and may
 incur usage. For access from another device on your network, open
 `http://<computer-ip>:8788/admin/`.
 
+## Incoming email and CRM notifications
+
+Website inquiries are saved in the CRM and send a read-only Gmail notification
+with an **Open CRM Inbox** button. To deliver mail sent directly to
+`enang@weezie.site` and `hello@weezie.site` into the CRM as well, deploy the
+Cloudflare Email Worker and route those addresses to it:
+
+1. Generate one strong random token and set the same `INBOUND_EMAIL_TOKEN`
+   secret on the Pages project and the `weezie-inbound-email` Worker.
+2. Deploy the Worker with `npx wrangler deploy --config wrangler.email.toml`.
+3. In Cloudflare Email Routing, route both addresses to the
+   `weezie-inbound-email` Worker instead of directly forwarding the original
+   email to Gmail. The Worker stores the message in the CRM and the Pages
+   function sends Gmail a short read-only notification with a link button.
+4. Keep the Pages project's `BREVO_API_KEY` and `MAIN_ALERT_EMAIL` production
+   secrets configured. Brevo must allow sending from `hello@weezie.site`.
+
+The CRM keeps the received message; the Gmail alert is only a preview and
+should not be used to reply. If the alert cannot be sent, Cloudflare logs the
+failure while the message remains saved in the CRM.
+
 ## Editing content
 
 Almost everything — copy, projects, social links, testimonials and the game

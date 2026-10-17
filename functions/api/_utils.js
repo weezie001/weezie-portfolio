@@ -30,6 +30,15 @@ export function isAuthorizedAdmin(request, env) {
   return diff === 0
 }
 
+export function isAuthorizedInbound(request, env) {
+  const provided = (request.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '')
+  const expected = env?.INBOUND_EMAIL_TOKEN
+  if (!expected || !provided || expected.length !== provided.length) return false
+  let diff = 0
+  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ provided.charCodeAt(i)
+  return diff === 0
+}
+
 // Automatically ensures D1 tables exist and seeds initial store products on first run
 export async function ensureDb(env) {
   const db = env?.DB
@@ -253,4 +262,66 @@ export async function sendBrevoEmail(
     return { ok: false, error: errText }
   }
   return { ok: true }
+}
+
+export async function sendReadOnlyInboxNotification(
+  env,
+  { title, mailbox, fromName, fromEmail, subject, preview, details = [] },
+) {
+  const notifyTarget = env?.MAIN_ALERT_EMAIL || 'Wisdomemmanuelenang@gmail.com'
+  const crmUrl = 'https://weezie.site/admin/'
+  const sender = fromName ? `${fromName} <${fromEmail}>` : fromEmail
+  const snippet = String(preview || '').trim().slice(0, 600)
+  const rows = [
+    ['Mailbox', mailbox],
+    ['From', sender],
+    ['Subject', subject],
+    ...details,
+  ]
+  const escapeHtml = (value) =>
+    String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;')
+  const textContent = [
+    'READ-ONLY CRM NOTIFICATION — please reply from your CRM, not Gmail.',
+    '',
+    ...rows.map(([label, value]) => `${label}: ${value || '—'}`),
+    '',
+    'Message preview:',
+    snippet || '(No message text)',
+    '',
+    `Open your CRM inbox: ${crmUrl}`,
+  ].join('\n')
+  const htmlContent = `<div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;padding:28px;color:#17202a;background:#f4f6fa;border:1px solid #dce2ec;border-radius:16px">
+    <p style="margin:0 0 8px;color:#4263eb;font-size:12px;font-weight:700;letter-spacing:1.5px">READ-ONLY CRM NOTIFICATION</p>
+    <h1 style="margin:0 0 18px;font-size:24px;line-height:1.3">${escapeHtml(title)}</h1>
+    <p style="margin:0 0 18px;color:#4b5563;line-height:1.5">This message is saved in your CRM. Reply from there rather than from Gmail.</p>
+    <table role="presentation" style="width:100%;border-collapse:collapse;font-size:14px">
+      ${rows.map(([label, value]) => `<tr><td style="padding:8px 10px 8px 0;color:#687386;vertical-align:top;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:8px 0;font-weight:600;overflow-wrap:anywhere">${escapeHtml(value || '—')}</td></tr>`).join('')}
+    </table>
+    <div style="margin-top:14px;padding:16px;background:#fff;border:1px solid #dce2ec;border-radius:10px">
+      <p style="margin:0 0 8px;color:#687386;font-size:12px;font-weight:700;text-transform:uppercase">Message preview</p>
+      <p style="margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55">${escapeHtml(snippet || '(No message text)')}</p>
+    </div>
+    <p style="margin:24px 0;text-align:center"><a href="${crmUrl}" style="display:inline-block;padding:13px 22px;color:#fff;background:#315eea;border-radius:999px;text-decoration:none;font-weight:700">Open CRM Inbox</a></p>
+    <p style="margin:0;color:#687386;font-size:12px;text-align:center">This is a notification only. Replies should be sent from the CRM.</p>
+  </div>`
+
+  try {
+    return await sendBrevoEmail(env, {
+      fromEmail: 'hello@weezie.site',
+      fromName: 'Weezie CRM Notifications',
+      toEmail: notifyTarget,
+      toName: 'Enang Weezie',
+      subject: `CRM notification: ${title}`,
+      textContent,
+      htmlContent,
+      replyTo: 'no-reply@weezie.site',
+    })
+  } catch (error) {
+    return { ok: false, error: error instanceof Error ? error.message : String(error) }
+  }
 }

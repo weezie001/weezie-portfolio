@@ -1,4 +1,4 @@
-import { json, corsHeaders, ensureDb, sendBrevoEmail } from './_utils.js'
+import { json, corsHeaders, ensureDb, sendBrevoEmail, sendReadOnlyInboxNotification } from './_utils.js'
 import { storeProducts } from '../../src/data.js'
 
 export async function onRequestOptions() {
@@ -29,6 +29,11 @@ export async function onRequestPost({ request, env }) {
     let leadId = null
     let downloadUrl = ''
     let productTitle = ''
+    let notificationSent = null
+    const inboxSubject =
+      source === 'brief'
+        ? `Project Brief: ${plan || 'Custom Build'} (${estimatedTotal || 'Quote'})`
+        : `Website Inquiry from ${name}`
 
     if (source === 'freebie' && productSlug) {
       let prod = null
@@ -67,7 +72,7 @@ export async function onRequestPost({ request, env }) {
           .bind(
             email,
             name,
-            source === 'brief' ? `Project Brief: ${plan || 'Custom Build'} (${estimatedTotal || 'Quote'})` : `Website Inquiry from ${name}`,
+            inboxSubject,
             message || 'Submitted via weezie.site',
           )
           .run()
@@ -116,16 +121,23 @@ https://weezie.site`
         textContent: mailBody,
       })
 
-      // Send READ-ONLY notification alert to Enang's main Gmail so he can log into weezie.site/admin and reply as enang@weezie.site
-      const notifyTarget = env?.MAIN_ALERT_EMAIL || 'Wisdomemmanuelenang@gmail.com'
-      await sendBrevoEmail(env, {
-        fromEmail: 'hello@weezie.site',
-        fromName: 'Weezie CRM Alert (Read-Only)',
-        toEmail: notifyTarget,
-        toName: 'Enang Weezie',
-        subject: `📬 [READ-ONLY ALERT] New ${source.toUpperCase()} Lead: ${name} (${plan || email})`,
-        textContent: `⚠️ READ-ONLY NOTIFICATION — DO NOT REPLY FROM GMAIL.\nLog in to https://weezie.site/admin to reply from enang@weezie.site!\n\nName: ${name}\nEmail: ${email}\nPhone: ${phone || 'N/A'}\nSource: ${source}\nPlan: ${plan || 'N/A'}\nEstimate: ${estimatedTotal || 'N/A'}\nDiscount Code: ${discountCode || 'None'}\n\nMessage:\n${message}\n\n👉 Log in & Reply from enang@weezie.site: https://weezie.site/admin`,
+      const notification = await sendReadOnlyInboxNotification(env, {
+        title: `New ${source} inquiry from ${name}`,
+        mailbox: 'enang@weezie.site',
+        fromName: name,
+        fromEmail: email,
+        subject: inboxSubject,
+        preview: message,
+        details: [
+          ['Phone', phone || '—'],
+          ['Plan', plan || '—'],
+          ['Estimate', estimatedTotal || '—'],
+        ],
       })
+      notificationSent = notification.ok
+      if (!notification.ok) {
+        console.error('Lead was saved, but the Gmail notification could not be sent:', notification.error || notification.reason)
+      }
     }
 
     return json({
@@ -133,6 +145,7 @@ https://weezie.site`
       leadId,
       downloadUrl: downloadUrl || null,
       productTitle: productTitle || null,
+      ...(notificationSent === null ? {} : { notificationSent }),
     })
   } catch (err) {
     return json({ ok: false, error: err.message || 'Server error saving lead' }, 500)

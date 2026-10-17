@@ -1,4 +1,4 @@
-import { json, corsHeaders, ensureDb, sendBrevoEmail } from './_utils.js'
+import { json, corsHeaders, ensureDb, isAuthorizedInbound, sendReadOnlyInboxNotification } from './_utils.js'
 
 export async function onRequestOptions() {
   return new Response(null, { headers: corsHeaders })
@@ -9,6 +9,10 @@ export async function onRequestOptions() {
 // and sends a READ-ONLY notification alert to the user's main email so they can log in and reply from weezie.site/admin.
 export async function onRequestPost({ request, env }) {
   try {
+    if (!isAuthorizedInbound(request, env)) {
+      return json({ ok: false, error: 'Unauthorized inbound email webhook.' }, 401)
+    }
+
     const body = await request.json()
     const mailbox = String(body.to || body.mailbox || 'enang@weezie.site').trim().toLowerCase()
     const fromEmail = String(body.from_email || body.from || '').trim().toLowerCase()
@@ -16,47 +20,52 @@ export async function onRequestPost({ request, env }) {
     const subject = String(body.subject || '(No Subject)').trim()
     const bodyText = String(body.text || body.body_text || '').trim()
 
+    if (!['enang@weezie.site', 'hello@weezie.site'].includes(mailbox)) {
+      return json({ ok: false, error: 'Unsupported inbox address.' }, 400)
+    }
     if (!fromEmail) {
       return json({ ok: false, error: 'Missing sender email' }, 400)
     }
 
     const db = await ensureDb(env)
-    if (db) {
-      await db
-        .prepare(
-          `INSERT INTO inbox_messages (mailbox, from_email, from_name, subject, body_text, is_read)
-           VALUES (?, ?, ?, ?, ?, 0)`,
-        )
-        .bind(mailbox, fromEmail, fromName, subject, bodyText)
-        .run()
+    if (!db) return json({ ok: false, error: 'CRM database is unavailable.' }, 503)
 
-      // If this person was on our Cold Outreach list, automatically mark them as 'Replied'
-      // (or 'Unsubscribed' if they replied "stop" or "unsubscribe")
-      const isOptOut = /\b(stop|unsubscribe|remove me)\b/i.test(bodyText)
-      await db
-        .prepare(`UPDATE cold_prospects SET status = ? WHERE LOWER(email) = ?`)
-        .bind(isOptOut ? 'Unsubscribed' : 'Replied', fromEmail)
-        .run()
+    await db
+      .prepare(
+        `INSERT INTO inbox_messages (mailbox, from_email, from_name, subject, body_text, is_read)
+         VALUES (?, ?, ?, ?, ?, 0)`,
+      )
+      .bind(mailbox, fromEmail, fromName, subject, bodyText)
+      .run()
 
-      await db
-        .prepare(`UPDATE leads SET status = 'Contacted' WHERE LOWER(email) = ? AND status = 'New'`)
-        .bind(fromEmail)
-        .run()
+    // If this person was on our Cold Outreach list, automatically mark them as 'Replied'
+    // (or 'Unsubscribed' if they replied "stop" or "unsubscribe")
+    const isOptOut = /\b(stop|unsubscribe|remove me)\b/i.test(bodyText)
+    await db
+      .prepare(`UPDATE cold_prospects SET status = ? WHERE LOWER(email) = ?`)
+      .bind(isOptOut ? 'Unsubscribed' : 'Replied', fromEmail)
+      .run()
+
+    await db
+      .prepare(`UPDATE leads SET status = 'Contacted' WHERE LOWER(email) = ? AND status = 'New'`)
+      .bind(fromEmail)
+      .run()
+
+    const notification = await sendReadOnlyInboxNotification(env, {
+      title: `New email to ${mailbox}`,
+      mailbox,
+      fromName,
+      fromEmail,
+      subject,
+      preview: bodyText,
+    })
+    if (!notification.ok) {
+      console.error('Inbound email was saved, but the Gmail notification could not be sent:', notification.error || notification.reason)
     }
 
-    // Send READ-ONLY notification alert to main personal email
-    const notifyTarget = env?.MAIN_ALERT_EMAIL || 'Wisdomemmanuelenang@gmail.com'
-    await sendBrevoEmail(env, {
-      fromEmail: 'hello@weezie.site',
-      fromName: 'Weezie Inbox Alert (Read-Only)',
-      toEmail: notifyTarget,
-      toName: 'Enang Weezie',
-      subject: `📬 [READ-ONLY ALERT] New mail in ${mailbox} from ${fromName || fromEmail}`,
-      textContent: `⚠️ READ-ONLY NOTIFICATION — DO NOT REPLY FROM GMAIL.\nLog in to https://weezie.site/admin to reply from ${mailbox}!\n\n----------------------------------------\nTo Mailbox: ${mailbox}\nFrom: ${fromName ? `${fromName} <${fromEmail}>` : fromEmail}\nSubject: ${subject}\n----------------------------------------\n\n${bodyText}\n\n----------------------------------------\n👉 Open your Inbox & Reply as ${mailbox}: https://weezie.site/admin`,
-    })
-
-    return json({ ok: true })
+    return json({ ok: true, notificationSent: notification.ok })
   } catch (err) {
+    console.error('Inbound email processing failed:', err)
     return json({ ok: false, error: err.message || 'Inbound webhook error' }, 500)
   }
 }

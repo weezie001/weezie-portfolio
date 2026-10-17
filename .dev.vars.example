@@ -1,1 +1,2 @@
 ADMIN_PASSWORD=replace-with-a-private-local-password
+INBOUND_EMAIL_TOKEN=replace-with-a-private-local-token
