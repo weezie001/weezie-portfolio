@@ -82,7 +82,6 @@ export default function Footer({ onNavigate }) {
             <a href="/work/" onClick={(e) => handleNav(e, '/work')} className="text-xs font-bold uppercase text-ink-soft hover:text-blue">Case studies</a>
             <a href="/ai-lab" onClick={(e) => handleNav(e, '/ai-lab')} className="text-xs font-bold uppercase text-ink-soft hover:text-blue">AI Lab</a>
             <a href="/privacy.html" className="text-xs font-bold uppercase tracking-[0.1em] text-ink-soft hover:text-ink">Privacy</a>
-            <a href="/admin" onClick={(e) => handleNav(e, '/admin')} className="text-xs font-bold uppercase tracking-[0.1em] text-ink-soft hover:text-blue">Admin CRM ↗</a>
             <a href="#home" className="text-xs font-bold uppercase tracking-[0.1em] text-ink-soft hover:text-ink">Back to top ↑</a>
           </div>
         </div>

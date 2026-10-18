@@ -2165,25 +2165,57 @@ export default function AdminCRM({ onNavigate }) {
             </div>
 
             <div className="rounded-[28px] bg-paper p-6 neu lg:col-span-5">
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <h3 className="display text-2xl text-ink">Paystack Gateway</h3>
-                <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${
-                  (paystackPk?.startsWith('pk_test_') || paystackSk?.startsWith('sk_test_') || data.paystackIsTest)
-                    ? 'bg-amber-500/15 text-amber-800'
-                    : (data.paystackConfigured || (paystackPk && paystackSk))
-                      ? 'bg-green-500/15 text-green-700'
-                      : 'bg-paper text-ink-soft neu-sm'
-                }`}>
-                  {(paystackPk?.startsWith('pk_test_') || paystackSk?.startsWith('sk_test_') || data.paystackIsTest)
-                    ? '🟡 Test Mode Active'
-                    : (data.paystackConfigured || (paystackPk && paystackSk))
-                      ? '🟢 Live Production'
-                      : '⚪ Gateway Not Set'}
-                </span>
-              </div>
-              <p className="mt-2 text-xs font-medium leading-relaxed text-ink-soft">
-                Connect your Paystack keys below. Test keys let you verify digital product checkouts, instant delivery emails, and download links with simulated cards without spending real money.
-              </p>
+              {(() => {
+                const isPkTest = Boolean(paystackPk?.trim().startsWith('pk_test_'))
+                const isPkLive = Boolean(paystackPk?.trim().startsWith('pk_live_'))
+                const isSkTest = Boolean(paystackSk?.trim().startsWith('sk_test_'))
+                const isSkLive = Boolean(paystackSk?.trim().startsWith('sk_live_'))
+                const isMismatch = Boolean((isPkLive && isSkTest) || (isPkTest && isSkLive))
+
+                return (
+                  <>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="display text-2xl text-ink">Paystack Gateway</h3>
+                      <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${
+                        isMismatch
+                          ? 'bg-red-500/20 text-red-700 border border-red-500/30'
+                          : (isPkTest || isSkTest || data.paystackIsTest)
+                            ? 'bg-amber-500/15 text-amber-800'
+                            : (isPkLive && isSkLive)
+                              ? 'bg-green-500/15 text-green-700'
+                              : 'bg-paper text-ink-soft neu-sm'
+                      }`}>
+                        {isMismatch
+                          ? '⚠️ Mode Mismatch'
+                          : (isPkTest || isSkTest || data.paystackIsTest)
+                            ? '🟡 Test Mode Active'
+                            : (isPkLive && isSkLive)
+                              ? '🟢 Live Production'
+                              : '⚪ Gateway Incomplete'}
+                      </span>
+                    </div>
+
+                    {isMismatch && (
+                      <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-xs text-red-800">
+                        <p className="font-bold text-sm">
+                          ⚠️ Mode Mismatch: {isPkLive ? 'Live Public Key' : 'Test Public Key'} + {isSkTest ? 'Test Secret Key' : 'Live Secret Key'}
+                        </p>
+                        <p className="mt-1 leading-relaxed">
+                          You entered a <strong>{isPkLive ? 'pk_live_...' : 'pk_test_...'}</strong> Public Key with a <strong>{isSkTest ? 'sk_test_...' : 'sk_live_...'}</strong> Secret Key.
+                          Paystack requires both keys to match the same mode.
+                        </p>
+                        <p className="mt-2 font-bold text-red-900">
+                          👉 To test purchases: In your Paystack dashboard, turn on the <strong>Test mode</strong> toggle and paste your <strong>pk_test_...</strong> Public Key below.
+                        </p>
+                      </div>
+                    )}
+
+                    <p className="mt-2 text-xs font-medium leading-relaxed text-ink-soft">
+                      Connect your Paystack keys below. Test keys let you verify digital product checkouts, instant delivery emails, and download links with simulated cards without spending real money.
+                    </p>
+                  </>
+                )
+              })()}
 
               <form onSubmit={handleSavePaystackKeys} className="mt-5 space-y-4">
                 <div>

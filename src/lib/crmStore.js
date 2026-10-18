@@ -236,6 +236,9 @@ export async function fetchStoreProducts() {
     const res = await fetch('/api/products')
     if (res.ok) {
       const data = await res.json()
+      if (data?.paystackPublicKey) {
+        setPaystackPublicKey(data.paystackPublicKey)
+      }
       if (Array.isArray(data?.products) && data.products.length > 0) {
         return data.products
       }
@@ -364,13 +367,30 @@ export async function verifyAndRecordOrder(payload) {
   }
 }
 
+// Retrieve cached key or fetch dynamically from /api/products
+export async function getEffectivePaystackPublicKey() {
+  let key = getPaystackPublicKey()
+  if (key) return key
+  try {
+    const res = await fetch('/api/products')
+    const data = await res.json().catch(() => null)
+    if (data?.paystackPublicKey) {
+      setPaystackPublicKey(data.paystackPublicKey)
+      return data.paystackPublicKey
+    }
+  } catch {
+    /* ignore */
+  }
+  return ''
+}
+
 // Load Paystack inline script dynamically and launch checkout
-export function launchPaystackPopup({ email, amount, currency = 'NGN', reference, metadata, onSuccess, onCancel }) {
-  const publicKey = getPaystackPublicKey()
+export async function launchPaystackPopup({ email, amount, currency = 'NGN', reference, metadata, onSuccess, onCancel }) {
+  const publicKey = await getEffectivePaystackPublicKey()
 
   if (!publicKey) {
     // Fail closed: never hand out a product without a real payment.
-    alert('Payments are not enabled yet. Please contact hello@weezie.site to purchase.')
+    alert('Payments are not enabled yet. Please configure your Paystack keys in the Admin CRM under Orders & Keys.')
     if (onCancel) onCancel()
     return
   }

@@ -117,19 +117,8 @@ export default function Navbar({ onNavigate, currentPath = '/' }) {
           })}
         </ul>
 
-        {/* CTA Contact & Admin Buttons */}
+        {/* CTA Contact Button */}
         <div className="hidden items-center gap-3 md:flex">
-          <a
-            href="/admin"
-            onClick={(e) => handleLinkClick(e, '/admin')}
-            className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition-all ${
-              currentPath.startsWith('/admin')
-                ? 'bg-white text-zinc-950 shadow'
-                : 'text-white/80 hover:text-white border border-white/20 hover:border-white/50 hover:bg-white/5'
-            }`}
-          >
-            Admin ↗
-          </a>
           <a
             href="#contact"
             onClick={(e) => handleLinkClick(e, '#contact')}
@@ -185,15 +174,6 @@ export default function Navbar({ onNavigate, currentPath = '/' }) {
               className="btn-gradient mt-2 block rounded-full px-6 py-3 text-center text-sm font-bold uppercase tracking-[0.1em]"
             >
               Contact Me
-            </a>
-          </li>
-          <li className="pt-2">
-            <a
-              href="/admin"
-              onClick={(e) => handleLinkClick(e, '/admin')}
-              className="block rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.12em] text-white hover:bg-white/20 transition-colors"
-            >
-              ⚡ Admin Panel (CRM) ↗
             </a>
           </li>
         </ul>

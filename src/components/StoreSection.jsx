@@ -296,18 +296,6 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
               ← Back to Portfolio
             </a>
             <div className="flex items-center gap-3">
-              <a
-                href="/admin"
-                onClick={(e) => {
-                  if (onNavigate) {
-                    e.preventDefault()
-                    onNavigate('/admin')
-                  }
-                }}
-                className="neu-hover inline-flex items-center gap-1.5 rounded-full bg-paper px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] text-blue neu-sm hover:text-ink"
-              >
-                ⚡ Admin CRM ↗
-              </a>
               <span className="rounded-full bg-blue/10 px-3.5 py-1 text-xs font-bold text-blue">
                 Commercial Royalty-Free License
               </span>
