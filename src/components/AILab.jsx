@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { aiLabConfig } from '../data.js'
 import { runAITool, launchPaystackPopup, verifyAndRecordOrder } from '../lib/crmStore.js'
 import { ev } from '../lib/analytics.js'
+import PaymentStatusModal from './PaymentStatusModal.jsx'
 
 export default function AILab({ fullPage = false, onNavigate }) {
   const [activeTool, setActiveTool] = useState('audit') // 'audit' | 'architect'
@@ -14,6 +15,11 @@ export default function AILab({ fullPage = false, onNavigate }) {
   const [buyerEmail, setBuyerEmail] = useState('')
   const [unlockedMd, setUnlockedMd] = useState('')
   const [error, setError] = useState('')
+  const [paymentModal, setPaymentModal] = useState({
+    isOpen: false,
+    status: 'confirmed',
+    order: {},
+  })
 
   const unlockAmount = currency === 'NGN' ? aiLabConfig.unlockPrice.NGN : aiLabConfig.unlockPrice.USD
   const unlockLabel = currency === 'NGN' ? aiLabConfig.unlockPrice.displayNGN : aiLabConfig.unlockPrice.displayUSD
@@ -72,6 +78,18 @@ export default function AILab({ fullPage = false, onNavigate }) {
         ],
       },
       onSuccess: async ({ reference }) => {
+        setPaymentModal({
+          isOpen: true,
+          status: 'pending',
+          order: {
+            reference,
+            itemTitle: packTitle,
+            amount: payAmount,
+            currency: payCurrency,
+            email: buyerEmail.trim(),
+          },
+        })
+
         const verified = await verifyAndRecordOrder({
           reference,
           name: buyerName.trim(),
@@ -86,14 +104,49 @@ export default function AILab({ fullPage = false, onNavigate }) {
         if (!verified?.ok || !verified.fullReportMd) {
           setError(verified?.error || 'Payment could not be verified. Contact hello@weezie.site with your reference.')
           setStatus('ready')
+          setPaymentModal({
+            isOpen: true,
+            status: 'failed',
+            order: {
+              reference,
+              itemTitle: packTitle,
+              amount: payAmount,
+              currency: payCurrency,
+              email: buyerEmail.trim(),
+              errorReason: verified?.error || 'Payment could not be verified on the server.',
+            },
+          })
           return
         }
         setUnlockedMd(verified.fullReportMd)
         setStatus('unlocked')
+        setPaymentModal({
+          isOpen: true,
+          status: 'confirmed',
+          order: {
+            reference,
+            itemTitle: packTitle,
+            amount: payAmount,
+            currency: payCurrency,
+            email: buyerEmail.trim(),
+            downloadUrl: '#',
+          },
+        })
         ev('ai_tool_unlocked', { tool: activeTool, currency: payCurrency, amount: payAmount })
       },
       onCancel: () => {
         setStatus('ready')
+        setPaymentModal({
+          isOpen: true,
+          status: 'failed',
+          order: {
+            itemTitle: packTitle,
+            amount: payAmount,
+            currency: payCurrency,
+            email: buyerEmail.trim(),
+            errorReason: 'Payment window was closed before completion. No charges were made.',
+          },
+        })
       },
     })
   }
@@ -409,6 +462,17 @@ export default function AILab({ fullPage = false, onNavigate }) {
           )}
         </div>
       </div>
+
+      {/* Branded Payment Status Modal */}
+      <PaymentStatusModal
+        isOpen={paymentModal.isOpen}
+        status={paymentModal.status}
+        order={paymentModal.order}
+        onClose={() => setPaymentModal((prev) => ({ ...prev, isOpen: false }))}
+        onRetry={() => {
+          setPaymentModal((prev) => ({ ...prev, isOpen: false }))
+        }}
+      />
     </section>
   )
 }

@@ -7,6 +7,7 @@ import {
   verifyAndRecordOrder,
 } from '../lib/crmStore.js'
 import { ev } from '../lib/analytics.js'
+import PaymentStatusModal from './PaymentStatusModal.jsx'
 
 function formatAmount(product, currency) {
   if (product.is_freebie || (product.price_ngn === 0 && product.price_usd === 0)) {
@@ -17,7 +18,7 @@ function formatAmount(product, currency) {
     : `$${Number(product.price_usd || 0).toLocaleString('en-US')}`
 }
 
-export function StoreModal({ product, currency, onClose }) {
+export function StoreModal({ product, currency, onClose, onPaymentStatus }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState('idle') // idle | processing | unlocked | error
@@ -76,6 +77,21 @@ export function StoreModal({ product, currency, onClose }) {
         ],
       },
       onSuccess: async ({ reference }) => {
+        if (onPaymentStatus) {
+          onPaymentStatus({
+            isOpen: true,
+            status: 'pending',
+            order: {
+              reference,
+              itemTitle: product.title,
+              amount: payAmount,
+              currency: payCurrency,
+              email: email.trim(),
+            },
+          })
+          onClose()
+        }
+
         const verified = await verifyAndRecordOrder({
           reference,
           name: name.trim(),
@@ -87,18 +103,65 @@ export function StoreModal({ product, currency, onClose }) {
           amount: payAmount,
           download_url: product.file_url,
         })
+
         if (!verified?.ok) {
-          setErrMsg(verified?.error || 'Payment could not be verified.')
-          setStatus('error')
+          if (onPaymentStatus) {
+            onPaymentStatus({
+              isOpen: true,
+              status: 'failed',
+              order: {
+                reference,
+                itemTitle: product.title,
+                amount: payAmount,
+                currency: payCurrency,
+                email: email.trim(),
+                errorReason: verified?.error || 'Payment confirmation failed on edge server.',
+              },
+            })
+          } else {
+            setErrMsg(verified?.error || 'Payment could not be verified.')
+            setStatus('error')
+          }
           return
         }
+
+        const finalDownloadUrl = verified.downloadUrl || product.file_url || `/downloads/${product.slug}.zip`
         setOrderRef(reference)
-        setDownloadUrl(verified.downloadUrl || product.file_url || `/downloads/${product.slug}.zip`)
+        setDownloadUrl(finalDownloadUrl)
         setStatus('unlocked')
+
+        if (onPaymentStatus) {
+          onPaymentStatus({
+            isOpen: true,
+            status: 'confirmed',
+            order: {
+              reference,
+              itemTitle: product.title,
+              amount: payAmount,
+              currency: payCurrency,
+              email: email.trim(),
+              downloadUrl: finalDownloadUrl,
+            },
+          })
+        }
         ev('store_purchase_complete', { slug: product.slug, currency: payCurrency, amount: payAmount })
       },
       onCancel: () => {
         setStatus('idle')
+        if (onPaymentStatus) {
+          onPaymentStatus({
+            isOpen: true,
+            status: 'failed',
+            order: {
+              itemTitle: product.title,
+              amount: payAmount,
+              currency: payCurrency,
+              email: email.trim(),
+              errorReason: 'Payment checkout window was closed before completion. No charges were made.',
+            },
+          })
+          onClose()
+        }
       },
     })
   }
@@ -265,9 +328,86 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
   const [currency, setCurrency] = useState('NGN')
   const [search, setSearch] = useState('')
   const [activeProduct, setActiveProduct] = useState(null)
+  const [paymentModal, setPaymentModal] = useState({
+    isOpen: false,
+    status: 'confirmed', // 'confirmed' | 'pending' | 'failed'
+    order: {
+      reference: 'WZ-88492011',
+      itemTitle: 'Weezie UI Component Library (35+ Blocks)',
+      amount: 35000,
+      currency: 'NGN',
+      email: 'buyer@weezie.site',
+      downloadUrl: '/downloads/weezie-ui-components.zip',
+      errorReason: 'Card was declined by issuing bank due to 3D Secure timeout.',
+    },
+  })
 
   useEffect(() => {
     fetchStoreProducts().then(setProducts)
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const ref = params.get('reference') || params.get('trxref')
+      const preview = params.get('preview_payment')
+
+      if (preview && ['confirmed', 'pending', 'failed'].includes(preview)) {
+        setPaymentModal({
+          isOpen: true,
+          status: preview,
+          order: {
+            reference: 'WZ-DEMO-9902',
+            itemTitle: 'Weezie UI Component Library (35+ Blocks)',
+            amount: 35000,
+            currency: 'NGN',
+            email: 'client@domain.com',
+            downloadUrl: '/downloads/weezie-ui-components.zip',
+            errorReason: 'Card was declined by issuing bank due to 3D Secure timeout.',
+          },
+        })
+      } else if (ref) {
+        setPaymentModal({
+          isOpen: true,
+          status: 'pending',
+          order: {
+            reference: ref,
+            itemTitle: 'Digital Product Order',
+            amount: 35000,
+            currency: 'NGN',
+            email: 'client@domain.com',
+          },
+        })
+
+        verifyAndRecordOrder({ reference: ref, item_type: 'product' }).then((res) => {
+          if (res?.ok) {
+            setPaymentModal({
+              isOpen: true,
+              status: 'confirmed',
+              order: {
+                reference: ref,
+                itemTitle: res.order?.item_title || 'Digital Product Order',
+                amount: res.order?.amount || 35000,
+                currency: res.order?.currency || 'NGN',
+                email: res.order?.buyer_email || 'client@domain.com',
+                downloadUrl: res.downloadUrl || '/downloads/weezie-ui-components.zip',
+              },
+            })
+          } else {
+            setPaymentModal({
+              isOpen: true,
+              status: 'failed',
+              order: {
+                reference: ref,
+                itemTitle: 'Digital Product Order',
+                amount: 35000,
+                currency: 'NGN',
+                email: 'client@domain.com',
+                errorReason: res?.error || 'Payment verification could not be confirmed.',
+              },
+            })
+          }
+        })
+      }
+    }
   }, [])
 
   const filtered = products.filter((p) => {
@@ -322,20 +462,47 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
             </p>
           </div>
 
-          {/* Currency switch */}
-          <div className="flex items-center gap-2 self-start rounded-full bg-paper p-1.5 neu-inset md:self-auto">
-            {['USD', 'NGN'].map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setCurrency(c)}
-                className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${
-                  currency === c ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
-                }`}
-              >
-                {c === 'USD' ? '$ USD' : '₦ NGN'}
-              </button>
-            ))}
+          <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+            {/* Direct preview trigger for testing all 3 brand popups */}
+            <button
+              type="button"
+              onClick={() =>
+                setPaymentModal({
+                  isOpen: true,
+                  status: 'confirmed',
+                  order: {
+                    reference: 'WZ-PREVIEW-8821',
+                    itemTitle: 'Weezie UI Component Library (35+ Blocks)',
+                    amount: 35000,
+                    currency: 'NGN',
+                    email: 'buyer@weezie.site',
+                    downloadUrl: '/downloads/weezie-ui-components.zip',
+                    errorReason: 'Card was declined by issuing bank due to 3D Secure timeout.',
+                  },
+                })
+              }
+              className="neu-hover flex items-center gap-1.5 rounded-full bg-paper px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-ink-soft hover:text-ink neu-sm"
+              title="Preview Confirmed, Pending, and Failed Brand Modals"
+            >
+              <span className="text-blue">✦</span>
+              <span>Brand Popups Preview</span>
+            </button>
+
+            {/* Currency switch */}
+            <div className="flex items-center gap-2 rounded-full bg-paper p-1.5 neu-inset">
+              {['USD', 'NGN'].map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setCurrency(c)}
+                  className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition ${
+                    currency === c ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
+                  }`}
+                >
+                  {c === 'USD' ? '$ USD' : '₦ NGN'}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -471,8 +638,28 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
       </div>
 
       {activeProduct && (
-        <StoreModal product={activeProduct} currency={currency} onClose={() => setActiveProduct(null)} />
+        <StoreModal
+          product={activeProduct}
+          currency={currency}
+          onClose={() => setActiveProduct(null)}
+          onPaymentStatus={(statusData) => setPaymentModal(statusData)}
+        />
       )}
+
+      {/* Branded Payment Status Modal (Confirmed, Pending, Failed) */}
+      <PaymentStatusModal
+        isOpen={paymentModal.isOpen}
+        status={paymentModal.status}
+        order={paymentModal.order}
+        onClose={() => setPaymentModal((prev) => ({ ...prev, isOpen: false }))}
+        onRetry={() => {
+          setPaymentModal((prev) => ({ ...prev, isOpen: false }))
+          if (activeProduct) {
+            // Re-open active product modal to allow quick re-attempt
+          }
+        }}
+        onSwitchState={(nextStatus) => setPaymentModal((prev) => ({ ...prev, status: nextStatus }))}
+      />
     </section>
   )
 }
