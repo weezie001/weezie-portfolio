@@ -19,9 +19,12 @@ import Contact from './components/Contact.jsx'
 import Footer from './components/Footer.jsx'
 import ProjectBrief from './components/ProjectBrief.jsx'
 import AdminCRM from './components/AdminCRM.jsx'
-import { useReveal } from './hooks/useReveal.js'
-
+import AboutPage from './components/AboutPage.jsx'
+import WorkPage from './components/WorkPage.jsx'
+import CaseStudyDetail from './components/CaseStudyDetail.jsx'
 import ComponentShowcase from './components/ComponentShowcase.jsx'
+import { CASE_STUDIES } from './data/caseStudiesData.js'
+import { useReveal } from './hooks/useReveal.js'
 
 export default function App() {
   const [path, setPath] = useState(() => window.location.pathname)
@@ -31,38 +34,50 @@ export default function App() {
     const isAdmin = path.startsWith('/admin')
     const isStore = path.startsWith('/store')
     const isComponents = path.startsWith('/components')
-    const page = isAdmin
-      ? {
-          title: 'Admin CRM | Enang Weezie',
-          description: '',
-          canonical: '',
-          robots: 'noindex, nofollow',
-        }
-      : isStore
-        ? {
-            title: 'Digital UI Kits, Templates & AI Packs | Enang Weezie',
-            description:
-              'Browse production-ready website templates, React UI components, AI agents, workflows and design systems by Enang Weezie, a designer and developer in Abuja, Nigeria.',
-            canonical: 'https://weezie.site/store/',
-            robots: 'index, follow',
-          }
-        : isComponents
-          ? {
-              title: 'Copy-Paste React & Tailwind UI Components | Weezie UI',
-              description:
-                'Explore copy-and-paste React and Tailwind UI components inspired by top web design sites. Zero dependencies, accessible, production ready.',
-              canonical: 'https://weezie.site/components/',
-              robots: 'index, follow',
-            }
-          : {
-            title: 'Enang Weezie: Designer & Full-Stack Developer in Abuja, Nigeria',
-            description:
-              'Designer and full-stack developer in Abuja, Nigeria, working worldwide. Websites, e-commerce, fintech and investment platforms, web apps and AI tools, from $450.',
-            canonical: 'https://weezie.site/',
-            robots: 'index, follow',
-          }
+    const isAbout = path.startsWith('/about')
+    const isWork = path.startsWith('/work')
+    const workSlug = isWork ? path.replace(/^\/work\/?/, '').replace(/\/$/, '') : null
 
-    document.title = page.title
+    let pageTitle = 'Enang Weezie: Designer & Full-Stack Developer in Abuja, Nigeria'
+    let pageDesc = 'Designer and full-stack developer in Abuja, Nigeria, working worldwide. Websites, e-commerce, fintech and investment platforms, web apps and AI tools, from $450.'
+    let pageCanonical = 'https://weezie.site/'
+    let pageRobots = 'index, follow'
+
+    if (isAdmin) {
+      pageTitle = 'Admin CRM | Enang Weezie'
+      pageDesc = ''
+      pageCanonical = ''
+      pageRobots = 'noindex, nofollow'
+    } else if (isStore) {
+      pageTitle = 'Digital UI Kits, Templates & AI Packs | Enang Weezie'
+      pageDesc = 'Browse production-ready website templates, React UI components, AI agents, workflows and design systems by Enang Weezie.'
+      pageCanonical = 'https://weezie.site/store/'
+    } else if (isComponents) {
+      pageTitle = 'Copy-Paste React & Tailwind UI Components | Weezie UI'
+      pageDesc = 'Explore copy-and-paste React and Tailwind UI components inspired by top web design sites. Zero dependencies, accessible, production ready.'
+      pageCanonical = 'https://weezie.site/components/'
+    } else if (isAbout) {
+      pageTitle = 'About Enang Weezie — Web Designer & Product Engineer'
+      pageDesc = 'Learn about Enang Weezie, design philosophy, technical stack, experience timeline, and approach to building high-converting digital products.'
+      pageCanonical = 'https://weezie.site/about/'
+    } else if (isWork && workSlug) {
+      const found = CASE_STUDIES.find((s) => s.slug === workSlug)
+      if (found) {
+        pageTitle = `${found.client} Case Study & Architecture | Enang Weezie`
+        pageDesc = found.description
+        pageCanonical = `https://weezie.site/work/${found.slug}/`
+      } else {
+        pageTitle = 'Case Studies & Client Work | Enang Weezie'
+        pageDesc = 'Explore comprehensive case studies across e-commerce, automated SaaS engines, and multi-portal operations platforms.'
+        pageCanonical = 'https://weezie.site/work/'
+      }
+    } else if (isWork) {
+      pageTitle = 'Selected Work & Case Studies | Enang Weezie'
+      pageDesc = 'Explore comprehensive case studies across e-commerce, automated SaaS engines, and multi-portal operations platforms.'
+      pageCanonical = 'https://weezie.site/work/'
+    }
+
+    document.title = pageTitle
 
     const setMeta = (key, value, attribute = 'name') => {
       let element = document.head.querySelector(`meta[${attribute}="${key}"]`)
@@ -77,16 +92,16 @@ export default function App() {
 
     const canonical = document.head.querySelector('link[rel="canonical"]')
     if (canonical) {
-      if (page.canonical) canonical.setAttribute('href', page.canonical)
+      if (pageCanonical) canonical.setAttribute('href', pageCanonical)
       else canonical.remove()
     }
-    setMeta('description', page.description)
-    setMeta('robots', page.robots)
-    setMeta('og:title', page.title, 'property')
-    setMeta('og:description', page.description, 'property')
-    setMeta('og:url', page.canonical, 'property')
-    setMeta('twitter:title', page.title)
-    setMeta('twitter:description', page.description)
+    setMeta('description', pageDesc)
+    setMeta('robots', pageRobots)
+    setMeta('og:title', pageTitle, 'property')
+    setMeta('og:description', pageDesc, 'property')
+    setMeta('og:url', pageCanonical, 'property')
+    setMeta('twitter:title', pageTitle)
+    setMeta('twitter:description', pageDesc)
   }, [path])
 
   useEffect(() => {
@@ -96,6 +111,19 @@ export default function App() {
   }, [])
 
   function navigate(nextPath) {
+    if (nextPath.includes('#')) {
+      const [routePath, hash] = nextPath.split('#')
+      const targetRoute = routePath || '/'
+      window.history.pushState({}, '', nextPath)
+      setPath(targetRoute)
+      setTimeout(() => {
+        const el = document.getElementById(hash)
+        if (el) el.scrollIntoView({ behavior: 'smooth' })
+        else window.scrollTo({ top: 0, behavior: 'smooth' })
+      }, 50)
+      return
+    }
+
     window.history.pushState({}, '', nextPath)
     setPath(nextPath)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -109,13 +137,14 @@ export default function App() {
   // Dedicated /store digital products & freebies route
   if (path.startsWith('/store')) {
     return (
-      <>
-        <main>
+      <div className="min-h-screen bg-paper text-ink selection:bg-blue selection:text-white">
+        <Navbar onNavigate={navigate} currentPath="/store" />
+        <main className="pt-24 pb-12 md:pt-28">
           <StoreSection fullPage onNavigate={navigate} />
         </main>
         <Footer />
         <ProjectBrief />
-      </>
+      </div>
     )
   }
 
@@ -124,21 +153,41 @@ export default function App() {
     return <ComponentShowcase onNavigate={navigate} />
   }
 
+  // Dedicated /about page
+  if (path.startsWith('/about')) {
+    return <AboutPage onNavigate={navigate} />
+  }
+
+  // Dedicated individual /work/:slug case study route
+  if (path.startsWith('/work/')) {
+    const slug = path.replace(/^\/work\//, '').replace(/\/$/, '')
+    if (slug) {
+      return <CaseStudyDetail slug={slug} onNavigate={navigate} />
+    }
+    return <WorkPage onNavigate={navigate} />
+  }
+
+  // Dedicated /work overview directory
+  if (path.startsWith('/work')) {
+    return <WorkPage onNavigate={navigate} />
+  }
+
+  // Main Home Page
   return (
     <>
       <Loader />
-      <Navbar />
+      <Navbar onNavigate={navigate} currentPath="/" />
       <main>
         <Hero />
         <RockPaperScissors />
-        <Work />
+        <Work onNavigate={navigate} />
         <Marquee />
         <Services />
         <RateCard />
         <StoreSection onNavigate={navigate} />
         <AILab />
         <Clients />
-        <About />
+        <About onNavigate={navigate} />
         <Partnership />
         <FAQ />
         <CollabCTA />

@@ -295,18 +295,9 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
             >
               ← Back to Portfolio
             </a>
-            <a
-              href="/admin/"
-              onClick={(e) => {
-                if (onNavigate) {
-                  e.preventDefault()
-                  onNavigate('/admin/')
-                }
-              }}
-              className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft hover:text-blue"
-            >
-              Admin CRM ↗
-            </a>
+            <span className="rounded-full bg-blue/10 px-3.5 py-1 text-xs font-bold text-blue">
+              Commercial Royalty-Free License
+            </span>
           </div>
         )}
 
@@ -404,7 +395,7 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
                   <p className="mt-2 text-sm font-medium leading-relaxed text-ink-soft">{item.tagline}</p>
                 </div>
 
-                <div className="mt-6 flex items-center justify-between border-t border-line pt-4">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
                   <div>
                     <span className="block text-[10px] font-bold uppercase tracking-[0.12em] text-ink-soft">
                       {isFree ? 'Email Unlock' : 'Instant Download'}
@@ -412,13 +403,31 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
                     <span className="display text-2xl text-ink">{formatAmount(item, currency)}</span>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => setActiveProduct(item)}
-                    className="btn-gradient rounded-full px-5 py-3 text-xs font-bold uppercase tracking-[0.12em]"
-                  >
-                    {isFree ? 'Get Freebie →' : 'Buy / Details →'}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    {item.preview_url && (
+                      <a
+                        href={item.preview_url}
+                        onClick={(e) => {
+                          if (item.preview_url.startsWith('/') && onNavigate) {
+                            e.preventDefault()
+                            onNavigate(item.preview_url)
+                          }
+                        }}
+                        target={item.preview_url.startsWith('/') ? undefined : '_blank'}
+                        rel="noreferrer"
+                        className="neu-hover rounded-full bg-paper px-3.5 py-2.5 text-xs font-bold text-ink-soft hover:text-blue neu-sm"
+                      >
+                        Preview ↗
+                      </a>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setActiveProduct(item)}
+                      className="btn-gradient rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-[0.12em]"
+                    >
+                      {isFree ? 'Get Freebie →' : 'Get Pack →'}
+                    </button>
+                  </div>
                 </div>
               </article>
             )

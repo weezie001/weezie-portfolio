@@ -96,6 +96,28 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/25 to-black/70" aria-hidden="true" />
 
       <div className="relative z-10 px-6 text-center">
+        {/* Brand Hero Logo */}
+        <div className="mb-6 flex justify-center">
+          <div className="group relative flex items-center gap-3 rounded-full border border-white/20 bg-black/40 p-2 pr-5 shadow-2xl backdrop-blur-xl transition-all duration-300 hover:border-white/40 hover:bg-black/60">
+            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden rounded-full border border-blue/40 bg-zinc-900 shadow-md">
+              <img
+                src="/favicon.png"
+                alt="Weezie Logo Mark"
+                className="h-9 w-9 object-contain transition-transform duration-300 group-hover:scale-110"
+              />
+              <span className="absolute inset-0 rounded-full ring-1 ring-inset ring-white/20" />
+            </div>
+            <div className="text-left">
+              <span className="display block text-sm font-bold tracking-wider text-white">
+                WEEZIE<span className="text-blue">.</span>
+              </span>
+              <span className="block font-mono text-[9px] uppercase tracking-[0.2em] text-white/60">
+                Design &amp; Systems Lab
+              </span>
+            </div>
+          </div>
+        </div>
+
         <span className="mb-5 inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-1.5 text-[11px] font-bold uppercase tracking-[0.15em] text-white/90 backdrop-blur-md">
           <span className="h-2 w-2 rounded-full bg-green-400 animate-pulse motion-reduce:animate-none" aria-hidden="true" />
           Available for new projects

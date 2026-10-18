@@ -1,6 +1,6 @@
 import { site, characters, aboutStats } from '../data.js'
 
-export default function About() {
+export default function About({ onNavigate }) {
   return (
     <section id="about" className="dark-band relative overflow-hidden px-6 pt-20 pb-0 md:min-h-[660px] md:px-10 md:pt-24">
       {/* avatar — in flow on mobile, big & base-anchored on desktop */}
@@ -20,13 +20,26 @@ export default function About() {
           <p className="mx-auto mt-5 max-w-sm text-base leading-relaxed text-white/75 md:mx-0">
             {site.aboutBlurb}
           </p>
-          <a
-            href="#contact"
-            className="btn-gradient mt-7 inline-block rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-          >
-            Work With Me
-          </a>
-          <p className="mt-5"><a href="/about/" className="text-sm text-white underline underline-offset-4">More about Enang Weezie</a></p>
+          <div className="mt-7 flex flex-wrap items-center gap-4">
+            <a
+              href="#contact"
+              className="btn-gradient inline-block rounded-full px-7 py-3.5 text-sm font-bold uppercase tracking-[0.1em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+            >
+              Work With Me
+            </a>
+            <a
+              href="/about"
+              onClick={(e) => {
+                if (onNavigate) {
+                  e.preventDefault()
+                  onNavigate('/about')
+                }
+              }}
+              className="inline-block rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-xs font-bold uppercase tracking-[0.1em] text-white hover:bg-white/10 transition-colors"
+            >
+              Full Story &amp; Tech Stack →
+            </a>
+          </div>
         </div>
 
         {/* RIGHT */}

@@ -584,6 +584,29 @@ export const storeCategories = [
 
 export const storeProducts = [
   {
+    id: 10,
+    slug: 'weezie-ui-components-bundle',
+    title: 'Weezie UI — 30 Production React & Tailwind Blocks',
+    category: 'Components',
+    tagline: '30 copy-paste React + Tailwind UI components inspired by VibePrompts, Minimal Gallery, Kage, Refero, DESIGN.md & Mobbin.',
+    description:
+      'The complete 30-component commercial UI system recreated in pure React and Tailwind CSS. Bento grids, dynamic pricing estimators, OTP verification, floating ⌘K palettes, ghost collaborative cursors, luxury typography headlines, device frames, and multi-step flowcharts. Zero external dependency lock-in, accessible, fully responsive, and copy-paste ready.',
+    price_ngn: 35000,
+    price_usd: 29,
+    is_freebie: false,
+    badge: 'Featured',
+    cover_image: '/og.png',
+    preview_url: '/components',
+    file_url: '/downloads/weezie-ui-components.zip',
+    features: [
+      '30 Standalone React + Tailwind CSS component files',
+      'VibePrompts, Minimal Gallery, Kage, Refero, DESIGN.md & Mobbin inspired',
+      'Interactive live showcase with 1-click source code copy',
+      'Commercial royalty-free license for unlimited personal & client projects',
+    ],
+    downloads_count: 58,
+  },
+  {
     id: 8,
     slug: 'weezie-brand-delivery-kit',
     title: 'Brand Delivery Kit — Studio OS for Client Identity',

@@ -1,4 +1,4 @@
-import { editorialPages, renderEditorialPage } from './editorial-pages.js'
+import { editorialPages, editorialHtml } from './editorial-pages.js'
 // Builds everything search engines and AI assistants read without running
 // JavaScript, straight from src/data.js, so it can never drift from the site:
 //
@@ -328,13 +328,15 @@ export default function aiSearch() {
       await Promise.all(editorialPages.map(async page => {
         const dir = resolve(outputDir, page.path.replace(/^\//, ''))
         await mkdir(dir, { recursive: true })
-        await writeFile(resolve(dir, 'index.html'), renderEditorialPage(page, jsonLd()))
+        await writeFile(resolve(dir, 'index.html'), editorialHtml(homeHtml, page, jsonLd()))
       }))
       await mkdir(resolve(outputDir, 'store'), { recursive: true })
       await mkdir(resolve(outputDir, 'admin'), { recursive: true })
+      await mkdir(resolve(outputDir, 'components'), { recursive: true })
       await Promise.all([
         writeFile(resolve(outputDir, 'store/index.html'), storeHtml(homeHtml)),
         writeFile(resolve(outputDir, 'admin/index.html'), adminHtml(homeHtml)),
+        writeFile(resolve(outputDir, 'components/index.html'), homeHtml),
         writeFile(resolve(outputDir, 'sitemap.xml'), sitemap()),
       ])
     },
