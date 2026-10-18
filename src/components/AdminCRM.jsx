@@ -783,7 +783,7 @@ export default function AdminCRM({ onNavigate }) {
     : null
 
   return (
-    <section className="min-h-screen bg-paper px-3 sm:px-6 py-6 sm:py-10 md:px-10">
+    <section className="min-h-screen bg-paper px-2 sm:px-6 py-4 sm:py-10 md:px-10 overflow-x-hidden w-full max-w-full">
       {mailPreview && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-ink/60 p-4">
           <div role="dialog" aria-modal="true" aria-labelledby="mail-preview-title"
@@ -931,7 +931,7 @@ export default function AdminCRM({ onNavigate }) {
           </div>
         </div>
       )}
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto max-w-7xl w-full min-w-0">
         {/* Top bar */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
@@ -1137,16 +1137,16 @@ export default function AdminCRM({ onNavigate }) {
 
         {/* TAB 2: COLD OUTREACH ENGINE (ALL 3 TOOLS + ANTI-SPAM GUARD) */}
         {tab === 'cold' && (
-          <div className="mt-8 space-y-8">
+          <div className="mt-8 space-y-8 w-full min-w-0 max-w-full">
             {/* Sub-tool picker */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-[28px] bg-paper p-4 sm:p-6 neu">
-              <div>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 rounded-[28px] bg-paper p-4 sm:p-6 neu w-full min-w-0 max-w-full">
+              <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.15em] text-blue">
                   // Zero API Credits Needed · Powered by Free Cloudflare Workers AI + Anti-Spam Guard
                 </p>
                 <h2 className="display mt-1 text-xl sm:text-2xl text-ink">Cold Email Outreach Suite (enang@weezie.site)</h2>
               </div>
-              <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
+              <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none flex-nowrap sm:flex-wrap shrink-0 max-w-full">
                 {[
                   ['cron', `⏱️ 24h Auto-Drip (${pendingColdList.length} Pending)`],
                   ['tracker', `Prospect Tracker (${coldList.length}) · ${allOpenedColdList.length} Read`],
@@ -1167,9 +1167,9 @@ export default function AdminCRM({ onNavigate }) {
               </div>
             </div>
 
-            <div className="grid gap-8 lg:grid-cols-12">
+            <div className="grid gap-8 lg:grid-cols-12 w-full min-w-0 max-w-full">
               {/* Left panel: Tool 1, Tool 2, Tool 3, or Cron Dashboard */}
-              <div className={`rounded-[28px] bg-paper p-4 sm:p-6 neu ${coldSubTab === 'tracker' ? 'lg:col-span-12' : 'lg:col-span-6'}`}>
+              <div className={`rounded-[28px] bg-paper p-4 sm:p-6 neu w-full min-w-0 max-w-full overflow-hidden ${coldSubTab === 'tracker' ? 'lg:col-span-12' : 'lg:col-span-6'}`}>
                 {coldSubTab === 'cron' && (
                   <div className="space-y-6">
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1355,20 +1355,20 @@ export default function AdminCRM({ onNavigate }) {
                 )}
 
                 {coldSubTab === 'tracker' && (
-                  <div className="space-y-5">
+                  <div className="space-y-5 w-full min-w-0 max-w-full">
                     {/* Header & Overall Stats */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div>
-                        <h3 className="display text-2xl text-ink">3. Prospect &amp; Follow-Up Tracker</h3>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 w-full min-w-0 max-w-full">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="display text-xl sm:text-2xl text-ink">3. Prospect &amp; Follow-Up Tracker</h3>
                         <p className="mt-1 text-xs text-ink-soft">
                           {coldList.length} Total Prospects · {pendingColdList.length} Pending · {sentColdList.length} Initial Sent · <span className="font-bold text-blue">{initialOpenedColdList.length} Initial Read</span> · <span className="font-bold text-purple-700">{followupSentList.length} Followed Up</span> · <span className="font-bold text-amber-600">{followupOpenedList.length} Follow-up Read 🔥</span>
                         </p>
                       </div>
-                      <div className="flex items-center gap-2">
+                      <div className="flex flex-wrap items-center gap-2 shrink-0">
                         <button
                           type="button"
                           onClick={() => setShowColdTemplateEditor(!showColdTemplateEditor)}
-                          className="rounded-full bg-paper px-4 py-2 text-xs font-bold text-blue neu-sm hover:underline"
+                          className="rounded-full bg-paper px-3.5 sm:px-4 py-2 text-xs font-bold text-blue neu-sm hover:underline"
                         >
                           {showColdTemplateEditor ? '▲ Close Template Editor' : '✏️ View & Edit Email Templates'}
                         </button>
@@ -1384,9 +1384,9 @@ export default function AdminCRM({ onNavigate }) {
                     </div>
 
                     {/* Resend Safety & Action Bar */}
-                    <div className="rounded-2xl bg-paper p-4 neu-inset">
-                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
-                        <div className="flex items-center gap-2">
+                    <div className="rounded-2xl bg-paper p-4 neu-inset w-full min-w-0 max-w-full">
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 w-full min-w-0 max-w-full">
+                        <div className="flex flex-wrap items-center gap-2 min-w-0 flex-1">
                           <span className="text-xs font-bold text-green-700 bg-green-500/15 border border-green-500/20 px-3 py-1 rounded-full shrink-0">
                             🛡️ Resend Protection Active
                           </span>
@@ -1395,8 +1395,8 @@ export default function AdminCRM({ onNavigate }) {
                           </span>
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
-                          <label className="flex items-center gap-1.5 text-[11px] font-bold uppercase text-ink-soft">
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
+                          <label className="flex items-center gap-1.5 text-[11px] font-bold uppercase text-ink-soft shrink-0">
                             Batch
                             <select
                               value={coldBatchSize}
@@ -1505,8 +1505,8 @@ export default function AdminCRM({ onNavigate }) {
                     )}
 
                     {/* Search & Filter Bar */}
-                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                      <div className="relative flex-1 max-w-md">
+                    <div className="space-y-3 w-full min-w-0 max-w-full">
+                      <div className="relative w-full max-w-md">
                         <input
                           type="text"
                           value={coldSearch}
@@ -1515,49 +1515,51 @@ export default function AdminCRM({ onNavigate }) {
                             setDisplayLimit(25)
                           }}
                           placeholder="🔍 Search name, company, email, or niche…"
-                          className="w-full rounded-full bg-paper px-4 py-2 text-xs font-medium text-ink outline-none neu-inset placeholder:text-ink-soft"
+                          className="w-full rounded-full bg-paper px-4 py-2.5 text-xs font-medium text-ink outline-none neu-inset placeholder:text-ink-soft"
                         />
                         {coldSearch && (
                           <button
                             type="button"
                             onClick={() => setColdSearch('')}
-                            className="absolute right-3 top-2 text-xs font-bold text-ink-soft hover:text-red-500"
+                            className="absolute right-3 top-2.5 text-xs font-bold text-ink-soft hover:text-red-500"
                           >
                             ✕
                           </button>
                         )}
                       </div>
 
-                      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                        {[
-                          { id: 'all', label: `All (${coldList.length})` },
-                          { id: 'Pending', label: `⏳ Pending (${pendingColdList.length})` },
-                          { id: 'Sent', label: `📤 Sent (${sentColdList.length})` },
-                          { id: 'Opened', label: `👁️ Initial Opened (${initialOpenedColdList.length})` },
-                          { id: 'Follow-up Sent', label: `📨 Follow-up Sent (${followupSentList.length})` },
-                          { id: 'Follow-up Opened', label: `🔥 Follow-up Opened (${followupOpenedList.length})` },
-                          { id: 'Replied', label: `💬 Replied (${repliedColdList.length})` },
-                          { id: 'Unsubscribed', label: `🚫 Unsubscribed (${unsubscribedColdList.length})` },
-                        ].map(({ id, label }) => (
-                          <button
-                            key={id}
-                            type="button"
-                            onClick={() => {
-                              setColdFilter(id)
-                              setDisplayLimit(25)
-                            }}
-                            className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase whitespace-nowrap transition-all ${
-                              coldFilter === id ? 'bg-ink text-white' : 'bg-paper text-ink-soft neu-sm hover:text-ink'
-                            }`}
-                          >
-                            {label}
-                          </button>
-                        ))}
+                      <div className="w-full min-w-0 max-w-full overflow-x-auto pb-2 scrollbar-none">
+                        <div className="inline-flex items-center gap-1.5 min-w-max">
+                          {[
+                            { id: 'all', label: `All (${coldList.length})` },
+                            { id: 'Pending', label: `⏳ Pending (${pendingColdList.length})` },
+                            { id: 'Sent', label: `📤 Sent (${sentColdList.length})` },
+                            { id: 'Opened', label: `👁️ Initial Opened (${initialOpenedColdList.length})` },
+                            { id: 'Follow-up Sent', label: `📨 Follow-up Sent (${followupSentList.length})` },
+                            { id: 'Follow-up Opened', label: `🔥 Follow-up Opened (${followupOpenedList.length})` },
+                            { id: 'Replied', label: `💬 Replied (${repliedColdList.length})` },
+                            { id: 'Unsubscribed', label: `🚫 Unsubscribed (${unsubscribedColdList.length})` },
+                          ].map(({ id, label }) => (
+                            <button
+                              key={id}
+                              type="button"
+                              onClick={() => {
+                                setColdFilter(id)
+                                setDisplayLimit(25)
+                              }}
+                              className={`shrink-0 rounded-full px-3.5 py-1.5 text-[10px] font-bold uppercase whitespace-nowrap transition-all ${
+                                coldFilter === id ? 'bg-ink text-white' : 'bg-paper text-ink-soft neu-sm hover:text-ink'
+                              }`}
+                            >
+                              {label}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
-                    {/* Prospects List (No max-h-96 truncation!) */}
-                    <div className="space-y-3">
+                    {/* Prospects List (No truncation!) */}
+                    <div className="space-y-3 w-full min-w-0 max-w-full">
                       {filteredCold.length === 0 ? (
                         <div className="rounded-2xl bg-paper p-8 text-center neu-inset">
                           <p className="text-xs font-medium text-ink-soft">
@@ -1573,9 +1575,9 @@ export default function AdminCRM({ onNavigate }) {
                           return (
                             <div
                               key={p.id || p.email}
-                              className="rounded-2xl bg-paper p-4 neu-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all"
+                              className="rounded-2xl bg-paper p-3.5 sm:p-4 neu-sm flex flex-col lg:flex-row lg:items-center justify-between gap-3 sm:gap-4 transition-all w-full min-w-0 max-w-full overflow-hidden"
                             >
-                              <div className="min-w-0 flex-1">
+                              <div className="min-w-0 flex-1 max-w-full overflow-hidden">
                                 <div className="flex flex-wrap items-center gap-2">
                                   {/* Status Pill */}
                                   {isFollowupOpened ? (
@@ -1648,7 +1650,7 @@ export default function AdminCRM({ onNavigate }) {
                                 </div>
 
                                 {p.custom_opener && (
-                                  <details className="mt-2.5 max-w-2xl rounded-xl bg-paper p-3 neu-inset">
+                                  <details className="mt-2.5 max-w-2xl rounded-xl bg-paper p-3 neu-inset overflow-hidden">
                                     <summary className="cursor-pointer text-[10px] font-bold uppercase tracking-[0.08em] text-blue">
                                       Review personalized AI pitch
                                     </summary>
@@ -1659,7 +1661,7 @@ export default function AdminCRM({ onNavigate }) {
                               </div>
 
                               {/* Card Action Buttons */}
-                              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 pt-2 md:pt-0 shrink-0">
+                              <div className="flex flex-wrap items-center gap-2 pt-2 lg:pt-0 shrink-0 self-start lg:self-center">
                                 {p.status === 'Pending' ? (
                                   <>
                                     <button
