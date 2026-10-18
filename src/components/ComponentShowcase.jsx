@@ -4,6 +4,11 @@ import UsagePricingSlider from './ui/UsagePricingSlider.jsx'
 import OtpVerificationInput from './ui/OtpVerificationInput.jsx'
 import FeatureComparisonMatrix from './ui/FeatureComparisonMatrix.jsx'
 import SplitAuthCard from './ui/SplitAuthCard.jsx'
+import MinimalCard from './ui/MinimalCard.jsx'
+import MinimalNavbar from './ui/MinimalNavbar.jsx'
+import MinimalFilterBar from './ui/MinimalFilterBar.jsx'
+import MinimalViewToggle from './ui/MinimalViewToggle.jsx'
+import MinimalSubmitModal from './ui/MinimalSubmitModal.jsx'
 
 // Import complete raw source code so buyers can copy the full implementation directly
 import bentoRaw from './ui/BentoFeatures.jsx?raw'
@@ -11,6 +16,11 @@ import pricingRaw from './ui/UsagePricingSlider.jsx?raw'
 import otpRaw from './ui/OtpVerificationInput.jsx?raw'
 import matrixRaw from './ui/FeatureComparisonMatrix.jsx?raw'
 import authRaw from './ui/SplitAuthCard.jsx?raw'
+import minimalCardRaw from './ui/MinimalCard.jsx?raw'
+import minimalNavbarRaw from './ui/MinimalNavbar.jsx?raw'
+import minimalFilterBarRaw from './ui/MinimalFilterBar.jsx?raw'
+import minimalViewToggleRaw from './ui/MinimalViewToggle.jsx?raw'
+import minimalSubmitModalRaw from './ui/MinimalSubmitModal.jsx?raw'
 
 /**
  * ComponentShowcase — Interactive Viewer & 1-Click Code Exporter
@@ -123,6 +133,115 @@ export default function Example() {
   )
 }`,
   },
+  {
+    id: 'minimal-card',
+    name: 'Minimal Curation Card',
+    category: 'Minimal Gallery · Showcase',
+    description: 'Clean showcase card with hover image zoom, category pill, and interactive bookmark button with live counter.',
+    component: MinimalCard,
+    fileName: 'MinimalCard.jsx',
+    source: minimalCardRaw,
+    code: `import MinimalCard from '@/components/ui/MinimalCard'
+
+export default function Example() {
+  return (
+    <div className="max-w-sm">
+      <MinimalCard
+        title="Studio Linear"
+        category="Design Agency"
+        year="2026"
+        url="https://linear.app"
+        initialBookmarks={142}
+      />
+    </div>
+  )
+}`,
+  },
+  {
+    id: 'minimal-nav',
+    name: 'Minimal Floating Navbar',
+    category: 'Minimal Gallery · Navigation',
+    description: 'Split floating pill header with ⌘K search shortcut, live bookmarks count badge, and clean responsive menu.',
+    component: MinimalNavbar,
+    fileName: 'MinimalNavbar.jsx',
+    source: minimalNavbarRaw,
+    code: `import MinimalNavbar from '@/components/ui/MinimalNavbar'
+
+export default function Example() {
+  return (
+    <MinimalNavbar
+      brandName="Minimal Archive"
+      bookmarksCount={5}
+      onOpenSearch={() => console.log('Open search dialog')}
+      onSubmitClick={() => console.log('Open submit modal')}
+    />
+  )
+}`,
+  },
+  {
+    id: 'minimal-filter',
+    name: 'Horizontal Filter Bar',
+    category: 'Minimal Gallery · Filters',
+    description: 'Horizontal scrolling tag pill bar with active slider indicator, counts per tag, and clear-all reset button.',
+    component: MinimalFilterBar,
+    fileName: 'MinimalFilterBar.jsx',
+    source: minimalFilterBarRaw,
+    code: `import MinimalFilterBar from '@/components/ui/MinimalFilterBar'
+
+export default function Example() {
+  return (
+    <MinimalFilterBar
+      onChange={(activeTag) => console.log('Filtered by:', activeTag)}
+    />
+  )
+}`,
+  },
+  {
+    id: 'minimal-view',
+    name: 'Segmented View Toggle',
+    category: 'Minimal Gallery · Layout Controls',
+    description: 'Smooth sliding layout switcher (2-col, 3-col, compact list) with persisted view state and animated indicators.',
+    component: MinimalViewToggle,
+    fileName: 'MinimalViewToggle.jsx',
+    source: minimalViewToggleRaw,
+    code: `import MinimalViewToggle from '@/components/ui/MinimalViewToggle'
+
+export default function Example() {
+  return (
+    <MinimalViewToggle
+      initialView="3col"
+      onViewChange={(view) => console.log('Switched layout:', view)}
+    />
+  )
+}`,
+  },
+  {
+    id: 'minimal-modal',
+    name: 'Minimal Submission Modal',
+    category: 'Minimal Gallery · Modals',
+    description: 'Minimalist website submission dialog with live URL metadata preview, category selector, and confirmation screen.',
+    component: (props) => (
+      <div className="relative flex min-h-[350px] items-center justify-center p-4">
+        <MinimalSubmitModal isOpen={true} {...props} className="static max-w-md mx-auto" />
+      </div>
+    ),
+    fileName: 'MinimalSubmitModal.jsx',
+    source: minimalSubmitModalRaw,
+    code: `import { useState } from 'react'
+import MinimalSubmitModal from '@/components/ui/MinimalSubmitModal'
+
+export default function Example() {
+  const [open, setOpen] = useState(true)
+
+  return (
+    <MinimalSubmitModal
+      isOpen={open}
+      onClose={() => setOpen(false)}
+      onSubmit={(data) => console.log('Submitted site:', data)}
+    />
+  )
+}`,
+  },
 ]
 
 export default function ComponentShowcase({ onNavigate }) {
@@ -167,7 +286,7 @@ export default function ComponentShowcase({ onNavigate }) {
 
           <div className="flex items-center gap-3">
             <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-400 border border-emerald-500/20">
-              5 of 30 Ready to Copy
+              10 of 30 Ready to Copy
             </span>
             <button
               type="button"
