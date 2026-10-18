@@ -107,8 +107,9 @@ export default function AdminCRM({ onNavigate }) {
   const mailSendLock = useRef(false)
   const coldSendLock = useRef(false)
 
-  // Cold Outreach Suite state (All 3 tools: 1. AI Cold Opener, 2. CSV Bulk Import, 3. Follow-up Tracker)
-  const [coldSubTab, setColdSubTab] = useState('ai') // 'ai' | 'import' | 'tracker'
+  const [coldSubTab, setColdSubTab] = useState('cron') // 'cron' | 'tracker' | 'import' | 'ai'
+  const [cronTriggering, setCronTriggering] = useState(false)
+  const [cronFeedback, setCronFeedback] = useState(null)
   const [aiProspect, setAiProspect] = useState({ name: '', email: '', business: '', website: '', niche: '' })
   const [aiGenerating, setAiGenerating] = useState(false)
   const [csvText, setCsvText] = useState('')
@@ -307,6 +308,21 @@ export default function AdminCRM({ onNavigate }) {
         loadDashboard()
       }
       setColdStatusMsg('✨ Approved email template personalized & loaded into your Campaign Composer below!')
+    }
+  }
+
+  async function handleTriggerCronNow() {
+    setCronTriggering(true)
+    setCronFeedback(null)
+    try {
+      const res = await fetch(`/api/cron?key=${encodeURIComponent(adminKey)}`)
+      const result = await res.json()
+      setCronFeedback(result)
+      await loadDashboard(adminKey)
+    } catch (err) {
+      setCronFeedback({ ok: false, error: err.message })
+    } finally {
+      setCronTriggering(false)
     }
   }
 
@@ -833,7 +849,7 @@ export default function AdminCRM({ onNavigate }) {
         <div className="mt-8 flex flex-wrap gap-2">
           {[
             ['inbox', `1. Inbox (${inboxList.length})`],
-            ['cold', `2. Cold Email Engine (${coldList.length})`],
+            ['cold', `2. Cold Email & Auto-Drip (${pendingColdList.length} Pending)`],
             ['mail', `3. Compose & Broadcast (${data.emails.length})`],
             ['leads', `4. Leads & Briefs (${data.leads.length})`],
             ['store', `5. Store & File Uploader (${data.products.length})`],
@@ -956,9 +972,10 @@ export default function AdminCRM({ onNavigate }) {
               </div>
               <div className="flex flex-wrap gap-2">
                 {[
-                  ['ai', '1. AI Cold Opener Generator'],
-                  ['import', '2. CSV / Bulk Prospect Importer'],
-                  ['tracker', `3. Follow-Up Tracker (${coldList.length})`],
+                  ['cron', `⏱️ 24h Auto-Drip (${pendingColdList.length} Pending)`],
+                  ['tracker', `Prospect Tracker (${coldList.length})`],
+                  ['import', 'CSV Importer'],
+                  ['ai', 'AI Copy Generator'],
                 ].map(([id, label]) => (
                   <button
                     key={id}
@@ -975,8 +992,100 @@ export default function AdminCRM({ onNavigate }) {
             </div>
 
             <div className="grid gap-8 lg:grid-cols-12">
-              {/* Left panel: Tool 1, Tool 2, or Tool 3 */}
+              {/* Left panel: Tool 1, Tool 2, Tool 3, or Cron Dashboard */}
               <div className="rounded-[28px] bg-paper p-6 neu lg:col-span-6">
+                {coldSubTab === 'cron' && (
+                  <div className="space-y-6">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <h3 className="display text-xl text-ink">Automated 24h Drip Engine</h3>
+                        <p className="text-xs font-medium text-ink-soft">
+                          Drips pending cold emails over 24 hours at randomized intervals (~1 email every 14 minutes with natural human pacing).
+                        </p>
+                      </div>
+                      <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/15 px-3 py-1.5 text-xs font-bold text-green-700">
+                        <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
+                        Cloud Cron Active (*/14m)
+                      </span>
+                    </div>
+
+                    {/* Metric Cards */}
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                      <div className="rounded-2xl bg-paper p-4 neu-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Pending in Queue</p>
+                        <p className="display mt-1 text-2xl text-blue">{pendingColdList.length}</p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">Waiting in queue</p>
+                      </div>
+                      <div className="rounded-2xl bg-paper p-4 neu-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Outreached</p>
+                        <p className="display mt-1 text-2xl text-green-600">{coldList.filter((p) => p.status !== 'Pending').length}</p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">Total contacted</p>
+                      </div>
+                      <div className="rounded-2xl bg-paper p-4 neu-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Sending Cadence</p>
+                        <p className="display mt-1 text-2xl text-ink">~1 / 14m</p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">~4.3 emails / hour</p>
+                      </div>
+                      <div className="rounded-2xl bg-paper p-4 neu-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Est. Time Remaining</p>
+                        <p className="display mt-1 text-2xl text-ink">
+                          {pendingColdList.length === 0 ? '0h' : `~${Math.round((pendingColdList.length * 14) / 60 * 10) / 10}h`}
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">Auto-adapts to queue</p>
+                      </div>
+                    </div>
+
+                    {/* Continuous CSV Resumption Banner */}
+                    <div className="rounded-2xl border border-blue/20 bg-blue/5 p-4 text-xs">
+                      <p className="font-bold text-ink">📥 How Continuous Drip Works</p>
+                      <p className="mt-1 text-ink-soft leading-relaxed">
+                        Whenever you return and upload a new CSV in the <strong>CSV Importer</strong> tab, new prospects are added as <strong>Pending</strong>. The automated Cloudflare cron job will detect them and seamlessly continue dripping them out without any manual setup.
+                      </p>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex flex-wrap items-center gap-3">
+                      <button
+                        type="button"
+                        disabled={cronTriggering || pendingColdList.length === 0}
+                        onClick={handleTriggerCronNow}
+                        className="btn-gradient rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-wider disabled:opacity-50"
+                      >
+                        {cronTriggering ? 'Sending Next Prospect…' : '⚡ Trigger Next Send Now'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => loadDashboard()}
+                        className="rounded-full bg-paper px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-ink neu-sm hover:text-blue"
+                      >
+                        🔄 Refresh Queue
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setColdSubTab('import')}
+                        className="rounded-full bg-paper px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-blue neu-sm"
+                      >
+                        📂 Upload More Prospects (CSV)
+                      </button>
+                    </div>
+
+                    {/* Feedback Toast */}
+                    {cronFeedback && (
+                      <div className={`rounded-xl p-3 text-xs ${cronFeedback.ok ? 'bg-green-500/10 text-green-800' : 'bg-red-500/10 text-red-800'}`}>
+                        {cronFeedback.ok ? (
+                          cronFeedback.sent ? (
+                            <span>✅ Sent to <strong>{cronFeedback.sentTo?.email}</strong> ({cronFeedback.sentTo?.business}). {cronFeedback.remainingPending} prospects remaining in queue.</span>
+                          ) : (
+                            <span>ℹ️ {cronFeedback.message}</span>
+                          )
+                        ) : (
+                          <span>❌ Error: {cronFeedback.error}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
                 {coldSubTab === 'ai' && (
                   <form onSubmit={handleGenerateAIColdOpener} className="flex flex-col gap-3.5">
                     <h3 className="display text-xl text-ink">1. AI Cold Opener &amp; Website Fix Generator</h3>
@@ -1173,10 +1282,52 @@ export default function AdminCRM({ onNavigate }) {
                 )}
               </div>
 
-              {/* Right panel: Cold Campaign Composer + Live Anti-Spam Guard */}
+              {/* Right panel: Live Activity Stream (when cron) OR Cold Campaign Composer */}
               <div className="rounded-[28px] bg-paper p-6 neu lg:col-span-6">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <h3 className="display text-xl text-ink">Cold Campaign Composer</h3>
+                {coldSubTab === 'cron' ? (
+                  <div>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="display text-xl text-ink">Recent Drip Activity</h3>
+                      <span className="text-xs font-bold text-ink-soft">
+                        {coldList.filter((p) => p.status !== 'Pending').length} contacted
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs font-medium text-ink-soft">
+                      Real-time audit log of prospects contacted by the automated engine.
+                    </p>
+
+                    <div className="mt-4 max-h-[460px] space-y-2.5 overflow-y-auto pr-1">
+                      {coldList.filter((p) => p.status !== 'Pending').length === 0 ? (
+                        <div className="rounded-2xl bg-paper p-8 text-center neu-inset">
+                          <p className="text-xs text-ink-soft">No emails sent yet. Trigger the first send above or wait for the next cron tick.</p>
+                        </div>
+                      ) : (
+                        coldList
+                          .filter((p) => p.status !== 'Pending')
+                          .slice(0, 25)
+                          .map((p) => (
+                            <div key={p.id} className="flex items-center justify-between rounded-xl bg-paper p-3 text-xs neu-sm">
+                              <div className="min-w-0 pr-2">
+                                <p className="truncate font-bold text-ink">
+                                  {p.name} · <span className="font-normal text-ink-soft">{p.business || p.email}</span>
+                                </p>
+                                <p className="truncate text-[11px] text-ink-soft">{p.email}</p>
+                                {p.last_contacted_at && (
+                                  <p className="text-[10px] text-blue">Contacted: {new Date(p.last_contacted_at).toLocaleString()}</p>
+                                )}
+                              </div>
+                              <span className="shrink-0 rounded-full bg-green-500/15 px-2.5 py-1 text-[10px] font-bold text-green-700">
+                                {p.status || 'Sent'} ✅
+                              </span>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  </div>
+                ) : (
+                  <>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <h3 className="display text-xl text-ink">Cold Campaign Composer</h3>
                   <span
                     className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${
                       coldSpamCheck.score >= 80
@@ -1242,6 +1393,8 @@ export default function AdminCRM({ onNavigate }) {
                   {coldStatusMsg && <p className="text-xs font-bold text-blue">{coldStatusMsg}</p>}
 
                 </div>
+              </>
+            )}
               </div>
             </div>
           </div>
