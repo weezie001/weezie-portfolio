@@ -118,7 +118,7 @@ export function jsonLd(includeStore = false) {
         '@id': ID.faq,
         mainEntity: faqs.map(f => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
       },
-      { '@type': 'WebSite', '@id': ID.website, url: URL, name: site.name, inLanguage: 'en', publisher: { '@id': ID.person } },
+      { '@type': 'WebSite', '@id': ID.website, url: URL, name: site.name, alternateName: ['weezie.site'], inLanguage: 'en', publisher: { '@id': ID.person } },
     ]
 
   if (includeStore) {
@@ -223,6 +223,7 @@ export function mirror() {
   return `<noscript>
       <div style="max-width:52rem;margin:0 auto;padding:2rem 1.25rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.6;color:#2b2f3a">
         <h1>${esc(site.name)}: Designer &amp; Full-Stack Developer in Abuja, Nigeria</h1>
+        <p><a href="${URL}">weezie.site</a> &mdash; ${esc(site.name)}. Web design, branding and AI tools.</p>
         <p><strong>${esc(site.location)}. Available for new projects.</strong></p>
         <p>${esc(site.aboutBlurb)}</p>
         <h2>Selected work</h2>

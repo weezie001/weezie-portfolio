@@ -82,8 +82,13 @@ export function StoreModal({ product, currency, onClose }) {
           amount,
           download_url: product.file_url,
         })
+        if (!verified?.ok) {
+          setErrMsg(verified?.error || 'Payment could not be verified.')
+          setStatus('error')
+          return
+        }
         setOrderRef(reference)
-        setDownloadUrl(verified?.downloadUrl || product.file_url || `/downloads/${product.slug}.zip`)
+        setDownloadUrl(verified.downloadUrl || product.file_url || `/downloads/${product.slug}.zip`)
         setStatus('unlocked')
         ev('store_purchase_complete', { slug: product.slug, currency, amount })
       },

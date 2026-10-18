@@ -1,3 +1,4 @@
+import { outreachDraft } from './outreachCopy.js'
 // Client-side API bridge for Cloudflare Pages Functions (/api/*)
 // with automatic local persistence fallback so everything works both in
 // local `npm run dev` and on production Cloudflare Pages + D1.
@@ -332,17 +333,11 @@ export async function verifyAndRecordOrder(payload) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
     })
-    if (res.ok) {
-      return await res.json()
-    }
+    const data = await res.json().catch(() => null)
+    if (res.ok && data?.ok) return data
+    return { ok: false, error: data?.error || 'Payment could not be verified.' }
   } catch {
-    /* fallback to local */
-  }
-
-  return {
-    ok: true,
-    reference: newOrder.reference,
-    downloadUrl: newOrder.download_url,
+    return { ok: false, error: 'Network error while verifying payment. Contact hello@weezie.site with your reference.' }
   }
 }
 
@@ -351,8 +346,9 @@ export function launchPaystackPopup({ email, amount, currency = 'NGN', reference
   const publicKey = getPaystackPublicKey()
 
   if (!publicKey) {
-    const simulatedRef = reference || `DEMO-${Date.now()}`
-    onSuccess({ reference: simulatedRef, simulated: true })
+    // Fail closed: never hand out a product without a real payment.
+    alert('Payments are not enabled yet. Please contact hello@weezie.site to purchase.')
+    if (onCancel) onCancel()
     return
   }
 
@@ -384,8 +380,8 @@ export function launchPaystackPopup({ email, amount, currency = 'NGN', reference
   script.async = true
   script.onload = openHandler
   script.onerror = () => {
-    const simulatedRef = reference || `DEMO-${Date.now()}`
-    onSuccess({ reference: simulatedRef, simulated: true })
+    alert('Could not load Paystack checkout. Please check your connection and try again.')
+    if (onCancel) onCancel()
   }
   document.body.appendChild(script)
 }
@@ -636,8 +632,8 @@ export async function postAdminAction(adminKey, payload) {
     const niche = payload.niche || 'digital'
     return {
       ok: true,
-      subject: `Quick idea for ${business}'s website`,
-      pitch: `Hi ${name},\n\nI was checking out ${website || business} today — love what you're doing in the ${niche} space.\n\nI noticed 3 quick conversion upgrades that could help turn more visitors into paying clients:\n1. Adding an interactive quote/booking flow right below the hero section so visitors don't bounce.\n2. Tightening the mobile speed and headline hierarchy for first-time buyers.\n3. Adding structured AI search data so ChatGPT and Google rank ${business} higher.\n\nI'm Enang Weezie, a full-stack designer & developer (https://weezie.site). Would you be open to me sending over a quick 2-minute mockup of how this would look for ${business}?\n\nBest,\nEnang Weezie\nhttps://weezie.site`,
+      subject: outreachDraft({ name, business }).subject,
+      pitch: outreachDraft({ name, business }).body,
     }
   }
 
@@ -647,8 +643,7 @@ export async function postAdminAction(adminKey, payload) {
       const business = prospect.business || 'your business'
       const niche = prospect.niche || 'your industry'
       const website = prospect.website || ''
-      const subject = `A website idea for ${business}`
-      const body = `Hi ${name},\n\nFor a ${niche} business like ${business}, a clear path from first visit to inquiry can make a real difference. One useful idea to explore is making the main service and next step easy to find on mobile.${website ? `\n\nWith ${website} as your online home, one idea to explore is making your main service and next step easy to find on mobile. I would be happy to put together a focused mockup.` : '\n\nIf you are reviewing your website experience, I would be happy to put together a focused mockup.'}\n\nWould that be useful?\n\nIf this is not relevant, just let me know and I will not follow up.\n\nBest,\nEnang Weezie\nhttps://weezie.site`
+      const { subject, body } = outreachDraft(prospect)
       return { ...prospect, email: String(prospect.email).toLowerCase(), subject, body }
     })
     const emails = new Set(drafts.map((draft) => draft.email))

@@ -1,0 +1,55 @@
+/* [CLIENT] design tokens — single source for web.
+   Replace sample hexes with the locked palette from 03-identity/COLOR-SYSTEM.md */
+
+:root {
+  /* primitive */
+  --color-brand-500: #3d5a45;
+  --color-brand-600: #2e4434;
+  --color-ink-900: #0e1114;
+  --color-ink-600: #4a524c;
+  --color-paper-50: #e7e3d6;
+  --color-paper-100: #d9d3c3;
+  --color-line-200: #c3bcae;
+  --color-brass: #c9a227;
+  --color-success: #3d5a45;
+  --color-warning: #c9a227;
+  --color-danger: #8b1e1e;
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+
+  --radius-sm: 8px;
+  --radius-md: 16px;
+  --radius-lg: 28px;
+  --radius-full: 999px;
+
+  --font-display: "Newsreader", "Iowan Old Style", "Palatino Linotype", serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* semantic */
+  --bg-page: var(--color-paper-50);
+  --bg-band: var(--color-paper-100);
+  --text-primary: var(--color-ink-900);
+  --text-muted: var(--color-ink-600);
+  --border-default: var(--color-line-200);
+  --action-default: var(--color-brand-500);
+  --action-hover: var(--color-brand-600);
+
+  /* component */
+  --button-bg: var(--action-default);
+  --button-fg: #fff;
+  --button-radius: var(--radius-full);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration: 0.01ms;
+  }
+}

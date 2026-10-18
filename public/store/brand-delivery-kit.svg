@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 750" fill="none">
+  <rect width="1200" height="750" fill="#E7E3D6"/>
+  <rect x="0" y="0" width="1200" height="8" fill="#0E1114"/>
+  <rect x="72" y="72" width="96" height="96" fill="#3D5A45"/>
+  <path d="M90 148V112.5L120 96l30 16.5V148h-13V122.2L120 113.8 103 122.2V148H90Z" fill="#E7E3D6"/>
+  <text x="196" y="118" fill="#0E1114" font-family="Georgia, serif" font-size="42">Brand Delivery Kit</text>
+  <text x="196" y="152" fill="#4A524C" font-family="Georgia, serif" font-size="18" letter-spacing="4">STUDIO OS · GUIDELINES · TOKENS · HANDOVER</text>
+  <line x1="72" y1="220" x2="1128" y2="220" stroke="#0E1114" stroke-width="1"/>
+  <g font-family="Georgia, serif" fill="#0E1114">
+    <text x="72" y="280" font-size="22">01 Intake</text>
+    <text x="72" y="320" font-size="22">02 Strategy</text>
+    <text x="72" y="360" font-size="22">03 Identity</text>
+    <text x="72" y="400" font-size="22">04 Guidelines</text>
+    <text x="420" y="280" font-size="22">05 Tokens</text>
+    <text x="420" y="320" font-size="22">06 Assets</text>
+    <text x="420" y="360" font-size="22">07 Applications</text>
+    <text x="420" y="400" font-size="22">08 Handover zip</text>
+  </g>
+  <rect x="780" y="248" width="348" height="168" fill="#0E1114"/>
+  <text x="804" y="300" fill="#C9A227" font-family="Georgia, serif" font-size="14" letter-spacing="3">SAMPLE BOOK</text>
+  <text x="804" y="348" fill="#E7E3D6" font-family="Georgia, serif" font-size="36">Atelier North</text>
+  <text x="804" y="382" fill="#C3BCAE" font-family="Georgia, serif" font-size="16">Joinery · Abuja</text>
+  <text x="72" y="680" fill="#4A524C" font-family="Georgia, serif" font-size="16">Weezie. · structure a designer can run on every brand job</text>
+</svg>

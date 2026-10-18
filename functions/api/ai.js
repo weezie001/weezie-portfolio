@@ -216,7 +216,6 @@ Respond ONLY with valid JSON matching this exact structure:
       preview: result.preview,
       // Also return fullReportMd to client only after unlock, or keep a preview teaser
       teaserMd: result.fullReportMd.slice(0, 340) + '\n\n🔒 [Unlock the full Deep-Dive Blueprint & Copy Deck below…]',
-      fullReportCache: result.fullReportMd,
     })
   } catch (err) {
     return json({ ok: false, error: err.message || 'AI error' }, 500)

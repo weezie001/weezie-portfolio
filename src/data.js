@@ -571,6 +571,7 @@ export const faqs = [
 // ============================================================
 export const storeCategories = [
   'All',
+  'Brand Kits',
   'Landing Pages',
   'Components',
   'AI Prompts & Agents',
@@ -580,6 +581,29 @@ export const storeCategories = [
 ]
 
 export const storeProducts = [
+  {
+    id: 8,
+    slug: 'weezie-brand-delivery-kit',
+    title: 'Brand Delivery Kit — Studio OS for Client Identity',
+    category: 'Brand Kits',
+    tagline: 'The full structure a designer needs to run a brand job: intake, system, tokens, applications, handover.',
+    description:
+      'A professional brand-delivery system, not a logo dump. Duplicate-per-client folders, discovery and strategy templates, logo/colour/type/motion specs, Figma page map, design tokens (CSS/JSON/Tailwind), stationery and social specs, email signature, license + walkthrough scripts, plus a filled Atelier North sample book you can open in the browser.',
+    price_ngn: 18000,
+    price_usd: 15,
+    is_freebie: false,
+    badge: 'New',
+    cover_image: '/store/brand-delivery-kit.svg',
+    preview_url: '/kits/brand-delivery-kit/index.html',
+    file_url: '/downloads/weezie-brand-delivery-kit.zip',
+    features: [
+      'Starter / Standard / Full CIP scope tiers you can actually sell',
+      'Fill-in strategy, identity, guidelines and handover documents',
+      'tokens.css, design-tokens.json and Tailwind preset for developers',
+      'Live HTML brand book + sample joinery identity (Atelier North)',
+    ],
+    downloads_count: 0,
+  },
   {
     id: 1,
     slug: 'neumorphic-agency-landing-template',

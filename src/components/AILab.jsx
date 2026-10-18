@@ -79,7 +79,12 @@ export default function AILab() {
           amount: unlockAmount,
           ai_run_id: result?.runId,
         })
-        setUnlockedMd(verified?.fullReportMd || result?.fullReportCache || '')
+        if (!verified?.ok || !verified.fullReportMd) {
+          setError(verified?.error || 'Payment could not be verified. Contact hello@weezie.site with your reference.')
+          setStatus('ready')
+          return
+        }
+        setUnlockedMd(verified.fullReportMd)
         setStatus('unlocked')
         ev('ai_tool_unlocked', { tool: activeTool, currency, amount: unlockAmount })
       },

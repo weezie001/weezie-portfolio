@@ -83,9 +83,15 @@ draft** on a prospect to inspect its subject and message; sending that prospect
 uses its saved draft. Cloudflare AI personalizes drafts when configured, with
 contextual templates as a fallback.
 
-Bulk sends are manual and limited to one batch at a time. In the tracker,
-choose a batch size (5, 10, 25 or 50) and click **Send Next Batch**; sent
-prospects leave the pending queue. Follow-ups are also sent in batches.
+Bulk sends are manual and limited to one batch at a time (5, 10, 25 or 50).
+Use **Review** to inspect personalized messages, or **Send** to deliver immediately.
+The review screen also has a Send button; reviewing every message is optional.
+Direct emails and broadcasts have the same separate Review and Send actions.
+
+Outreach copy focuses on established US businesses: a clearer brand, a simpler
+path to enquiry, and services that are easier for AI search to understand.
+It offers a tailored outline without promising rankings or AI recommendations.
+Use **Rewrite pending drafts** to replace existing unsent drafts with this approach.
 
 ## Editing content
 

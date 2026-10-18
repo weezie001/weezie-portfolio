@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react'
+import { outreachDraft, outreachFollowup } from '../lib/outreachCopy.js'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { storeCategories, senderEmails, crmEmailTemplates } from '../data.js'
 import {
   getSavedAdminKey,
@@ -10,10 +11,37 @@ import {
   uploadAnyFile,
   readFileAsBase64,
 } from '../lib/crmStore.js'
-import { analyzeSpamRisk } from '../lib/spamGuard.js'
+import { analyzeSpamRisk, appendAntiSpamFooter } from '../lib/spamGuard.js'
 import { parseProspectCsv } from '../lib/prospectCsv.js'
 
 const STATUS_OPTIONS = ['New', 'Contacted', 'Quoted', 'Won', 'Archived']
+
+function replaceColdTokens(text, prospect) {
+  return String(text || '')
+    .replace(/\{\{\s*name\s*\}\}/gi, prospect.name || 'there')
+    .replace(/\{\{\s*business\s*\}\}/gi, prospect.business || 'your business')
+    .replace(/\{\{\s*website\s*\}\}/gi, prospect.website || 'your site')
+    .replace(/\{\{\s*niche\s*\}\}/gi, prospect.niche || 'your industry')
+}
+
+function getColdEmailPreview(prospect, isFollowup, coldSubject, coldBody) {
+  const subjectTemplate = isFollowup && !coldSubject.startsWith('Re:') ? `Re: ${coldSubject}` : coldSubject
+  const bodyTemplate = isFollowup
+    ? outreachFollowup
+    : coldBody
+  const personalizedDraft = !isFollowup && prospect.custom_opener
+  const subject = replaceColdTokens(
+    personalizedDraft ? prospect.custom_subject || subjectTemplate : subjectTemplate,
+    prospect,
+  )
+  const body = replaceColdTokens(personalizedDraft || bodyTemplate, prospect)
+
+  return {
+    subject,
+    bodyBeforeFooter: body,
+    body: appendAntiSpamFooter(body, true),
+  }
+}
 
 const EMPTY_PRODUCT = {
   id: null,
@@ -73,6 +101,11 @@ export default function AdminCRM({ onNavigate }) {
   const [mailBody, setMailBody] = useState('')
   const [mailAttachment, setMailAttachment] = useState(null) // { name, content, sizeBytes }
   const [mailStatus, setMailStatus] = useState('')
+  const [mailPreview, setMailPreview] = useState(null)
+  const [mailPreviewIndex, setMailPreviewIndex] = useState(0)
+  const [mailSending, setMailSending] = useState(false)
+  const mailSendLock = useRef(false)
+  const coldSendLock = useRef(false)
 
   // Cold Outreach Suite state (All 3 tools: 1. AI Cold Opener, 2. CSV Bulk Import, 3. Follow-up Tracker)
   const [coldSubTab, setColdSubTab] = useState('ai') // 'ai' | 'import' | 'tracker'
@@ -82,11 +115,12 @@ export default function AdminCRM({ onNavigate }) {
   const [draftGenerating, setDraftGenerating] = useState(false)
   const [coldSending, setColdSending] = useState(false)
   const [coldBatchSize, setColdBatchSize] = useState(10)
+  const [coldSendPreview, setColdSendPreview] = useState(null)
+  const [coldPreviewIndex, setColdPreviewIndex] = useState(0)
+  const [coldPreviewReviewed, setColdPreviewReviewed] = useState([])
   const [coldFilter, setColdFilter] = useState('all') // 'all' | 'Pending' | 'Sent' | 'Follow-up 1' | 'Replied'
-  const [coldSubject, setColdSubject] = useState('Quick idea for {{business}}')
-  const [coldBody, setColdBody] = useState(
-    `Hi {{name}},\n\nI was looking at {{website}} earlier today — love what you're building at {{business}}.\n\nI noticed 3 quick conversion upgrades on your site that could help turn more visitors into booked clients:\n1. Adding an interactive quote/booking flow right below the hero section.\n2. Tightening the mobile speed and headline hierarchy for first-time buyers.\n3. Adding structured AI search data so ChatGPT and Google rank {{business}} higher.\n\nI'm Enang Weezie, a full-stack designer & developer (https://weezie.site). Would you be open to me sending over a quick 2-minute mockup for {{business}}?\n\nBest,\nEnang Weezie\nhttps://weezie.site`,
-  )
+  const [coldSubject, setColdSubject] = useState(outreachDraft({ business: '{{business}}' }).subject)
+  const [coldBody, setColdBody] = useState(outreachDraft({ name: '{{name}}', business: '{{business}}' }).body)
   const [coldAttachment, setColdAttachment] = useState(null)
   const [coldStatusMsg, setColdStatusMsg] = useState('')
 
@@ -188,56 +222,67 @@ export default function AdminCRM({ onNavigate }) {
     else setMailAttachment(att)
   }
 
-  async function handleSendMail(e) {
+  function handleSendMail(e) {
     e.preventDefault()
+    if (mailSending) return
     if (!mailSpamCheck.safe) {
-      setMailStatus(`❌ Blocked by Anti-Spam Guard (Score ${mailSpamCheck.score}/100): ${mailSpamCheck.issues[0]}`)
+      setMailStatus(`Blocked by Anti-Spam Guard: ${mailSpamCheck.issues.join(' ')}`)
       return
     }
-    setMailStatus('Sending…')
-    if (mailMode === 'direct') {
-      const res = await postAdminAction(adminKey, {
-        action: 'send_email',
-        lead_id: selectedLeadId,
-        from_email: fromEmail,
-        to_email: toEmail,
-        to_name: toName,
-        subject,
-        body: mailBody,
-        attachment: mailAttachment,
-      })
-      if (res?.ok) {
-        setMailStatus(
-          res.simulated
-            ? '✅ Logged in CRM! (Add BREVO_API_KEY in Cloudflare Pages to send live emails)'
-            : `✅ Email sent from ${fromEmail} to ${toEmail}!`,
-        )
-        setMailAttachment(null)
-        loadDashboard()
-      } else {
-        setMailStatus(`❌ ${res?.error || 'Could not send email'}`)
-      }
-    } else {
-      const fallbackRecipients = data.leads
-        .filter((l) => broadcastAudience === 'all' || l.source === broadcastAudience)
-        .map((l) => ({ email: l.email, name: l.name }))
+    const recipients = mailMode === 'direct'
+      ? [{ email: toEmail.trim(), name: toName.trim() }]
+      : data.leads
+        .filter((lead) => lead.email && Number(lead.subscribed) === 1 &&
+          (broadcastAudience === 'all' || lead.source === broadcastAudience))
+        .map((lead) => ({ email: lead.email, name: lead.name }))
+        .filter((lead, index, list) => list.findIndex((item) => item.email === lead.email && item.name === lead.name) === index)
+    if (!recipients.length) {
+      setMailStatus('No subscribed recipients in this audience.')
+      return
+    }
+    setMailPreviewIndex(0)
+    setMailStatus('')
+    const draft = {
+      action: mailMode === 'direct' ? 'send_email' : 'send_broadcast',
+      lead_id: selectedLeadId,
+      from_email: fromEmail,
+      to_email: toEmail.trim(),
+      to_name: toName.trim(),
+      audience: broadcastAudience,
+      subject: subject.trim(),
+      body: mailBody.trim(),
+      attachment: mailAttachment,
+      fallback_recipients: recipients,
+      reviewed_recipients: recipients,
+    }
+    if (e.nativeEvent.submitter?.value === 'send') handleConfirmMailSend(draft)
+    else setMailPreview(draft)
+  }
 
-      const res = await postAdminAction(adminKey, {
-        action: 'send_broadcast',
-        from_email: fromEmail,
-        audience: broadcastAudience,
-        subject,
-        body: mailBody,
-        attachment: mailAttachment,
-        fallback_recipients: fallbackRecipients,
-      })
-      if (res?.ok) {
-        setMailStatus(`✅ Broadcast sent to ${res.sentCount ?? fallbackRecipients.length} recipients!`)
-        setMailAttachment(null)
-        loadDashboard()
-      } else {
-        setMailStatus(`❌ ${res?.error || 'Broadcast failed'}`)
+  async function handleConfirmMailSend(draft = mailPreview) {
+    if (!draft || mailSendLock.current) return
+    mailSendLock.current = true
+    setMailSending(true)
+    setMailStatus('Sending...')
+    try {
+      const res = await postAdminAction(adminKey, draft)
+      if (!res?.ok) {
+        setMailStatus(res?.error || 'Could not send email.')
+        return
       }
+      setMailStatus(res.simulated
+        ? 'Logged in CRM only; live email delivery is not configured.'
+        : draft.action === 'send_email'
+          ? `Email sent to ${draft.to_email}!`
+          : `Broadcast sent to ${res.sentCount ?? draft.fallback_recipients.length} recipients!`)
+      setMailPreview(null)
+      setMailAttachment(null)
+      await loadDashboard()
+    } catch (error) {
+      setMailStatus(`Send failed: ${error.message}`)
+    } finally {
+      mailSendLock.current = false
+      setMailSending(false)
     }
   }
 
@@ -261,7 +306,7 @@ export default function AdminCRM({ onNavigate }) {
         })
         loadDashboard()
       }
-      setColdStatusMsg('✨ AI Cold Email generated (100% Free via Cloudflare AI) & loaded into your Campaign Composer below!')
+      setColdStatusMsg('✨ Approved email template personalized & loaded into your Campaign Composer below!')
     }
   }
 
@@ -303,8 +348,8 @@ export default function AdminCRM({ onNavigate }) {
     }
   }
 
-  async function handleGenerateBulkDrafts(targets) {
-    const prospects = targets.filter((prospect) => prospect.status === 'Pending' && !prospect.custom_opener)
+  async function handleGenerateBulkDrafts(targets, regenerate = false) {
+    const prospects = targets.filter((prospect) => prospect.status === 'Pending' && (regenerate || !prospect.custom_opener))
     if (prospects.length === 0) {
       setColdStatusMsg('All selected pending prospects already have drafts.')
       return
@@ -316,7 +361,7 @@ export default function AdminCRM({ onNavigate }) {
     let failureMessage = ''
     try {
       for (let index = 0; index < prospects.length; index += 10) {
-        setColdStatusMsg(`Drafting personalized emails: ${Math.min(index + 10, prospects.length)} of ${prospects.length}…`)
+        setColdStatusMsg(`Personalizing approved emails: ${Math.min(index + 10, prospects.length)} of ${prospects.length}…`)
         const result = await postAdminAction(adminKey, {
           action: 'generate_cold_drafts',
           prospects: prospects.slice(index, index + 10),
@@ -342,20 +387,46 @@ export default function AdminCRM({ onNavigate }) {
   }
 
   // Cold Outreach Tool 3: Send Cold Campaign or Follow-Up
-  async function handleSendColdToTargets(targets, isFollowup = false) {
-    if (!coldSpamCheck.safe) {
-      setColdStatusMsg(`❌ Anti-Spam Guard blocked send (Score ${coldSpamCheck.score}/100): ${coldSpamCheck.issues[0]}`)
-      return
-    }
-    if (!targets || targets.length === 0) {
+  function handlePreviewColdToTargets(targets, isFollowup = false, sendNow = false) {
+    if (coldSendLock.current) return
+    targets = (targets || []).filter((target) => target.email && target.status !== 'Unsubscribed')
+    if (targets.length === 0) {
       setColdStatusMsg('❌ No prospects in this filter to send to.')
       return
     }
+
+    const blocked = targets
+      .map((prospect) => {
+        const preview = getColdEmailPreview(prospect, isFollowup, coldSubject, coldBody)
+        return { prospect, check: analyzeSpamRisk(preview.subject, preview.bodyBeforeFooter) }
+      })
+      .find(({ check }) => !check.safe)
+    if (blocked) {
+      setColdStatusMsg(
+        `❌ Anti-Spam Guard blocked ${blocked.prospect.email} (Score ${blocked.check.score}/100): ${blocked.check.issues.join(' ')}`,
+      )
+      return
+    }
+
+    if (sendNow) {
+      handleConfirmColdSend({ targets, isFollowup })
+      return
+    }
+    setColdPreviewIndex(0)
+    setColdPreviewReviewed([0])
+    setColdSendPreview({ targets, isFollowup })
+    setColdStatusMsg('')
+  }
+
+  async function handleConfirmColdSend(preview = coldSendPreview) {
+    if (!preview || coldSendLock.current) return
+    coldSendLock.current = true
+    const { targets, isFollowup } = preview
     setColdSending(true)
     setColdStatusMsg(`Sending ${isFollowup ? 'follow-up' : 'cold email'} to ${targets.length} prospect(s)…`)
     const useSubject = isFollowup && !coldSubject.startsWith('Re:') ? `Re: ${coldSubject}` : coldSubject
     const useBody = isFollowup
-      ? `Hi {{name}},\n\nJust floating this to the top of your inbox in case you missed my note earlier this week about {{business}}.\n\nWould you be open to me sending over a quick 2-minute mockup showing the 3 conversion upgrades on your site?\n\nBest,\nEnang Weezie\nhttps://weezie.site`
+      ? outreachFollowup
       : coldBody
 
     try {
@@ -370,6 +441,7 @@ export default function AdminCRM({ onNavigate }) {
       })
       if (res?.ok) {
         setColdStatusMsg(`✅ Sent ${isFollowup ? 'Follow-up' : 'Cold Campaign'} from enang@weezie.site to ${res.sentCount ?? targets.length} prospect(s)!`)
+        setColdSendPreview(null)
         await loadDashboard()
       } else {
         setColdStatusMsg(`❌ ${res?.error || 'Failed to send cold campaign'}`)
@@ -377,6 +449,7 @@ export default function AdminCRM({ onNavigate }) {
     } catch (error) {
       setColdStatusMsg(`❌ Send failed: ${error.message}`)
     } finally {
+      coldSendLock.current = false
       setColdSending(false)
     }
   }
@@ -513,9 +586,160 @@ export default function AdminCRM({ onNavigate }) {
   const totalUsdRevenue = data.orders
     .filter((o) => o.currency === 'USD')
     .reduce((sum, o) => sum + Number(o.amount || 0), 0)
+  const activeColdPreview = coldSendPreview?.targets[coldPreviewIndex]
+  const activeColdEmail = activeColdPreview
+    ? getColdEmailPreview(activeColdPreview, coldSendPreview.isFollowup, coldSubject, coldBody)
+    : null
 
   return (
     <section className="min-h-screen bg-paper px-6 py-12 md:px-10">
+      {mailPreview && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-ink/60 p-4">
+          <div role="dialog" aria-modal="true" aria-labelledby="mail-preview-title"
+            className="my-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-paper p-6 neu md:p-8">
+            <h2 id="mail-preview-title" className="display text-2xl text-ink">Review before sending</h2>
+            <p className="mt-3 text-sm text-ink-soft">Nothing sends until you confirm below.</p>
+            <p className="mt-4 text-xs font-bold text-ink">Message {mailPreviewIndex + 1} of {mailPreview.fallback_recipients.length}</p>
+            {mailPreview.fallback_recipients.length > 1 && (
+              <div className="mt-3 flex gap-3">
+                <button type="button" disabled={mailSending || mailPreviewIndex === 0}
+                  onClick={() => setMailPreviewIndex((index) => index - 1)} className="rounded-full px-4 py-2 neu-sm disabled:opacity-40">Previous</button>
+                <button type="button" disabled={mailSending || mailPreviewIndex === mailPreview.fallback_recipients.length - 1}
+                  onClick={() => setMailPreviewIndex((index) => index + 1)} className="rounded-full px-4 py-2 neu-sm disabled:opacity-40">Next</button>
+              </div>
+            )}
+            <div className="mt-4 rounded-2xl p-4 text-sm text-ink neu-inset">
+              <p className="break-all"><strong>From:</strong> {mailPreview.from_email.startsWith('hello@') ? 'Enang Weezie Studio' : 'Enang Weezie'} &lt;{mailPreview.from_email}&gt;</p>
+              <p className="mt-2 break-all"><strong>To:</strong> {mailPreview.fallback_recipients[mailPreviewIndex].name} &lt;{mailPreview.fallback_recipients[mailPreviewIndex].email}&gt;</p>
+              <p className="mt-3 break-words"><strong>Subject:</strong> {mailPreview.subject}</p>
+              <p className="mt-4 whitespace-pre-wrap break-words leading-relaxed">{mailPreview.action === 'send_broadcast'
+                ? appendAntiSpamFooter(mailPreview.body.replace(/\{\{\s*name\s*\}\}/gi, mailPreview.fallback_recipients[mailPreviewIndex].name || 'there'), true)
+                : mailPreview.body}</p>
+              {mailPreview.attachment && <p className="mt-4 border-t border-ink/10 pt-3">Attachment: {mailPreview.attachment.name} ({Math.round(mailPreview.attachment.sizeBytes / 1024)} KB)</p>}
+            </div>
+            {mailStatus && <p role="status" className="mt-4 text-sm text-blue">{mailStatus}</p>}
+            <div className="mt-5 flex flex-wrap justify-end gap-3">
+              <button type="button" autoFocus disabled={mailSending} onClick={() => setMailPreview(null)}
+                className="rounded-full px-5 py-3 text-xs font-bold neu-sm disabled:opacity-60">Back to editing</button>
+              <button type="button" disabled={mailSending} onClick={() => handleConfirmMailSend()}
+                className="btn-gradient rounded-full px-5 py-3 text-xs font-bold disabled:opacity-60">
+                {mailSending ? 'Sending?' : mailPreview.action === 'send_email' ? 'Confirm and send email' : `Confirm and send broadcast (${mailPreview.fallback_recipients.length})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {coldSendPreview && activeColdPreview && activeColdEmail && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-ink/60 p-4"
+          role="presentation"
+        >
+          <div
+            className="my-auto max-h-[92vh] w-full max-w-2xl overflow-y-auto rounded-[28px] bg-paper p-6 neu md:p-8"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="cold-email-preview-title"
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-blue">
+                  {coldSendPreview.isFollowup ? 'Follow-up preview' : 'Cold email preview'}
+                </p>
+                <h2 id="cold-email-preview-title" className="display mt-1 text-2xl text-ink">
+                  Review before sending
+                </h2>
+              </div>
+              <button
+                type="button"
+                disabled={coldSending}
+                onClick={() => setColdSendPreview(null)}
+                className="rounded-full bg-paper px-3 py-1.5 text-xs font-bold text-ink neu-sm disabled:opacity-60"
+              >
+                Close
+              </button>
+            </div>
+
+            <p className="mt-4 rounded-xl bg-blue/10 p-3 text-xs font-medium leading-relaxed text-ink">
+              This batch will send to <strong>{coldSendPreview.targets.length}</strong> recipient(s).
+              Use the arrows to review messages. Nothing sends from this screen until you choose
+              <strong> Send</strong>.
+            </p>
+
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-bold text-ink">
+                Message {coldPreviewIndex + 1} of {coldSendPreview.targets.length}
+                <span className="ml-2 font-medium text-ink-soft">
+                  · reviewed {coldPreviewReviewed.length}/{coldSendPreview.targets.length}
+                </span>
+              </p>
+              {coldSendPreview.targets.length > 1 && (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setColdPreviewIndex((index) => Math.max(0, index - 1))}
+                    disabled={coldPreviewIndex === 0 || coldSending}
+                    className="rounded-full bg-paper px-3 py-1.5 text-xs font-bold text-ink neu-sm disabled:opacity-40"
+                  >
+                    ← Previous
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const nextIndex = Math.min(coldSendPreview.targets.length - 1, coldPreviewIndex + 1)
+                      setColdPreviewIndex(nextIndex)
+                      setColdPreviewReviewed((reviewed) => (
+                        reviewed.includes(nextIndex) ? reviewed : [...reviewed, nextIndex]
+                      ))
+                    }}
+                    disabled={coldPreviewIndex === coldSendPreview.targets.length - 1 || coldSending}
+                    className="rounded-full bg-paper px-3 py-1.5 text-xs font-bold text-ink neu-sm disabled:opacity-40"
+                  >
+                    Next →
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="mt-3 rounded-2xl bg-paper p-4 neu-inset">
+              <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-ink-soft">From</p>
+              <p className="mt-1 text-sm text-ink">Enang Weezie &lt;enang@weezie.site&gt;</p>
+              <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.1em] text-ink-soft">To</p>
+              <p className="mt-1 break-all text-sm text-ink">
+                {activeColdPreview.name ? `${activeColdPreview.name} · ` : ''}{activeColdPreview.email}
+              </p>
+              <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.1em] text-ink-soft">Subject</p>
+              <p className="mt-1 break-words text-sm font-bold text-ink">{activeColdEmail.subject}</p>
+              <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.1em] text-ink-soft">Message</p>
+              <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-ink">{activeColdEmail.body}</p>
+              {coldAttachment && (
+                <p className="mt-4 border-t border-ink/10 pt-3 text-xs font-medium text-ink-soft">
+                  Attachment: {coldAttachment.name}
+                </p>
+              )}
+            </div>
+
+            {coldStatusMsg && <p role="status" className="mt-4 text-sm text-blue">{coldStatusMsg}</p>}
+            <div className="mt-5 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                disabled={coldSending}
+                onClick={() => setColdSendPreview(null)}
+                className="rounded-full bg-paper px-5 py-2.5 text-xs font-bold uppercase text-ink neu-sm disabled:opacity-60"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={coldSending}
+                onClick={() => handleConfirmColdSend()}
+                className="btn-gradient rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.08em] disabled:opacity-60"
+              >
+                {coldSending ? 'Sending...' : `Send (${coldSendPreview.targets.length})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <div className="mx-auto max-w-6xl">
         {/* Top bar */}
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -804,7 +1028,7 @@ export default function AdminCRM({ onNavigate }) {
                       disabled={aiGenerating}
                       className="btn-gradient mt-1 rounded-full px-6 py-3.5 text-xs font-bold uppercase tracking-[0.12em]"
                     >
-                      {aiGenerating ? 'Writing Custom Pitch…' : 'Generate AI Cold Email (Free) ⚡'}
+                      {aiGenerating ? 'Preparing Email…' : 'Use Approved Email Template ⚡'}
                     </button>
                   </form>
                 )}
@@ -855,6 +1079,9 @@ export default function AdminCRM({ onNavigate }) {
                             ))}
                           </select>
                         </label>
+                        {pendingColdList.some((prospect) => prospect.custom_opener) && (
+                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handleGenerateBulkDrafts(pendingColdList, true)} className="rounded-full px-4 py-2 text-xs font-bold neu-sm disabled:opacity-60">Rewrite pending drafts</button>
+                        )}
                         {needsDraftList.length > 0 && (
                           <button
                             type="button"
@@ -866,29 +1093,17 @@ export default function AdminCRM({ onNavigate }) {
                           </button>
                         )}
                         {needsFollowupList.length > 0 && (
-                        <button
-                          type="button"
-                          disabled={draftGenerating || coldSending}
-                          onClick={() => handleSendColdToTargets(needsFollowupList.slice(0, coldBatchSize), true)}
-                          className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60"
-                        >
-                          Send Next Follow-Up Batch ({Math.min(needsFollowupList.length, coldBatchSize)} of {needsFollowupList.length}) ↻
-                        </button>
+                        <><button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(needsFollowupList.slice(0, coldBatchSize), true)} className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60">Review follow-ups</button>
+                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(needsFollowupList.slice(0, coldBatchSize), true, true)} className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60">Send follow-ups</button></>
                         )}
                         {pendingColdList.length > 0 && (
-                          <button
-                            type="button"
-                            disabled={draftGenerating || coldSending}
-                            onClick={() => handleSendColdToTargets(pendingColdList.slice(0, coldBatchSize), false)}
-                            className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60"
-                          >
-                            Send Next Batch ({Math.min(pendingColdList.length, coldBatchSize)} of {pendingColdList.length}) →
-                          </button>
+                          <><button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(pendingColdList.slice(0, coldBatchSize), false)} className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60">Review batch</button>
+                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(pendingColdList.slice(0, coldBatchSize), false, true)} className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60">Send batch</button></>
                         )}
                       </div>
                     </div>
                     <p className="mt-2 text-xs font-medium text-ink-soft">
-                      Generate drafts from each prospect&rsquo;s details, review them below, then send individually. Drafting never sends email.
+                      Review opens the message. Send delivers immediately. Rewrite pending drafts replaces existing unsent copy with the new approach; drafting never sends email.
                     </p>
 
                     <div className="mt-3 flex flex-wrap gap-1.5">
@@ -936,14 +1151,8 @@ export default function AdminCRM({ onNavigate }) {
                               )}
                             </div>
                             <div className="flex gap-1.5">
-                              <button
-                                type="button"
-                                disabled={draftGenerating || coldSending}
-                                onClick={() => handleSendColdToTargets([p], p.status !== 'Pending')}
-                                className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60"
-                              >
-                                {p.status === 'Pending' ? 'Send Cold ✉️' : 'Follow Up ↻'}
-                              </button>
+                              <><button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending')} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Review</button>
+                          <button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending', true)} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Send</button></>
                               <button
                                 type="button"
                                 onClick={() =>
@@ -1226,12 +1435,11 @@ export default function AdminCRM({ onNavigate }) {
 
                 {mailStatus && <p className="text-xs font-bold text-blue">{mailStatus}</p>}
 
-                <button
-                  type="submit"
-                  className="btn-gradient rounded-full px-8 py-4 text-xs font-bold uppercase tracking-[0.14em]"
-                >
-                  {mailMode === 'direct' ? `Send Email as ${fromEmail} →` : `Send Broadcast Campaign →`}
-                </button>
+                <div className="flex flex-wrap gap-3">
+                  <button type="submit" value="review" disabled={mailSending} className="rounded-full px-8 py-4 text-xs font-bold neu-sm disabled:opacity-60">Review</button>
+                  <button type="submit" value="send" disabled={mailSending} className="btn-gradient rounded-full px-8 py-4 text-xs font-bold disabled:opacity-60">{mailSending ? 'Sending...' : 'Send'}</button>
+                </div>
+                <p className="text-xs text-ink-soft">Send delivers immediately. Choose Review to check the message first.</p>
               </form>
             </div>
 

@@ -1,3 +1,4 @@
+import { outreachDraft } from '../../src/lib/outreachCopy.js'
 import { json, corsHeaders, isAuthorizedAdmin, ensureDb, sendBrevoEmail } from './_utils.js'
 import { storeProducts } from '../../src/data.js'
 
@@ -202,8 +203,16 @@ export async function onRequestPost({ request, env }) {
         const { results } = await stmt.all()
         recipients = results || []
       }
-      if (Array.isArray(body.fallback_recipients) && recipients.length === 0) {
+      if (!db && Array.isArray(body.fallback_recipients)) {
         recipients = body.fallback_recipients
+      }
+
+      // Restrict delivery to the recipients shown in the review screen.
+      if (Array.isArray(body.reviewed_recipients)) {
+        const reviewed = body.reviewed_recipients
+        recipients = recipients.filter((recipient) => reviewed.some((item) =>
+          item.email === recipient.email && (item.name || '') === (recipient.name || ''),
+        ))
       }
 
       let sentCount = 0
@@ -244,39 +253,11 @@ export async function onRequestPost({ request, env }) {
       const website = String(body.website || '').trim()
       const niche = String(body.niche || 'business').trim()
 
-      let subject = `Quick idea for ${business}'s website`
-      let pitch = `Hi ${name},\n\nI was looking at ${website || business} earlier today — love what you're building in the ${niche} space.\n\nI noticed 3 quick conversion fixes on your current site that could help turn more visitors into paying clients:\n1. Adding an interactive quote/booking flow right below the hero section so visitors don't bounce.\n2. Tightening the mobile speed and headline hierarchy for first-time buyers.\n3. Adding structured AI search data so ChatGPT and Google rank ${business} higher.\n\nI'm Enang Weezie, a full-stack product designer & developer (https://weezie.site). Would you be open to me sending over a quick 2-minute mockup of how this would look for ${business}?\n\nBest,\nEnang Weezie\nhttps://weezie.site`
+      const initialDraft = outreachDraft({ name, business })
+      let subject = initialDraft.subject
+      let pitch = initialDraft.body
 
-      if (env?.AI) {
-        try {
-          const aiRes = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
-            messages: [
-              {
-                role: 'system',
-                content:
-                  'Write natural, conversational, high-converting cold emails that never sound like spam. Return JSON only: {"subject":"...","pitch":"..."}',
-              },
-              {
-                role: 'user',
-                content: `Write a short, friendly cold email from Enang Weezie (Web Designer & Full-Stack Developer at https://weezie.site) to ${name} at ${business} (${website || 'no site'}, niche: ${niche}). Include 3 specific, helpful website/conversion improvements and ask if they want a quick mockup. Avoid all spam trigger words.`,
-              },
-            ],
-            max_tokens: 600,
-          })
-          const raw = String(aiRes?.response || '').trim()
-          const match = raw.match(/\{[\s\S]*\}/)
-          if (match) {
-            const parsed = JSON.parse(match[0])
-            if (parsed.subject && parsed.pitch) {
-              subject = parsed.subject
-              pitch = parsed.pitch
-            }
-          }
-        } catch {
-          /* fallback used */
-        }
-      }
-
+      // Keep the approved copy exact; personalize names through outreachDraft.
       return json({ ok: true, subject, pitch })
     }
 
@@ -330,51 +311,10 @@ export async function onRequestPost({ request, env }) {
 
       let drafts = cleanProspects.map((prospect) => ({
         email: prospect.email,
-        subject: `A website idea for ${prospect.business}`,
-        body: `Hi ${prospect.name},\n\nFor a ${prospect.niche} business like ${prospect.business}, a clear path from first visit to inquiry can make a real difference. One useful idea to explore is making the main service and next step easy to find on mobile.${prospect.website ? `\n\nWith ${prospect.website} as your online home, one idea to explore is making your main service and next step easy to find on mobile. I would be happy to put together a focused mockup.` : `\n\nIf you are reviewing your website experience, I would be happy to put together a focused mockup.`}\n\nWould that be useful?\n\nIf this is not relevant, just let me know and I will not follow up.\n\nBest,\nEnang Weezie\nhttps://weezie.site`,
+        ...outreachDraft(prospect),
       }))
 
-      let usedAi = false
-      if (env?.AI) {
-        try {
-          const aiRes = await env.AI.run('@cf/meta/llama-3.3-70b-instruct-fp8-fast', {
-            messages: [
-              {
-                role: 'system',
-                content: 'Write concise, natural one-to-one business outreach drafts. Use only supplied facts; do not claim you visited a website or found issues. Return JSON only as {"drafts":[{"email":"...","subject":"...","body":"..."}]}.',
-              },
-              {
-                role: 'user',
-                content: `Write one distinct, polite, non-deceptive first-contact email for each prospect. Personalize using their name, business, niche, and website only as context. Offer one practical idea relevant to the niche, avoid invented observations/results, use a low-pressure question, and include a brief opt-out sentence. Return exactly one draft for each email in input order.\n${JSON.stringify(cleanProspects)}`,
-              },
-            ],
-            max_tokens: Math.min(2500, cleanProspects.length * 260),
-          })
-          const raw = String(aiRes?.response || '').trim()
-          const match = raw.match(/\{[\s\S]*\}/)
-          if (match) {
-            const parsed = JSON.parse(match[0])
-            if (Array.isArray(parsed.drafts)) {
-              const byEmail = new Map(parsed.drafts.map((draft) => [String(draft?.email || '').toLowerCase(), draft]))
-              drafts = drafts.map((fallback, index) => {
-                const generated = byEmail.get(cleanProspects[index].email)
-                if (!generated?.subject || !generated?.body) return fallback
-                const subject = String(generated.subject).trim()
-                const draftBody = String(generated.body).trim()
-                if (!subject || !draftBody) return fallback
-                usedAi = true
-                return {
-                  email: cleanProspects[index].email,
-                  subject: subject.slice(0, 180),
-                  body: draftBody.slice(0, 5000),
-                }
-              })
-            }
-          }
-        } catch (error) {
-          console.error('AI bulk draft generation failed; using personalized templates:', error)
-        }
-      }
+      const usedAi = false
 
       const updates = drafts.map((draft) =>
         db.prepare(

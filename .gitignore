@@ -1,6 +1,8 @@
 node_modules
 dist
 .env
+# Copied from kits/ on Vite buildStart — do not edit here
+/public/kits/
 .dev.vars
 .wrangler/
 .DS_Store

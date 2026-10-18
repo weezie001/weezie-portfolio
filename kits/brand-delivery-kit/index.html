@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Brand Delivery Kit — studio book</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&family=Newsreader:opsz,wght@6..72,400;6..72,600&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --soot: #0e1114;
+      --forest: #3d5a45;
+      --forest-2: #2e4434;
+      --brass: #c9a227;
+      --birch: #e7e3d6;
+      --ply: #d9d3c3;
+      --rule: #c3bcae;
+      --mute: #4a524c;
+      --chalk: #f3f1ea;
+      --display: "Newsreader", "Iowan Old Style", serif;
+      --sans: "IBM Plex Sans", "Segoe UI", sans-serif;
+      --mono: "IBM Plex Mono", ui-monospace, monospace;
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      background: var(--birch);
+      color: var(--soot);
+      font-family: var(--sans);
+      font-size: 16px;
+      line-height: 1.5;
+    }
+    a { color: var(--forest); }
+    .mast {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 1rem;
+      align-items: end;
+      padding: 1.25rem 6vw 1rem;
+      border-bottom: 1px solid var(--soot);
+      background: var(--chalk);
+    }
+    .mast p { margin: 0; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--mute); }
+    .mast h1 { margin: 0.35rem 0 0; font-family: var(--display); font-size: clamp(1.8rem, 4vw, 3rem); font-weight: 400; letter-spacing: -0.03em; }
+    nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      justify-content: flex-end;
+    }
+    nav button, .ghost {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      border: 1px solid var(--soot);
+      background: transparent;
+      padding: 0.45rem 0.7rem;
+      cursor: pointer;
+      color: var(--soot);
+    }
+    nav button[aria-pressed="true"], .ghost:hover { background: var(--soot); color: var(--birch); }
+    .wrap { padding: 2.5rem 6vw 5rem; max-width: 1200px; }
+    .lede { max-width: 38rem; font-size: 1.15rem; }
+    .grid-3 { display: grid; gap: 1.25rem; margin-top: 2rem; }
+    @media (min-width: 800px) { .grid-3 { grid-template-columns: repeat(3, 1fr); } }
+    .ticket {
+      border: 1px solid var(--soot);
+      background: var(--chalk);
+      padding: 1.1rem 1.15rem 1.25rem;
+      position: relative;
+    }
+    .ticket::before {
+      content: "";
+      position: absolute;
+      top: 0.7rem; right: 0.7rem;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--brass);
+    }
+    .ticket h2, .ticket h3 { font-family: var(--display); font-weight: 400; margin: 0.2rem 0 0.5rem; }
+    .ticket ol, .ticket ul { margin: 0; padding-left: 1.1rem; }
+    .ticket code, code { font-family: var(--mono); font-size: 0.78rem; }
+    .sk { font-family: var(--mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--mute); }
+    .hidden { display: none; }
+    .book-hero {
+      display: grid;
+      gap: 2rem;
+      padding: 3rem 0 2rem;
+      border-bottom: 1px solid var(--soot);
+    }
+    @media (min-width: 900px) {
+      .book-hero { grid-template-columns: 120px 1fr 0.8fr; align-items: end; }
+    }
+    .mark { width: 96px; height: 96px; }
+    .book-hero h1 { font-family: var(--display); font-size: clamp(3rem, 8vw, 6.5rem); line-height: 0.85; margin: 0; font-weight: 400; letter-spacing: -0.04em; }
+    .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.5rem; margin-top: 1rem; }
+    .swatch { min-height: 110px; padding: 0.7rem; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid var(--soot); }
+    .swatch span { font-family: var(--mono); font-size: 11px; }
+    .pair { display: grid; gap: 1rem; margin-top: 1.5rem; }
+    @media (min-width: 800px) { .pair { grid-template-columns: 1fr 1fr; } }
+    .type-row { border-bottom: 1px solid var(--rule); padding: 0.85rem 0; display: grid; grid-template-columns: 7rem 1fr; gap: 1rem; align-items: baseline; }
+    .type-row strong { font-family: var(--mono); font-size: 11px; font-weight: 400; letter-spacing: 0.12em; text-transform: uppercase; }
+    .dont { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; }
+    .dont figure { margin: 0; border: 1px dashed var(--mute); padding: 1rem; text-align: center; background: #fff; }
+    .dont img, .dont .fake { width: 72px; height: 72px; margin: 0 auto 0.5rem; display: block; }
+    .stretch { transform: scaleX(1.45); transform-origin: center; }
+    .rotate { transform: rotate(-18deg); }
+    .shadow { filter: drop-shadow(4px 6px 0 #000); }
+    .dark-band { background: var(--soot); color: var(--birch); padding: 2rem; margin: 2rem -6vw; padding-left: 6vw; padding-right: 6vw; }
+    .dark-band img { max-width: min(420px, 100%); }
+    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+    th, td { text-align: left; padding: 0.55rem 0.4rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+    th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; font-weight: 500; }
+    footer.kit { border-top: 1px solid var(--soot); padding: 1.5rem 6vw; font-family: var(--mono); font-size: 11px; }
+    @media print {
+      nav, .mast button { display: none; }
+      .dark-band { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .wrap { padding: 0; }
+    }
+    @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+  </style>
+</head>
+<body>
+  <header class="mast">
+    <div>
+      <p>Weezie studio · brand delivery kit v1</p>
+      <h1>The kit, then a filled book.</h1>
+    </div>
+    <nav aria-label="Views">
+      <button type="button" id="btn-os" aria-pressed="true">Studio OS</button>
+      <button type="button" id="btn-book" aria-pressed="false">Sample book · North</button>
+    </nav>
+  </header>
+
+  <main class="wrap">
+    <section id="view-os">
+      <p class="lede">A designer does not “send a logo.” They run a job: intake, strategy, identity, applications, tokens, handover. This folder is that job, empty and ready. Open the markdown in each directory. Duplicate the parent folder per client.</p>
+
+      <div class="grid-3">
+        <article class="ticket">
+          <p class="sk">00 · You</p>
+          <h2>Studio</h2>
+          <ul>
+            <li><a href="00-studio/SCOPE-TIERS.md">Scope tiers</a> — Starter / Standard / CIP</li>
+            <li><a href="00-studio/TOOLSET.md">Toolset</a></li>
+            <li><a href="00-studio/FIGMA-FILE-STRUCTURE.md">Figma pages</a></li>
+            <li><a href="00-studio/NAMING-CONVENTION.md">File names</a></li>
+            <li><a href="00-studio/APPROVAL-CHECKLIST.md">Internal QA</a></li>
+          </ul>
+        </article>
+        <article class="ticket">
+          <p class="sk">01–02 · Words</p>
+          <h2>Intake &amp; strategy</h2>
+          <ul>
+            <li><a href="START-A-JOB.md">Start a job</a></li>
+            <li><a href="01-intake/DISCOVERY-QUESTIONNAIRE.md">Discovery call</a></li>
+            <li><a href="02-strategy/BRAND-PLATFORM.md">Platform</a></li>
+            <li><a href="02-strategy/MESSAGING-FRAMEWORK.md">Messaging</a></li>
+            <li><a href="02-strategy/VOICE-AND-TONE.md">Voice</a></li>
+          </ul>
+        </article>
+        <article class="ticket">
+          <p class="sk">03–05 · System</p>
+          <h2>Identity &amp; tokens</h2>
+          <ul>
+            <li>Logo, colour, type, image, grid, motion</li>
+            <li><a href="04-guidelines/BRAND-GUIDELINES.md">Client bible</a></li>
+            <li><a href="05-tokens/tokens.css">tokens.css</a></li>
+            <li><a href="05-tokens/design-tokens.json">JSON</a></li>
+          </ul>
+        </article>
+        <article class="ticket">
+          <p class="sk">06–07 · Files</p>
+          <h2>Assets &amp; applications</h2>
+          <ul>
+            <li>Logo SVG pack (sample North included)</li>
+            <li>Stationery · digital · social specs</li>
+            <li>CIP menu if they bought physical</li>
+            <li><a href="07-applications/digital/email-signature.html">Email signature</a></li>
+          </ul>
+        </article>
+        <article class="ticket">
+          <p class="sk">08 · Send</p>
+          <h2>Handover</h2>
+          <ul>
+            <li><a href="08-handover/DELIVERY-CHECKLIST.md">Zip checklist</a></li>
+            <li><a href="08-handover/LICENSE-AND-USAGE.md">License</a></li>
+            <li><a href="08-handover/CLIENT-WALKTHROUGH.md">Walkthrough script</a></li>
+          </ul>
+        </article>
+        <article class="ticket">
+          <p class="sk">Sample</p>
+          <h2>Atelier North</h2>
+          <p>A joinery house, filled just enough so the book is not lorem. Switch to Sample book. Replace on a real job.</p>
+        </article>
+      </div>
+    </section>
+
+    <section id="view-book" class="hidden">
+      <div class="book-hero">
+        <img class="mark" src="06-assets/logos/svg/north_mark_color_on-clear.svg" alt="Atelier North mark" />
+        <h1>Atelier<br />North</h1>
+        <div>
+          <p class="sk">Brand book v1.0 · sample</p>
+          <p>Joinery for homes that intend to stay. Small lots. Hand-cut joints. Abuja workshop.</p>
+        </div>
+      </div>
+
+      <p class="sk" style="margin-top:2.5rem">01 · Platform</p>
+      <p class="lede">Atelier North is the joinery house for people furnishing a first serious room — they want pieces that take a dent and still look honest, because we still cut joints by hand.</p>
+      <table>
+        <thead><tr><th>Trait</th><th>In the room</th><th>Not this</th></tr></thead>
+        <tbody>
+          <tr><td>Exact</td><td>SKUs, millimetres, timber names</td><td>Vague “bespoke luxury”</td></tr>
+          <tr><td>Unhurried</td><td>Lead times told up front</td><td>Drop-culture countdown</td></tr>
+          <tr><td>Workshop-plain</td><td>Sawdust, tickets, brass nails</td><td>Marble lifestyle photography</td></tr>
+        </tbody>
+      </table>
+
+      <p class="sk" style="margin-top:2.5rem">02 · Mark</p>
+      <div class="pair">
+        <div class="ticket">
+          <img src="06-assets/logos/svg/north_logo_horizontal_color_on-light.svg" alt="Horizontal lockup on light" style="width:100%;max-width:420px" />
+          <p>Primary lockup · birch</p>
+        </div>
+        <div>
+          <p>Clear space = height of the gable mark. Minimum lockup 120px / 35mm. Favicon is the mark only.</p>
+          <p>Use reverse on soot. Never put the colour mark on a busy workshop photo — hold it in a birch panel.</p>
+        </div>
+      </div>
+      <div class="dark-band">
+        <p class="sk" style="color:var(--brass)">Reverse</p>
+        <img src="06-assets/logos/svg/north_logo_horizontal_white_on-dark.svg" alt="Reverse lockup" />
+      </div>
+      <p class="sk">Do not</p>
+      <div class="dont">
+        <figure>
+          <img class="stretch" src="06-assets/logos/svg/north_mark_color_on-clear.svg" alt="" />
+          <figcaption>Stretch</figcaption>
+        </figure>
+        <figure>
+          <img class="rotate" src="06-assets/logos/svg/north_mark_color_on-clear.svg" alt="" />
+          <figcaption>Rotate</figcaption>
+        </figure>
+        <figure>
+          <img class="shadow" src="06-assets/logos/svg/north_mark_color_on-clear.svg" alt="" />
+          <figcaption>Drop shadow</figcaption>
+        </figure>
+        <figure>
+          <div class="fake" style="background:#5b7cff;border-radius:50%;width:72px;height:72px;margin:0 auto 0.5rem;"></div>
+          <figcaption>New circle + off-palette</figcaption>
+        </figure>
+      </div>
+
+      <p class="sk" style="margin-top:2.5rem">03 · Colour</p>
+      <p>60% birch ply, 30% soot, 10% forest. Brass is a nail — rules, hover, SKU ticks — never a fill.</p>
+      <div class="swatches">
+        <div class="swatch" style="background:#3d5a45;color:#e7e3d6"><span>Forest</span><span>#3D5A45</span></div>
+        <div class="swatch" style="background:#c9a227;color:#0e1114"><span>Brass</span><span>#C9A227</span></div>
+        <div class="swatch" style="background:#0e1114;color:#e7e3d6"><span>Soot</span><span>#0E1114</span></div>
+        <div class="swatch" style="background:#e7e3d6;color:#0e1114"><span>Birch</span><span>#E7E3D6</span></div>
+        <div class="swatch" style="background:#d9d3c3;color:#0e1114"><span>Ply</span><span>#D9D3C3</span></div>
+        <div class="swatch" style="background:#8b1e1e;color:#fff"><span>Danger</span><span>#8B1E1E</span></div>
+      </div>
+      <p>Soot on birch reads AAA. Forest on birch is for large type and fills, not 14px UI copy.</p>
+
+      <p class="sk" style="margin-top:2.5rem">04 · Type</p>
+      <div class="type-row"><strong>Display</strong><span style="font-family:var(--display);font-size:clamp(2rem,5vw,3.4rem);line-height:1">A bench that keeps its name.</span></div>
+      <div class="type-row"><strong>Body</strong><span>IBM Plex Sans, 18 / 28. Timber, join, wait, oil. No “elevate your space.”</span></div>
+      <div class="type-row"><strong>Ticket</strong><span style="font-family:var(--mono)">SKU-AN-042 · IROKO · 1400×420×450</span></div>
+
+      <p class="sk" style="margin-top:2.5rem">05 · Voice</p>
+      <div class="pair">
+        <div class="ticket"><p class="sk">Off</p><p>“Discover luxury lifestyle furniture crafted to elevate modern living.”</p></div>
+        <div class="ticket"><p class="sk">On</p><p>“Iroko bench. 1400 mm. Pegged tenons. Six weeks from deposit.”</p></div>
+      </div>
+
+      <p class="sk" style="margin-top:2.5rem">06 · What ships</p>
+      <table>
+        <thead><tr><th>Tier</th><th>North would buy</th></tr></thead>
+        <tbody>
+          <tr><td>Starter</td><td>Mark family, palette, type, favicon, IG avatar, tokens, this book (short)</td></tr>
+          <tr><td>Standard</td><td>+ cards, letterhead, workshop email, story template, invoice header</td></tr>
+          <tr><td>CIP</td><td>+ tote, hang tag, van door, showroom sign — only those four this year</td></tr>
+        </tbody>
+      </table>
+      <p>Developers implement <code>05-tokens/tokens.css</code>. Do not eyedropper a JPEG of this page.</p>
+    </section>
+  </main>
+
+  <footer class="kit">Weezie Brand Delivery Kit · duplicate per job · sample identity is not for resale as a client brand.</footer>
+  <script>
+    const os = document.getElementById("view-os");
+    const book = document.getElementById("view-book");
+    const bOs = document.getElementById("btn-os");
+    const bBook = document.getElementById("btn-book");
+    function show(which) {
+      const isBook = which === "book";
+      book.classList.toggle("hidden", !isBook);
+      os.classList.toggle("hidden", isBook);
+      bOs.setAttribute("aria-pressed", String(!isBook));
+      bBook.setAttribute("aria-pressed", String(isBook));
+    }
+    bOs.addEventListener("click", () => show("os"));
+    bBook.addEventListener("click", () => show("book"));
+  </script>
+</body>
+</html>

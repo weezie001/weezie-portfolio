@@ -22,24 +22,46 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: 'Buyer email is required.' }, 400)
     }
 
-    // Verify with Paystack Secret Key if configured on server
-    let verifiedStatus = 'paid'
-    if (env?.PAYSTACK_SECRET_KEY && !reference.startsWith('DEMO-')) {
-      const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
-        headers: {
-          Authorization: `Bearer ${env.PAYSTACK_SECRET_KEY}`,
-        },
-      })
-      if (verifyRes.ok) {
-        const verifyData = await verifyRes.json()
-        if (verifyData?.data?.status !== 'success') {
-          verifiedStatus = 'failed'
-        }
-      }
+    // Strict verification: no secret key = no orders. Never trust the browser.
+    if (!env?.PAYSTACK_SECRET_KEY) {
+      return json({ ok: false, error: 'Payments are not enabled yet.' }, 503)
     }
 
-    if (verifiedStatus === 'failed') {
+    // Work out the real price on the server (ignore the amount the browser sent).
+    let expectedAmount = 0
+    if (itemType === 'ai_unlock') {
+      const { aiLabConfig } = await import('../../src/data.js')
+      expectedAmount = currency === 'NGN' ? aiLabConfig.unlockPrice.NGN : aiLabConfig.unlockPrice.USD
+    } else {
+      const dbForPrice = await ensureDb(env)
+      let p = dbForPrice
+        ? await dbForPrice.prepare('SELECT price_ngn, price_usd FROM products WHERE slug = ? OR CAST(id AS TEXT) = ?').bind(itemId, itemId).first()
+        : null
+      if (!p) p = storeProducts.find((x) => x.slug === itemId || String(x.id) === itemId)
+      if (!p) return json({ ok: false, error: 'Unknown product.' }, 400)
+      expectedAmount = currency === 'NGN' ? Number(p.price_ngn) : Number(p.price_usd)
+    }
+
+    const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
+      headers: { Authorization: `Bearer ${env.PAYSTACK_SECRET_KEY}` },
+    })
+    const verifyData = verifyRes.ok ? await verifyRes.json() : null
+    const tx = verifyData?.data
+    const paidOk =
+      tx?.status === 'success' &&
+      String(tx.currency || '').toUpperCase() === currency.toUpperCase() &&
+      Number(tx.amount) >= Math.round(expectedAmount * 100)
+    if (!paidOk) {
       return json({ ok: false, error: 'Payment verification failed with Paystack.' }, 400)
+    }
+
+    // Block re-using the same payment reference for another item.
+    const dbCheck = await ensureDb(env)
+    if (dbCheck) {
+      const existing = await dbCheck.prepare('SELECT item_id FROM orders WHERE reference = ?').bind(reference).first()
+      if (existing && existing.item_id !== itemId) {
+        return json({ ok: false, error: 'This payment reference was already used.' }, 400)
+      }
     }
 
     const db = await ensureDb(env)

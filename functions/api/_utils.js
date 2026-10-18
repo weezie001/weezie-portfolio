@@ -1,3 +1,4 @@
+import { renderBrandedEmail } from '../../src/lib/brandedEmail.js'
 // Shared helpers for Cloudflare Pages Functions (/functions/api/*)
 import { storeProducts } from '../../src/data.js'
 import { analyzeSpamRisk, appendAntiSpamFooter } from '../../src/lib/spamGuard.js'
@@ -227,16 +228,13 @@ export async function sendBrevoEmail(
     return { ok: false, simulated: true, reason: 'BREVO_API_KEY not configured yet' }
   }
 
-  const html =
-    htmlContent ||
-    `<div style="font-family:'JetBrains Mono',monospace,system-ui;max-width:600px;margin:0 auto;padding:24px;color:#0c0d10;background:#f6f7fa;border-radius:16px;border:1px solid #d3d7e0">
-      <div style="white-space:pre-wrap;line-height:1.65;font-size:14px">${String(finalText || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')}</div>
-      <hr style="border:none;border-top:1px solid #d3d7e0;margin:24px 0 12px" />
-      <p style="font-size:12px;color:#3f434e;margin:0">Enang Weezie · Web Designer &amp; Full-Stack Developer · <a href="https://weezie.site" style="color:#2f6bff">weezie.site</a></p>
-    </div>`
+  // One visual wrapper for all CRM, outreach, store and automated emails.
+  // Custom HTML is an internal content fragment, never a separate email shell.
+  const html = renderBrandedEmail({
+    body: textContent,
+    outreach: isColdOrBroadcast && finalText !== textContent,
+    contentHtml: htmlContent || '',
+  })
 
   const payload = {
     sender: { email: fromEmail, name: fromName },
@@ -300,19 +298,19 @@ export async function sendReadOnlyInboxNotification(
     '',
     `Open your CRM inbox: ${crmUrl}`,
   ].join('\n')
-  const htmlContent = `<div style="font-family:Arial,Helvetica,sans-serif;max-width:600px;margin:0 auto;padding:28px;color:#17202a;background:#f4f6fa;border:1px solid #dce2ec;border-radius:16px">
-    <p style="margin:0 0 8px;color:#4263eb;font-size:12px;font-weight:700;letter-spacing:1.5px">READ-ONLY CRM NOTIFICATION</p>
+  const htmlContent = `<div style="font-family:Arial,Helvetica,sans-serif;color:#0c0d10">
+    <p style="margin:0 0 8px;color:#2f6bff;font-size:12px;font-weight:700;letter-spacing:1.5px">READ-ONLY CRM NOTIFICATION</p>
     <h1 style="margin:0 0 18px;font-size:24px;line-height:1.3">${escapeHtml(title)}</h1>
-    <p style="margin:0 0 18px;color:#4b5563;line-height:1.5">This message is saved in your CRM. Reply from there rather than from Gmail.</p>
+    <p style="margin:0 0 18px;color:#3f434e;line-height:1.5">This message is saved in your CRM. Reply from there rather than from Gmail.</p>
     <table role="presentation" style="width:100%;border-collapse:collapse;font-size:14px">
-      ${rows.map(([label, value]) => `<tr><td style="padding:8px 10px 8px 0;color:#687386;vertical-align:top;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:8px 0;font-weight:600;overflow-wrap:anywhere">${escapeHtml(value || '—')}</td></tr>`).join('')}
+      ${rows.map(([label, value]) => `<tr><td style="padding:8px 10px 8px 0;color:#3f434e;vertical-align:top;white-space:nowrap">${escapeHtml(label)}</td><td style="padding:8px 0;font-weight:600;overflow-wrap:anywhere">${escapeHtml(value || '—')}</td></tr>`).join('')}
     </table>
-    <div style="margin-top:14px;padding:16px;background:#fff;border:1px solid #dce2ec;border-radius:10px">
-      <p style="margin:0 0 8px;color:#687386;font-size:12px;font-weight:700;text-transform:uppercase">Message preview</p>
+    <div style="margin-top:14px;padding:16px;background:#fff;border:1px solid #d3d7e0;border-radius:10px">
+      <p style="margin:0 0 8px;color:#3f434e;font-size:12px;font-weight:700;text-transform:uppercase">Message preview</p>
       <p style="margin:0;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.55">${escapeHtml(snippet || '(No message text)')}</p>
     </div>
-    <p style="margin:24px 0;text-align:center"><a href="${crmUrl}" style="display:inline-block;padding:13px 22px;color:#fff;background:#315eea;border-radius:999px;text-decoration:none;font-weight:700">Open CRM Inbox</a></p>
-    <p style="margin:0;color:#687386;font-size:12px;text-align:center">This is a notification only. Replies should be sent from the CRM.</p>
+    <p style="margin:24px 0;text-align:center"><a href="${crmUrl}" style="display:inline-block;padding:13px 22px;color:#fff;background:#2f6bff;border-radius:999px;text-decoration:none;font-weight:700">Open CRM Inbox</a></p>
+    <p style="margin:0;color:#3f434e;font-size:12px;text-align:center">This is a notification only. Replies should be sent from the CRM.</p>
   </div>`
 
   try {

@@ -92,5 +92,5 @@ export function analyzeSpamRisk(subject = '', body = '') {
 export function appendAntiSpamFooter(body = '', isColdOrBroadcast = false) {
   if (!isColdOrBroadcast) return body
   if (/unsubscribe|opt out|stop receiving/i.test(body)) return body
-  return `${body.trim()}\n\n---\nSent by Enang Weezie (https://weezie.site) · Abuja, Nigeria.\nDon't want future notes from me? Simply reply "stop" and I'll remove you immediately.`
+  return `${body.trim()}\n\n---\nSent by Enang Weezie (https://weezie.site)\nDon't want future notes from me? Simply reply "stop" and I'll remove you immediately.`
 }

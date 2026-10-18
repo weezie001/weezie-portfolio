@@ -104,10 +104,15 @@ export default function Hero() {
           &lt;/&gt; Design · Full-Stack · AI
         </p>
         <h1 className="display mt-5 min-h-[1.1em] text-[13vw] leading-none text-white sm:text-7xl md:text-8xl">
-          {typed || ' '}
+          {typed || 'ENANG WEEZIE'}
           <span className="caret font-light text-white" aria-hidden="true">|</span>
         </h1>
         <p className="sr-only">Enang Weezie — Web Designer and Product Builder</p>
+
+        <p className="mt-4 text-sm font-medium text-white/90">
+          weezie.site &mdash; Enang Weezie<br />
+          Web design, branding and AI tools.
+        </p>
 
         {/* One primary ask (see the proof), one secondary (start the conversation).
             The game is no longer a hero CTA: it competed for the same click and

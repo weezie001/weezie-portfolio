@@ -1,0 +1,62 @@
+{
+  "$schema": "https://design-tokens.github.io/community-group/format/",
+  "meta": {
+    "brand": "[CLIENT]",
+    "version": "1.0.0",
+    "comment": "Primitives are raw. Semantic names are what product and web use. Never skip the semantic layer."
+  },
+  "primitive": {
+    "color": {
+      "brand-500": { "value": "#3D5A45", "type": "color" },
+      "brand-600": { "value": "#2E4434", "type": "color" },
+      "ink-900": { "value": "#0E1114", "type": "color" },
+      "ink-600": { "value": "#4A524C", "type": "color" },
+      "paper-50": { "value": "#E7E3D6", "type": "color" },
+      "paper-100": { "value": "#D9D3C3", "type": "color" },
+      "line-200": { "value": "#C3BCAE", "type": "color" },
+      "brass": { "value": "#C9A227", "type": "color" },
+      "success": { "value": "#3D5A45", "type": "color" },
+      "warning": { "value": "#C9A227", "type": "color" },
+      "danger": { "value": "#8B1E1E", "type": "color" }
+    },
+    "space": {
+      "1": { "value": "4px", "type": "dimension" },
+      "2": { "value": "8px", "type": "dimension" },
+      "3": { "value": "12px", "type": "dimension" },
+      "4": { "value": "16px", "type": "dimension" },
+      "5": { "value": "24px", "type": "dimension" },
+      "6": { "value": "32px", "type": "dimension" },
+      "7": { "value": "48px", "type": "dimension" },
+      "8": { "value": "64px", "type": "dimension" }
+    },
+    "radius": {
+      "sm": { "value": "8px", "type": "dimension" },
+      "md": { "value": "16px", "type": "dimension" },
+      "lg": { "value": "28px", "type": "dimension" },
+      "full": { "value": "999px", "type": "dimension" }
+    },
+    "font": {
+      "display": { "value": "Newsreader, Iowan Old Style, Palatino Linotype, serif", "type": "fontFamily" },
+      "body": { "value": "IBM Plex Sans, Segoe UI, system-ui, sans-serif", "type": "fontFamily" },
+      "mono": { "value": "IBM Plex Mono, ui-monospace, monospace", "type": "fontFamily" }
+    }
+  },
+  "semantic": {
+    "color": {
+      "bg.page": { "value": "{primitive.color.paper-50}", "type": "color" },
+      "bg.band": { "value": "{primitive.color.paper-100}", "type": "color" },
+      "text.primary": { "value": "{primitive.color.ink-900}", "type": "color" },
+      "text.muted": { "value": "{primitive.color.ink-600}", "type": "color" },
+      "border.default": { "value": "{primitive.color.line-200}", "type": "color" },
+      "action.default": { "value": "{primitive.color.brand-500}", "type": "color" },
+      "action.hover": { "value": "{primitive.color.brand-600}", "type": "color" }
+    }
+  },
+  "component": {
+    "button": {
+      "bg": { "value": "{semantic.color.action.default}", "type": "color" },
+      "fg": { "value": "#FFFFFF", "type": "color" },
+      "radius": { "value": "{primitive.radius.full}", "type": "dimension" }
+    }
+  }
+}
