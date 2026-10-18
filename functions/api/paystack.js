@@ -22,9 +22,16 @@ export async function onRequestPost({ request, env }) {
       return json({ ok: false, error: 'Buyer email is required.' }, 400)
     }
 
-    // Strict verification: no secret key = no orders. Never trust the browser.
-    if (!env?.PAYSTACK_SECRET_KEY) {
-      return json({ ok: false, error: 'Payments are not enabled yet.' }, 503)
+    const db = await ensureDb(env)
+    let secretKey = (env?.PAYSTACK_SECRET_KEY || '').trim()
+    if (!secretKey && db) {
+      const row = await db.prepare("SELECT value FROM app_settings WHERE key = 'paystack_secret_key'").first()
+      if (row?.value) secretKey = String(row.value).trim()
+    }
+
+    // Strict verification: no secret key = no orders.
+    if (!secretKey) {
+      return json({ ok: false, error: 'Payments are not enabled yet. Configure your Paystack Secret Key (sk_test_... or sk_live_...) in the Admin CRM under Orders & Keys.' }, 503)
     }
 
     // Work out the real price on the server (ignore the amount the browser sent).
@@ -33,9 +40,8 @@ export async function onRequestPost({ request, env }) {
       const { aiLabConfig } = await import('../../src/data.js')
       expectedAmount = currency === 'NGN' ? aiLabConfig.unlockPrice.NGN : aiLabConfig.unlockPrice.USD
     } else {
-      const dbForPrice = await ensureDb(env)
-      let p = dbForPrice
-        ? await dbForPrice.prepare('SELECT price_ngn, price_usd FROM products WHERE slug = ? OR CAST(id AS TEXT) = ?').bind(itemId, itemId).first()
+      let p = db
+        ? await db.prepare('SELECT price_ngn, price_usd FROM products WHERE slug = ? OR CAST(id AS TEXT) = ?').bind(itemId, itemId).first()
         : null
       if (!p) p = storeProducts.find((x) => x.slug === itemId || String(x.id) === itemId)
       if (!p) return json({ ok: false, error: 'Unknown product.' }, 400)
@@ -43,7 +49,7 @@ export async function onRequestPost({ request, env }) {
     }
 
     const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
-      headers: { Authorization: `Bearer ${env.PAYSTACK_SECRET_KEY}` },
+      headers: { Authorization: `Bearer ${secretKey}` },
     })
     const verifyData = verifyRes.ok ? await verifyRes.json() : null
     const tx = verifyData?.data
@@ -56,15 +62,13 @@ export async function onRequestPost({ request, env }) {
     }
 
     // Block re-using the same payment reference for another item.
-    const dbCheck = await ensureDb(env)
-    if (dbCheck) {
-      const existing = await dbCheck.prepare('SELECT item_id FROM orders WHERE reference = ?').bind(reference).first()
+    if (db) {
+      const existing = await db.prepare('SELECT item_id FROM orders WHERE reference = ?').bind(reference).first()
       if (existing && existing.item_id !== itemId) {
         return json({ ok: false, error: 'This payment reference was already used.' }, 400)
       }
     }
 
-    const db = await ensureDb(env)
     let downloadUrl = ''
     let fullReportMd = ''
 

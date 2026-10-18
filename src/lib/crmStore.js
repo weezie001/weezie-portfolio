@@ -15,6 +15,7 @@ const LS_KEYS = {
   files: 'weezie_crm_files_v1',
   adminKey: 'weezie_admin_key_v1',
   paystackPubKey: 'weezie_paystack_pk_v1',
+  paystackSecKey: 'weezie_paystack_sk_v1',
 }
 
 function readLocal(key, fallback) {
@@ -71,6 +72,23 @@ export function getPaystackPublicKey() {
 export function setPaystackPublicKey(pk) {
   try {
     localStorage.setItem(LS_KEYS.paystackPubKey, String(pk || '').trim())
+  } catch {
+    /* ignore */
+  }
+}
+
+export function getPaystackSecretKey() {
+  try {
+    return localStorage.getItem(LS_KEYS.paystackSecKey) || ''
+  } catch {
+    return ''
+  }
+}
+
+export function setPaystackSecretKey(sk) {
+  try {
+    if (sk) localStorage.setItem(LS_KEYS.paystackSecKey, String(sk || '').trim())
+    else localStorage.removeItem(LS_KEYS.paystackSecKey)
   } catch {
     /* ignore */
   }
@@ -432,12 +450,17 @@ export async function fetchAdminDashboard(adminKey) {
   }
 
   // Resilient fallback for local dev or offline mode
+  const localPk = getPaystackPublicKey()
+  const localSk = getPaystackSecretKey()
   return {
     ok: true,
     localMode: true,
     d1Connected: false,
     brevoConfigured: false,
-    paystackConfigured: Boolean(getPaystackPublicKey()),
+    paystackConfigured: Boolean(localPk),
+    paystackPublicKey: localPk,
+    paystackSecretKeySet: Boolean(localSk),
+    paystackIsTest: (localPk || '').startsWith('pk_test_') || (localSk || '').startsWith('sk_test_'),
     leads: readLocal(LS_KEYS.leads, []),
     products: readLocal(LS_KEYS.products, seedProducts),
     orders: readLocal(LS_KEYS.orders, []),
@@ -606,6 +629,25 @@ export async function postAdminAction(adminKey, payload) {
   } else if (action === 'delete_product') {
     const prods = readLocal(LS_KEYS.products, seedProducts).filter((p) => p.id !== payload.id)
     writeLocal(LS_KEYS.products, prods)
+  } else if (action === 'save_paystack_keys') {
+    const pk = payload.publicKey !== undefined ? payload.publicKey : payload.public_key
+    const sk = payload.secretKey !== undefined ? payload.secretKey : payload.secret_key
+    if (pk !== undefined) setPaystackPublicKey(pk)
+    if (sk !== undefined) setPaystackSecretKey(sk)
+  } else if (action === 'mark_cold_opened') {
+    const list = readLocal(LS_KEYS.cold, []).map((p) => {
+      if (p.id === payload.id || (payload.email && String(p.email).toLowerCase() === String(payload.email).toLowerCase())) {
+        return {
+          ...p,
+          status: p.status === 'Replied' || p.status === 'Won' ? p.status : 'Opened',
+          open_count: (p.open_count || 0) + 1,
+          opened_at: p.opened_at || new Date().toISOString(),
+          last_opened_at: new Date().toISOString(),
+        }
+      }
+      return p
+    })
+    writeLocal(LS_KEYS.cold, list)
   }
 
   try {

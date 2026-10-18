@@ -80,6 +80,8 @@ async function handleDrip({ request, env }) {
   const fromEmail = 'enang@weezie.site'
   const fromName = 'Enang Weezie'
 
+  const trackingPixelUrl = `https://weezie.site/api/track?p=${prospect.id}&e=${encodeURIComponent(prospect.email)}`
+
   // Send via Brevo with anti-spam check and branded template
   const sendRes = await sendBrevoEmail(env, {
     fromEmail,
@@ -89,6 +91,7 @@ async function handleDrip({ request, env }) {
     subject,
     textContent: body,
     isColdOrBroadcast: true,
+    trackingPixelUrl,
   })
 
   if (sendRes.blockedBySpamGuard) {

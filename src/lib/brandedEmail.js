@@ -4,7 +4,7 @@ function escapeHtml(value) {
     .replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
 }
 
-export function renderBrandedEmail({ body, outreach = false, contentHtml = '', title = '', label = '', assetBase = 'https://weezie.site' }) {
+export function renderBrandedEmail({ body, outreach = false, contentHtml = '', title = '', label = '', assetBase = 'https://weezie.site', trackingPixelUrl = '' }) {
   const paragraphs = String(body || '').trim().split(/\n\s*\n/)
     .map((paragraph) => `<p class="dark-text" style="margin:0 0 20px;font-size:14px;line-height:1.8;color:#0c0d10;overflow-wrap:anywhere;">${escapeHtml(paragraph).replace(/\n/g, '<br>')}</p>`).join('\n')
   return `<!doctype html>
@@ -99,5 +99,6 @@ export function renderBrandedEmail({ body, outreach = false, contentHtml = '', t
     ${outreach ? `<tr><td class="brand-muted" style="padding:0 26px 26px;font-size:11px;line-height:1.7;color:#3f434e;">Don't want future notes from me? Simply reply &quot;stop&quot; and I'll remove you immediately.</td></tr>` : ''}
   </table>
 </td></tr></table>
+${trackingPixelUrl ? `<img src="${escapeHtml(trackingPixelUrl)}" width="1" height="1" border="0" style="display:none;width:1px;height:1px;opacity:0;border:0;" alt="" />` : ''}
 </body></html>`
 }

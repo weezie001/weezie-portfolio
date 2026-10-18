@@ -155,11 +155,26 @@ export async function ensureDb(env) {
       order_reference TEXT DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )`),
+    db.prepare(`CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL,
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`),
   ])
 
   const prospectColumns = await db.prepare('PRAGMA table_info(cold_prospects)').all()
-  if (!(prospectColumns.results || []).some((column) => column.name === 'custom_subject')) {
+  const existingCols = new Set((prospectColumns.results || []).map((column) => column.name))
+  if (!existingCols.has('custom_subject')) {
     await db.prepare("ALTER TABLE cold_prospects ADD COLUMN custom_subject TEXT NOT NULL DEFAULT ''").run()
+  }
+  if (!existingCols.has('opened_at')) {
+    await db.prepare("ALTER TABLE cold_prospects ADD COLUMN opened_at TEXT DEFAULT ''").run()
+  }
+  if (!existingCols.has('last_opened_at')) {
+    await db.prepare("ALTER TABLE cold_prospects ADD COLUMN last_opened_at TEXT DEFAULT ''").run()
+  }
+  if (!existingCols.has('open_count')) {
+    await db.prepare("ALTER TABLE cold_prospects ADD COLUMN open_count INTEGER NOT NULL DEFAULT 0").run()
   }
 
   const inserts = storeProducts.map((p) =>
@@ -191,6 +206,16 @@ export async function ensureDb(env) {
   return db
 }
 
+export async function getSetting(db, key, fallback = '') {
+  if (!db) return fallback
+  try {
+    const row = await db.prepare("SELECT value FROM app_settings WHERE key = ?").bind(key).first()
+    return row?.value || fallback
+  } catch {
+    return fallback
+  }
+}
+
 // Sends an email via Brevo transactional REST API (300/day free tier)
 // Supports file attachments (any file type via base64 content) + anti-spam guard
 export async function sendBrevoEmail(
@@ -206,6 +231,7 @@ export async function sendBrevoEmail(
     replyTo,
     isColdOrBroadcast = false,
     attachment = null, // { name: 'file.pdf', content: 'base64...' }
+    trackingPixelUrl = null,
   },
 ) {
   // Run anti-spam check on outbound cold/broadcast emails
@@ -232,6 +258,7 @@ export async function sendBrevoEmail(
     body: textContent,
     outreach: isColdOrBroadcast && finalText !== textContent,
     contentHtml: htmlContent || '',
+    trackingPixelUrl: trackingPixelUrl || '',
   })
 
   const payload = {

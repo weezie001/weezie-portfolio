@@ -50,11 +50,19 @@ export async function onRequestGet({ request, env }) {
       })(),
     }))
 
+    const secretRow = db ? await db.prepare("SELECT value FROM app_settings WHERE key = 'paystack_secret_key'").first() : null
+    const pubRow = db ? await db.prepare("SELECT value FROM app_settings WHERE key = 'paystack_public_key'").first() : null
+    const effectiveSecretKey = (env?.PAYSTACK_SECRET_KEY || secretRow?.value || '').trim()
+    const effectivePubKey = (env?.VITE_PAYSTACK_PUBLIC_KEY || pubRow?.value || '').trim()
+
     return json({
       ok: true,
       d1Connected: true,
       brevoConfigured: Boolean(env?.BREVO_API_KEY),
-      paystackConfigured: Boolean(env?.PAYSTACK_SECRET_KEY),
+      paystackConfigured: Boolean(effectiveSecretKey),
+      paystackPublicKey: effectivePubKey,
+      paystackSecretKeySet: Boolean(effectiveSecretKey),
+      paystackIsTest: effectivePubKey.startsWith('pk_test_') || effectiveSecretKey.startsWith('sk_test_'),
       leads: leadsRes.results || [],
       products,
       orders: ordersRes.results || [],
@@ -130,6 +138,10 @@ export async function onRequestPost({ request, env }) {
         return json({ ok: false, error: 'Recipient, subject, and message body are required.' }, 400)
       }
 
+      const trackingPixelUrl = body.is_cold
+        ? `https://weezie.site/api/track?e=${encodeURIComponent(toEmail)}`
+        : null
+
       const sendResult = await sendBrevoEmail(env, {
         fromEmail,
         fromName,
@@ -139,6 +151,7 @@ export async function onRequestPost({ request, env }) {
         textContent,
         isColdOrBroadcast: Boolean(body.is_cold),
         attachment,
+        trackingPixelUrl,
       })
 
       if (sendResult.blockedBySpamGuard) {
@@ -358,6 +371,8 @@ export async function onRequestPost({ request, env }) {
           .replace(/\{\{\s*website\s*\}\}/gi, t.website || 'your site')
           .replace(/\{\{\s*niche\s*\}\}/gi, t.niche || 'your industry')
 
+        const trackingPixelUrl = `https://weezie.site/api/track?p=${t.id || ''}&e=${encodeURIComponent(t.email)}`
+
         const sendRes = await sendBrevoEmail(env, {
           fromEmail,
           fromName,
@@ -367,6 +382,7 @@ export async function onRequestPost({ request, env }) {
           textContent: msg,
           isColdOrBroadcast: true,
           attachment,
+          trackingPixelUrl,
         })
 
         if (sendRes.blockedBySpamGuard) {
@@ -507,6 +523,21 @@ export async function onRequestPost({ request, env }) {
         await db.prepare('DELETE FROM products WHERE id = ?').bind(Number(body.id)).run()
       }
       return json({ ok: true })
+    }
+
+    // 12. Save Paystack Gateway Keys (Test or Live)
+    if (action === 'save_paystack_keys') {
+      const pubKey = String(body.publicKey || body.public_key || '').trim()
+      const secKey = String(body.secretKey || body.secret_key || '').trim()
+      if (db) {
+        if (pubKey) {
+          await db.prepare("INSERT OR REPLACE INTO app_settings (key, value, updated_at) VALUES ('paystack_public_key', ?, datetime('now'))").bind(pubKey).run()
+        }
+        if (secKey) {
+          await db.prepare("INSERT OR REPLACE INTO app_settings (key, value, updated_at) VALUES ('paystack_secret_key', ?, datetime('now'))").bind(secKey).run()
+        }
+      }
+      return json({ ok: true, isTest: pubKey.startsWith('pk_test_') || secKey.startsWith('sk_test_') })
     }
 
     return json({ ok: false, error: `Unknown admin action: ${action}` }, 400)

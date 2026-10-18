@@ -6,6 +6,8 @@ import {
   setSavedAdminKey,
   getPaystackPublicKey,
   setPaystackPublicKey,
+  getPaystackSecretKey,
+  setPaystackSecretKey,
   fetchAdminDashboard,
   postAdminAction,
   uploadAnyFile,
@@ -75,6 +77,9 @@ export default function AdminCRM({ onNavigate }) {
     d1Connected: false,
     brevoConfigured: false,
     paystackConfigured: false,
+    paystackPublicKey: '',
+    paystackSecretKeySet: false,
+    paystackIsTest: false,
     leads: [],
     products: [],
     orders: [],
@@ -131,13 +136,41 @@ export default function AdminCRM({ onNavigate }) {
   const [prodStatus, setProdStatus] = useState('')
   const [uploadingFile, setUploadingFile] = useState(false)
 
-  // Paystack public key setting
+  // Paystack gateway settings (Public & Secret keys, Test/Live)
   const [paystackPk, setPaystackPk] = useState(getPaystackPublicKey)
+  const [paystackSk, setPaystackSk] = useState(getPaystackSecretKey)
+  const [showSecretKey, setShowSecretKey] = useState(false)
+  const [savingKeys, setSavingKeys] = useState(false)
+  const [keysFeedback, setKeysFeedback] = useState('')
   const [pkSaved, setPkSaved] = useState(false)
 
   // Live Anti-Spam Deliverability Checkers
   const mailSpamCheck = useMemo(() => analyzeSpamRisk(subject, mailBody), [subject, mailBody])
   const coldSpamCheck = useMemo(() => analyzeSpamRisk(coldSubject, coldBody), [coldSubject, coldBody])
+
+  async function handleSavePaystackKeys(e) {
+    e?.preventDefault?.()
+    setSavingKeys(true)
+    setKeysFeedback('')
+    try {
+      const cleanPk = paystackPk.trim()
+      const cleanSk = paystackSk.trim()
+      await postAdminAction(adminKey, {
+        action: 'save_paystack_keys',
+        publicKey: cleanPk,
+        secretKey: cleanSk,
+      })
+      setPaystackPublicKey(cleanPk)
+      setPaystackSecretKey(cleanSk)
+      setKeysFeedback('✅ Paystack keys saved to database successfully!')
+      setPkSaved(true)
+      await loadDashboard(adminKey)
+    } catch (err) {
+      setKeysFeedback(`❌ Failed to save keys: ${err?.message || 'Network error'}`)
+    } finally {
+      setSavingKeys(false)
+    }
+  }
 
   async function loadDashboard(keyToUse = adminKey) {
     if (!keyToUse) {
@@ -152,6 +185,9 @@ export default function AdminCRM({ onNavigate }) {
       setAuthed(true)
       setSavedAdminKey(keyToUse)
       setData(res)
+      if (res.paystackPublicKey && !paystackPk) {
+        setPaystackPk(res.paystackPublicKey)
+      }
     } else if (res?.unauthorized) {
       setAuthed(false)
       setSavedAdminKey('')
@@ -631,9 +667,17 @@ export default function AdminCRM({ onNavigate }) {
   const unreadCount = inboxList.filter((m) => !m.is_read).length
   const filteredInbox = inboxList.filter((m) => mailboxFilter === 'all' || m.mailbox === mailboxFilter)
 
-  const filteredCold = coldList.filter((p) => coldFilter === 'all' || p.status === coldFilter)
+  const openedColdList = coldList.filter((p) => p.status === 'Opened' || (p.open_count && p.open_count > 0))
+  const sentColdCount = coldList.filter((p) => p.status !== 'Pending').length
+  const coldOpenRate = sentColdCount > 0 ? Math.round((openedColdList.length / sentColdCount) * 100) : 0
+
+  const filteredCold = coldList.filter((p) => {
+    if (coldFilter === 'all') return true
+    if (coldFilter === 'Opened') return p.status === 'Opened' || (p.open_count && p.open_count > 0)
+    return p.status === coldFilter
+  })
   const needsDraftList = coldList.filter((p) => p.status === 'Pending' && !p.custom_opener)
-  const needsFollowupList = coldList.filter((p) => p.status === 'Sent')
+  const needsFollowupList = coldList.filter((p) => p.status === 'Sent' || p.status === 'Opened')
   const pendingColdList = coldList.filter((p) => p.status === 'Pending')
 
   const filteredLeads = leadsList.filter((l) => sourceFilter === 'all' || l.source === sourceFilter)
@@ -1015,7 +1059,7 @@ export default function AdminCRM({ onNavigate }) {
               <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
                 {[
                   ['cron', `⏱️ 24h Auto-Drip (${pendingColdList.length} Pending)`],
-                  ['tracker', `Prospect Tracker (${coldList.length})`],
+                  ['tracker', `Prospect Tracker (${coldList.length}) · ${openedColdList.length} Read`],
                   ['import', 'CSV Importer'],
                   ['ai', 'AI Copy Generator'],
                 ].map(([id, label]) => (
@@ -1052,7 +1096,7 @@ export default function AdminCRM({ onNavigate }) {
                     </div>
 
                     {/* Metric Cards */}
-                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-4">
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 lg:grid-cols-5">
                       <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Pending</p>
                         <p className="display mt-1 text-xl sm:text-2xl text-blue">{pendingColdList.length}</p>
@@ -1060,15 +1104,22 @@ export default function AdminCRM({ onNavigate }) {
                       </div>
                       <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Outreached</p>
-                        <p className="display mt-1 text-xl sm:text-2xl text-green-600">{coldList.filter((p) => p.status !== 'Pending').length}</p>
+                        <p className="display mt-1 text-xl sm:text-2xl text-green-600">{sentColdCount}</p>
                         <p className="mt-0.5 text-[10px] text-ink-soft">Total sent</p>
+                      </div>
+                      <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Opened &amp; Read</p>
+                        <p className="display mt-1 text-xl sm:text-2xl text-indigo-600">
+                          {openedColdList.length} <span className="text-xs font-semibold text-ink-soft">({coldOpenRate}%)</span>
+                        </p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">Read receipts</p>
                       </div>
                       <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Cadence</p>
                         <p className="display mt-1 text-xl sm:text-2xl text-ink">~1 / 14m</p>
                         <p className="mt-0.5 text-[10px] text-ink-soft">~4.3 / hour</p>
                       </div>
-                      <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
+                      <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm col-span-2 lg:col-span-1">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Est. Time</p>
                         <p className="display mt-1 text-xl sm:text-2xl text-ink">
                           {pendingColdList.length === 0 ? '0h' : `~${Math.round((pendingColdList.length * 14) / 60 * 10) / 10}h`}
@@ -1216,7 +1267,12 @@ export default function AdminCRM({ onNavigate }) {
                 {coldSubTab === 'tracker' && (
                   <div>
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="display text-xl text-ink">3. Prospect &amp; Follow-Up Tracker</h3>
+                      <div>
+                        <h3 className="display text-xl text-ink">3. Prospect &amp; Follow-Up Tracker</h3>
+                        <p className="mt-0.5 text-[11px] text-ink-soft">
+                          {coldList.length} Total · {pendingColdList.length} Pending · {sentColdCount} Sent · <span className="font-bold text-blue">{openedColdList.length} Read Receipts ({coldOpenRate}% open rate)</span>
+                        </p>
+                      </div>
                       <div className="flex flex-wrap items-center gap-2">
                         <label className="flex items-center gap-2 text-[10px] font-bold uppercase text-ink-soft">
                           Batch
@@ -1258,7 +1314,7 @@ export default function AdminCRM({ onNavigate }) {
                     </p>
 
                     <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
-                      {['all', 'Pending', 'Sent', 'Follow-up 1', 'Replied', 'Unsubscribed'].map((st) => (
+                      {['all', 'Pending', 'Sent', 'Opened', 'Follow-up 1', 'Replied', 'Unsubscribed'].map((st) => (
                         <button
                           key={st}
                           type="button"
@@ -1267,7 +1323,7 @@ export default function AdminCRM({ onNavigate }) {
                             coldFilter === st ? 'bg-ink text-white' : 'bg-paper text-ink-soft neu-sm'
                           }`}
                         >
-                          {st}
+                          {st === 'Opened' ? `👁️ Opened (${openedColdList.length})` : st}
                         </button>
                       ))}
                     </div>
@@ -1278,46 +1334,68 @@ export default function AdminCRM({ onNavigate }) {
                           No prospects in this status yet. Import a CSV or generate one with AI!
                         </p>
                       ) : (
-                        filteredCold.map((p) => (
-                          <div
-                            key={p.id || p.email}
-                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-paper p-3.5 neu-sm"
-                          >
-                            <div className="min-w-0 flex-1">
-                              <span className="rounded-full bg-blue/10 px-2 py-0.5 text-[10px] font-bold uppercase text-blue">
-                                {p.status}
-                              </span>
-                              <p className="mt-1 text-xs font-bold text-ink break-words">
-                                {p.name} {p.business ? `· ${p.business}` : ''}
-                              </p>
-                              <p className="text-[11px] font-medium text-ink-soft break-all">{p.email}</p>
-                              {p.custom_opener && (
-                                <details className="mt-2 max-w-xl rounded-xl bg-paper p-3 neu-inset">
-                                  <summary className="cursor-pointer text-[10px] font-bold uppercase tracking-[0.08em] text-blue">
-                                    Review personalized draft
-                                  </summary>
-                                  <p className="mt-2 text-xs font-bold text-ink break-words">{p.custom_subject || `A website idea for ${p.business || 'your business'}`}</p>
-                                  <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-soft break-words">{p.custom_opener}</p>
-                                </details>
-                              )}
+                        filteredCold.map((p) => {
+                          const isOpened = p.status === 'Opened' || (p.open_count && p.open_count > 0)
+                          return (
+                            <div
+                              key={p.id || p.email}
+                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-paper p-3.5 neu-sm"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="flex flex-wrap items-center gap-1.5">
+                                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
+                                    isOpened ? 'bg-blue/15 text-blue' : 'bg-paper text-ink neu-inset'
+                                  }`}>
+                                    {p.status}
+                                  </span>
+                                  {isOpened && (
+                                    <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-bold text-green-700">
+                                      👁️ Opened {p.open_count > 1 ? `(${p.open_count}x)` : ''}
+                                    </span>
+                                  )}
+                                  {p.niche && (
+                                    <span className="rounded-full bg-paper px-2 py-0.5 text-[10px] font-medium text-ink-soft neu-sm">
+                                      {p.niche}
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="mt-1 text-xs font-bold text-ink break-words">
+                                  {p.name} {p.business ? `· ${p.business}` : ''}
+                                </p>
+                                <p className="text-[11px] font-medium text-ink-soft break-all">{p.email}</p>
+                                {(p.last_opened_at || p.opened_at) && (
+                                  <p className="mt-0.5 text-[10px] font-semibold text-green-700">
+                                    👁️ Read: {new Date(p.last_opened_at || p.opened_at).toLocaleString()}
+                                  </p>
+                                )}
+                                {p.custom_opener && (
+                                  <details className="mt-2 max-w-xl rounded-xl bg-paper p-3 neu-inset">
+                                    <summary className="cursor-pointer text-[10px] font-bold uppercase tracking-[0.08em] text-blue">
+                                      Review personalized draft
+                                    </summary>
+                                    <p className="mt-2 text-xs font-bold text-ink break-words">{p.custom_subject || `A website idea for ${p.business || 'your business'}`}</p>
+                                    <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-soft break-words">{p.custom_opener}</p>
+                                  </details>
+                                )}
+                              </div>
+                              <div className="flex items-center gap-1.5 pt-1 sm:pt-0 shrink-0">
+                                <button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending')} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Review</button>
+                                <button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending', true)} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Send</button>
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    postAdminAction(adminKey, { action: 'delete_cold_prospect', id: p.id }).then(() =>
+                                      loadDashboard(),
+                                    )
+                                  }
+                                  className="px-2 text-xs font-bold text-ink-soft hover:text-red-600"
+                                >
+                                  ✕
+                                </button>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1.5 pt-1 sm:pt-0 shrink-0">
-                              <button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending')} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Review</button>
-                              <button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending', true)} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Send</button>
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  postAdminAction(adminKey, { action: 'delete_cold_prospect', id: p.id }).then(() =>
-                                    loadDashboard(),
-                                  )
-                                }
-                                className="px-2 text-xs font-bold text-ink-soft hover:text-red-600"
-                              >
-                                ✕
-                              </button>
-                            </div>
-                          </div>
-                        ))
+                          )
+                        })
                       )}
                     </div>
                   </div>
@@ -1331,11 +1409,11 @@ export default function AdminCRM({ onNavigate }) {
                     <div className="flex flex-wrap items-center justify-between gap-2">
                       <h3 className="display text-xl text-ink">Recent Drip Activity</h3>
                       <span className="text-xs font-bold text-ink-soft">
-                        {coldList.filter((p) => p.status !== 'Pending').length} contacted
+                        {sentColdCount} contacted · {openedColdList.length} read
                       </span>
                     </div>
                     <p className="mt-1 text-xs font-medium text-ink-soft">
-                      Real-time audit log of prospects contacted by the automated engine.
+                      Real-time audit log of prospects contacted by the automated engine with live open tracking.
                     </p>
 
                     <div className="mt-4 max-h-[460px] space-y-2.5 overflow-y-auto pr-1">
@@ -1347,22 +1425,39 @@ export default function AdminCRM({ onNavigate }) {
                         coldList
                           .filter((p) => p.status !== 'Pending')
                           .slice(0, 25)
-                          .map((p) => (
-                            <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl bg-paper p-3 text-xs neu-sm">
-                              <div className="min-w-0 flex-1">
-                                <p className="font-bold text-ink break-words">
-                                  {p.name} · <span className="font-normal text-ink-soft">{p.business || p.email}</span>
-                                </p>
-                                <p className="text-[11px] text-ink-soft break-all">{p.email}</p>
-                                {p.last_contacted_at && (
-                                  <p className="text-[10px] text-blue">Contacted: {new Date(p.last_contacted_at).toLocaleString()}</p>
-                                )}
+                          .map((p) => {
+                            const isOpened = p.status === 'Opened' || (p.open_count && p.open_count > 0)
+                            return (
+                              <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl bg-paper p-3 text-xs neu-sm">
+                                <div className="min-w-0 flex-1">
+                                  <div className="flex flex-wrap items-center gap-1.5">
+                                    <p className="font-bold text-ink break-words">
+                                      {p.name} · <span className="font-normal text-ink-soft">{p.business || p.email}</span>
+                                    </p>
+                                    {isOpened && (
+                                      <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[9px] font-bold text-green-700">
+                                        👁️ Opened {p.open_count > 1 ? `(${p.open_count}x)` : ''}
+                                      </span>
+                                    )}
+                                  </div>
+                                  <p className="text-[11px] text-ink-soft break-all">{p.email}</p>
+                                  <div className="flex flex-wrap items-center gap-2 mt-0.5">
+                                    {p.last_contacted_at && (
+                                      <span className="text-[10px] text-blue">Contacted: {new Date(p.last_contacted_at).toLocaleString()}</span>
+                                    )}
+                                    {(p.last_opened_at || p.opened_at) && (
+                                      <span className="text-[10px] text-green-700 font-semibold">· Read: {new Date(p.last_opened_at || p.opened_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                    )}
+                                  </div>
+                                </div>
+                                <span className={`self-start sm:self-center shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                                  isOpened ? 'bg-blue/15 text-blue' : 'bg-green-500/15 text-green-700'
+                                }`}>
+                                  {isOpened ? 'Opened 👁️' : (p.status || 'Sent')} ✅
+                                </span>
                               </div>
-                              <span className="self-start sm:self-center shrink-0 rounded-full bg-green-500/15 px-2.5 py-1 text-[10px] font-bold text-green-700">
-                                {p.status || 'Sent'} ✅
-                              </span>
-                            </div>
-                          ))
+                            )
+                          })
                       )}
                     </div>
                   </div>
@@ -2070,38 +2165,126 @@ export default function AdminCRM({ onNavigate }) {
             </div>
 
             <div className="rounded-[28px] bg-paper p-6 neu lg:col-span-5">
-              <h3 className="display text-2xl text-ink">Paystack &amp; Brevo Setup</h3>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <h3 className="display text-2xl text-ink">Paystack Gateway</h3>
+                <span className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${
+                  (paystackPk?.startsWith('pk_test_') || paystackSk?.startsWith('sk_test_') || data.paystackIsTest)
+                    ? 'bg-amber-500/15 text-amber-800'
+                    : (data.paystackConfigured || (paystackPk && paystackSk))
+                      ? 'bg-green-500/15 text-green-700'
+                      : 'bg-paper text-ink-soft neu-sm'
+                }`}>
+                  {(paystackPk?.startsWith('pk_test_') || paystackSk?.startsWith('sk_test_') || data.paystackIsTest)
+                    ? '🟡 Test Mode Active'
+                    : (data.paystackConfigured || (paystackPk && paystackSk))
+                      ? '🟢 Live Production'
+                      : '⚪ Gateway Not Set'}
+                </span>
+              </div>
               <p className="mt-2 text-xs font-medium leading-relaxed text-ink-soft">
-                Paste your <strong>Paystack Public Key</strong> (`pk_live_...` or `pk_test_...`) below to activate the
-                live Paystack payment popup immediately.
+                Connect your Paystack keys below. Test keys let you verify digital product checkouts, instant delivery emails, and download links with simulated cards without spending real money.
               </p>
 
-              <div className="mt-4">
-                <label className="mb-1 block text-xs font-bold uppercase text-ink-soft">Paystack Public Key</label>
-                <input
-                  type="text"
-                  value={paystackPk}
-                  onChange={(e) => {
-                    setPaystackPk(e.target.value)
-                    setPkSaved(false)
-                  }}
-                  placeholder="pk_live_xxxxxxxxxxxxxxxxxxxxxxxx"
-                  className="w-full rounded-xl bg-paper px-4 py-3 font-mono text-xs text-ink outline-none neu-inset"
-                />
-                <button
-                  type="button"
-                  onClick={() => {
-                    setPaystackPublicKey(paystackPk)
-                    setPkSaved(true)
-                  }}
-                  className="btn-gradient mt-3 rounded-full px-6 py-3 text-xs font-bold uppercase tracking-[0.12em]"
-                >
-                  Save Paystack Key
-                </button>
-                {pkSaved && <p className="mt-2 text-xs font-bold text-blue">✅ Saved!</p>}
+              <form onSubmit={handleSavePaystackKeys} className="mt-5 space-y-4">
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold uppercase text-ink-soft">Paystack Public Key</label>
+                    <span className="text-[10px] text-ink-soft">Client-side popup</span>
+                  </div>
+                  <input
+                    type="text"
+                    value={paystackPk}
+                    onChange={(e) => {
+                      setPaystackPk(e.target.value)
+                      setPkSaved(false)
+                      setKeysFeedback('')
+                    }}
+                    placeholder="Paste Public Key (pk_test_... or pk_live_...)"
+                    className="w-full rounded-xl bg-paper px-4 py-3 font-mono text-xs text-ink outline-none neu-inset"
+                  />
+                  <p className="mt-1 text-[10px] text-ink-soft">
+                    Starts with <code className="rounded bg-paper px-1 py-0.5 neu-inset">pk_test_</code> for test mode or <code className="rounded bg-paper px-1 py-0.5 neu-inset">pk_live_</code> for live payments.
+                  </p>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-bold uppercase text-ink-soft">Paystack Secret Key</label>
+                    <button
+                      type="button"
+                      onClick={() => setShowSecretKey(!showSecretKey)}
+                      className="text-[10px] font-bold text-blue hover:underline"
+                    >
+                      {showSecretKey ? 'Hide Secret Key' : 'Reveal Secret Key'}
+                    </button>
+                  </div>
+                  <input
+                    type={showSecretKey ? 'text' : 'password'}
+                    value={paystackSk}
+                    onChange={(e) => {
+                      setPaystackSk(e.target.value)
+                      setPkSaved(false)
+                      setKeysFeedback('')
+                    }}
+                    placeholder="Paste Secret Key (sk_test_... or sk_live_...)"
+                    className="w-full rounded-xl bg-paper px-4 py-3 font-mono text-xs text-ink outline-none neu-inset"
+                  />
+                  <p className="mt-1 text-[10px] text-ink-soft">
+                    Starts with <code className="rounded bg-paper px-1 py-0.5 neu-inset">sk_test_</code>. Stored securely in database &amp; verified on backend (`/api/paystack`).
+                  </p>
+                </div>
+
+                <div className="pt-1">
+                  <button
+                    type="submit"
+                    disabled={savingKeys}
+                    className="btn-gradient w-full rounded-full py-3.5 text-xs font-bold uppercase tracking-[0.12em] disabled:opacity-50"
+                  >
+                    {savingKeys ? 'Saving to Database…' : '💾 Save Paystack Gateway Keys'}
+                  </button>
+                  {keysFeedback && (
+                    <p className="mt-2 text-xs font-bold text-blue text-center">{keysFeedback}</p>
+                  )}
+                  {pkSaved && !keysFeedback && (
+                    <p className="mt-2 text-xs font-bold text-green-700 text-center">✅ Saved to Cloudflare &amp; Browser!</p>
+                  )}
+                </div>
+              </form>
+
+              {/* Official Paystack Test Cards Cheatsheet */}
+              <div className="mt-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-wider text-amber-900">
+                    🧪 Official Paystack Test Card Cheatsheet
+                  </p>
+                  <span className="text-[10px] font-bold text-amber-800 bg-amber-500/20 px-2 py-0.5 rounded-full">
+                    Zero Real Charge
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-amber-900/80 leading-relaxed">
+                  Use these credentials in the checkout modal when testing with <code className="font-mono font-bold">pk_test_</code>:
+                </p>
+                <div className="mt-3 grid grid-cols-2 gap-2 font-mono text-xs text-ink">
+                  <div className="rounded-xl bg-paper p-2 neu-inset">
+                    <span className="text-[9px] uppercase tracking-wider text-ink-soft block font-sans font-bold">Card Number (Success)</span>
+                    <span className="font-bold select-all text-blue">4084 0840 8408 4081</span>
+                  </div>
+                  <div className="rounded-xl bg-paper p-2 neu-inset">
+                    <span className="text-[9px] uppercase tracking-wider text-ink-soft block font-sans font-bold">Expiry Date</span>
+                    <span className="font-bold select-all">12 / 30</span>
+                  </div>
+                  <div className="rounded-xl bg-paper p-2 neu-inset">
+                    <span className="text-[9px] uppercase tracking-wider text-ink-soft block font-sans font-bold">CVV</span>
+                    <span className="font-bold select-all">408</span>
+                  </div>
+                  <div className="rounded-xl bg-paper p-2 neu-inset">
+                    <span className="text-[9px] uppercase tracking-wider text-ink-soft block font-sans font-bold">PIN / OTP</span>
+                    <span className="font-bold select-all">PIN: 1111 · OTP: 123456</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="mt-6 rounded-2xl bg-paper p-4 neu-inset">
+              <div className="mt-5 rounded-2xl bg-paper p-4 neu-inset">
                 <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink">
                   100% Free Stack Summary (Zero API Credits Needed)
                 </p>
@@ -2110,6 +2293,7 @@ export default function AdminCRM({ onNavigate }) {
                   <li>• Database &amp; Files: Cloudflare D1 + R2 (Free)</li>
                   <li>• Inbound Mail: Cloudflare Email Routing → Read-Only Alert</li>
                   <li>• Outbound Mail: Brevo Free Tier (300/day free)</li>
+                  <li>• Payment Verification: Paystack API (Test Mode Ready)</li>
                 </ul>
               </div>
             </div>
