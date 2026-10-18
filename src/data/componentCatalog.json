@@ -1,0 +1,282 @@
+[
+  {
+    "id": "BentoFeatures",
+    "fileName": "BentoFeatures.jsx",
+    "name": "Asymmetric Bento Grid",
+    "category": "Features",
+    "reference": "VibePrompts",
+    "description": "A feature grid with spotlight interaction and editable content."
+  },
+  {
+    "id": "UsagePricingSlider",
+    "fileName": "UsagePricingSlider.jsx",
+    "name": "Usage Pricing Slider",
+    "category": "Pricing",
+    "reference": "VibePrompts",
+    "description": "Adjust usage and compare estimated plan costs."
+  },
+  {
+    "id": "OtpVerificationInput",
+    "fileName": "OtpVerificationInput.jsx",
+    "name": "Verification Input",
+    "category": "Forms & Auth",
+    "reference": "VibePrompts",
+    "description": "Six-digit input with keyboard and paste support. Bring your verification backend."
+  },
+  {
+    "id": "FeatureComparisonMatrix",
+    "fileName": "FeatureComparisonMatrix.jsx",
+    "name": "Feature Comparison",
+    "category": "Pricing",
+    "reference": "VibePrompts",
+    "description": "Compare plans and expand feature groups."
+  },
+  {
+    "id": "SplitAuthCard",
+    "fileName": "SplitAuthCard.jsx",
+    "name": "Split Auth Card",
+    "category": "Forms & Auth",
+    "reference": "VibePrompts",
+    "description": "A split-screen sign-in interface for your authentication service."
+  },
+  {
+    "id": "MinimalCard",
+    "fileName": "MinimalCard.jsx",
+    "name": "Curation Card",
+    "category": "Cards & Galleries",
+    "reference": "Minimal Gallery",
+    "description": "A quiet showcase card with tags and bookmark state."
+  },
+  {
+    "id": "MinimalNavbar",
+    "fileName": "MinimalNavbar.jsx",
+    "name": "Floating Navigation",
+    "category": "Navigation",
+    "reference": "Minimal Gallery",
+    "description": "A floating header with compact mobile navigation."
+  },
+  {
+    "id": "MinimalFilterBar",
+    "fileName": "MinimalFilterBar.jsx",
+    "name": "Filter Pills",
+    "category": "Search & Filters",
+    "reference": "Minimal Gallery",
+    "description": "Choose a category in a horizontal filter row."
+  },
+  {
+    "id": "MinimalViewToggle",
+    "fileName": "MinimalViewToggle.jsx",
+    "name": "Layout Switcher",
+    "category": "Navigation",
+    "reference": "Minimal Gallery",
+    "description": "Switch between grid and list layouts."
+  },
+  {
+    "id": "MinimalSubmitModal",
+    "fileName": "MinimalSubmitModal.jsx",
+    "name": "Submission Dialog",
+    "category": "Forms & Auth",
+    "reference": "Minimal Gallery",
+    "description": "A URL submission form with local preview and validation."
+  },
+  {
+    "id": "KageCommandPalette",
+    "fileName": "KageCommandPalette.jsx",
+    "name": "Command Palette",
+    "category": "Search & Filters",
+    "reference": "Kage",
+    "description": "Search actions and navigate results from the keyboard."
+  },
+  {
+    "id": "KagePromptBar",
+    "fileName": "KagePromptBar.jsx",
+    "name": "Prompt Action Bar",
+    "category": "Developer Tools",
+    "reference": "Kage",
+    "description": "Copy an editable prompt with clear feedback."
+  },
+  {
+    "id": "KageGhostCursors",
+    "fileName": "KageGhostCursors.jsx",
+    "name": "Presence Demo",
+    "category": "Motion & Interaction",
+    "reference": "Kage",
+    "description": "Simulated collaborator presence for product demos."
+  },
+  {
+    "id": "KageThemeToggle",
+    "fileName": "KageThemeToggle.jsx",
+    "name": "Theme Switcher",
+    "category": "Navigation",
+    "reference": "Kage",
+    "description": "Choose a light, dark or system theme."
+  },
+  {
+    "id": "KageFilterDrawer",
+    "fileName": "KageFilterDrawer.jsx",
+    "name": "Filter Drawer",
+    "category": "Search & Filters",
+    "reference": "Kage",
+    "description": "Select facets, collapse sections and apply filters."
+  },
+  {
+    "id": "ReferoRotatingHeadline",
+    "fileName": "ReferoRotatingHeadline.jsx",
+    "name": "Changing Headline",
+    "category": "Hero & Typography",
+    "reference": "Refero Styles",
+    "description": "A user-controlled headline with play, pause and next actions."
+  },
+  {
+    "id": "ReferoPromptSearch",
+    "fileName": "ReferoPromptSearch.jsx",
+    "name": "Style Search",
+    "category": "Search & Filters",
+    "reference": "Refero Styles",
+    "description": "A search input with suggested visual directions."
+  },
+  {
+    "id": "ReferoSoftTabs",
+    "fileName": "ReferoSoftTabs.jsx",
+    "name": "Soft Segmented Tabs",
+    "category": "Navigation",
+    "reference": "Refero Styles",
+    "description": "Keyboard-accessible tabs with matching content panels."
+  },
+  {
+    "id": "ReferoStyleCard",
+    "fileName": "ReferoStyleCard.jsx",
+    "name": "Editorial Style Card",
+    "category": "Cards & Galleries",
+    "reference": "Refero Styles",
+    "description": "An original paper-style composition with a save action."
+  },
+  {
+    "id": "ReferoTokenInspector",
+    "fileName": "ReferoTokenInspector.jsx",
+    "name": "Token Inspector",
+    "category": "Design Systems",
+    "reference": "Refero Styles",
+    "description": "Copy colors and inspect a compact type and spacing system."
+  },
+  {
+    "id": "DesignMdCliBox",
+    "fileName": "DesignMdCliBox.jsx",
+    "name": "Command Snippet",
+    "category": "Developer Tools",
+    "reference": "DESIGN.md",
+    "description": "Switch package managers and copy setup commands."
+  },
+  {
+    "id": "DesignMdWorkflowStepper",
+    "fileName": "DesignMdWorkflowStepper.jsx",
+    "name": "Setup Stepper",
+    "category": "Onboarding & Flows",
+    "reference": "DESIGN.md",
+    "description": "A three-step setup guide with back and next navigation."
+  },
+  {
+    "id": "DesignMdTokenCard",
+    "fileName": "DesignMdTokenCard.jsx",
+    "name": "Design System Card",
+    "category": "Design Systems",
+    "reference": "DESIGN.md",
+    "description": "Save a design direction and copy its color tokens."
+  },
+  {
+    "id": "DesignMdTagCloud",
+    "fileName": "DesignMdTagCloud.jsx",
+    "name": "Style Tag Cloud",
+    "category": "Search & Filters",
+    "reference": "DESIGN.md",
+    "description": "Combine multiple style tags and reset selections."
+  },
+  {
+    "id": "DesignMdReader",
+    "fileName": "DesignMdReader.jsx",
+    "name": "Design Rules Reader",
+    "category": "Design Systems",
+    "reference": "DESIGN.md",
+    "description": "Browse design rules and download an original DESIGN.md."
+  },
+  {
+    "id": "MobbinHeroSlots",
+    "fileName": "MobbinHeroSlots.jsx",
+    "name": "App Discovery Hero",
+    "category": "Hero & Typography",
+    "reference": "Mobbin",
+    "description": "Selectable original app concepts inside a bold hero."
+  },
+  {
+    "id": "MobbinDeviceFrame",
+    "fileName": "MobbinDeviceFrame.jsx",
+    "name": "Mobile Device Frame",
+    "category": "Mobile & Devices",
+    "reference": "Mobbin",
+    "description": "A scrollable mobile frame with an interactive daily checklist."
+  },
+  {
+    "id": "MobbinFlowStepper",
+    "fileName": "MobbinFlowStepper.jsx",
+    "name": "Product Flow",
+    "category": "Onboarding & Flows",
+    "reference": "Mobbin",
+    "description": "A three-screen onboarding sequence with completion callback."
+  },
+  {
+    "id": "MobbinAppIconGrid",
+    "fileName": "MobbinAppIconGrid.jsx",
+    "name": "App Icon Grid",
+    "category": "Cards & Galleries",
+    "reference": "Mobbin",
+    "description": "Original lettermark icons with selectable metadata."
+  },
+  {
+    "id": "MobbinInspectModal",
+    "fileName": "MobbinInspectModal.jsx",
+    "name": "Screen Inspector",
+    "category": "Mobile & Devices",
+    "reference": "Mobbin",
+    "description": "A native modal with screen navigation and zoom controls."
+  },
+  {
+    "id": "MotionOrbit",
+    "fileName": "MotionOrbit.jsx",
+    "name": "Orbital Composition",
+    "category": "Motion & Interaction",
+    "reference": "Skillry / bonus",
+    "description": "Play or pause a CSS orbital composition."
+  },
+  {
+    "id": "MotionKineticType",
+    "fileName": "MotionKineticType.jsx",
+    "name": "Type Playground",
+    "category": "Hero & Typography",
+    "reference": "Skillry / bonus",
+    "description": "Adjust letter spacing and weight with live controls."
+  },
+  {
+    "id": "MotionSceneTimeline",
+    "fileName": "MotionSceneTimeline.jsx",
+    "name": "Story Timeline",
+    "category": "Motion & Interaction",
+    "reference": "Skillry / bonus",
+    "description": "Scrub through three original motion-story scenes."
+  },
+  {
+    "id": "MotionExplodedStack",
+    "fileName": "MotionExplodedStack.jsx",
+    "name": "Exploded Layers",
+    "category": "Motion & Interaction",
+    "reference": "Skillry / bonus",
+    "description": "An interactive CSS perspective diagram with assemble and explode states."
+  },
+  {
+    "id": "MotionSignalGrid",
+    "fileName": "MotionSignalGrid.jsx",
+    "name": "Signal Grid",
+    "category": "Motion & Interaction",
+    "reference": "Skillry / bonus",
+    "description": "A controllable light-grid study with play, pause and manual scrubbing."
+  }
+]

@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 
 /**
@@ -9,10 +10,10 @@ import { useState } from 'react'
 export default function KagePromptBar({
   defaultPrompt = "Recreate this component in pure React + Tailwind CSS. Use semantic HTML, responsive flex/grid, zero external icon or animation packages, accessible keyboard shortcuts, and dark glassmorphic styling.",
   models = [
-    { id: 'claude-3-7', name: 'Claude 3.7 Sonnet', badge: 'Recommended' },
+    { id: 'claude', name: 'Claude', badge: 'Recommended' },
     { id: 'cursor', name: 'Cursor Agent', badge: 'IDE' },
-    { id: 'gpt-4o', name: 'GPT-4o', badge: 'Fast' },
-    { id: 'deepseek-r1', name: 'DeepSeek R1', badge: 'Reasoning' },
+    { id: 'chatgpt', name: 'ChatGPT', badge: 'Fast' },
+    { id: 'codex', name: 'Codex', badge: 'Reasoning' },
   ],
   tags = ['#React', '#TailwindCSS', '#ZeroDeps', '#CopyPaste'],
   className = "",
@@ -74,7 +75,7 @@ export default function KagePromptBar({
               onClick={() => setShowModelPicker((prev) => !prev)}
               className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:border-white/20 hover:bg-white/10"
             >
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-emerald-400 motion-safe:animate-pulse" />
               <span>{activeModelObj.name}</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3 w-3 text-zinc-400">
                 <path d="M6 9l6 6 6-6" />

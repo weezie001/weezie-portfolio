@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import Loader from './components/Loader.jsx'
 import Navbar from './components/Navbar.jsx'
 import Hero from './components/Hero.jsx'
@@ -22,7 +22,7 @@ import AdminCRM from './components/AdminCRM.jsx'
 import AboutPage from './components/AboutPage.jsx'
 import WorkPage from './components/WorkPage.jsx'
 import CaseStudyDetail from './components/CaseStudyDetail.jsx'
-import ComponentShowcase from './components/ComponentShowcase.jsx'
+const ComponentShowcase = lazy(() => import('./components/ComponentShowcase.jsx'))
 import { CASE_STUDIES } from './data/caseStudiesData.js'
 import { useReveal } from './hooks/useReveal.js'
 
@@ -39,8 +39,8 @@ export default function App() {
     const isWork = path.startsWith('/work')
     const workSlug = isWork ? path.replace(/^\/work\/?/, '').replace(/\/$/, '') : null
 
-    let pageTitle = 'Enang Weezie: Designer & Full-Stack Developer in Abuja, Nigeria'
-    let pageDesc = 'Designer and full-stack developer in Abuja, Nigeria, working worldwide. Websites, e-commerce, fintech and investment platforms, web apps and AI tools, from $450.'
+    let pageTitle = 'Enang Weezie: Designer & Full-Stack Developer'
+    let pageDesc = 'Designer and full-stack developer, working worldwide. Websites, e-commerce, fintech and investment platforms, web apps and AI tools, from $450.'
     let pageCanonical = 'https://weezie.site/'
     let pageRobots = 'index, follow'
 
@@ -59,7 +59,7 @@ export default function App() {
       pageCanonical = 'https://weezie.site/store/'
     } else if (isComponents) {
       pageTitle = 'Copy-Paste React & Tailwind UI Components | Weezie UI'
-      pageDesc = 'Explore copy-and-paste React and Tailwind UI components inspired by top web design sites. Zero dependencies, accessible, production ready.'
+      pageDesc = 'Explore 35 original React and Tailwind UI components across navigation, forms, pricing, design systems and motion. Full source, examples and a runnable starter included.'
       pageCanonical = 'https://weezie.site/components/'
     } else if (isAbout) {
       pageTitle = 'About Enang Weezie — Web Designer & Product Engineer'
@@ -173,7 +173,7 @@ export default function App() {
 
   // Dedicated /components interactive UI showcase & copy-paste library
   if (path.startsWith('/components')) {
-    return <ComponentShowcase onNavigate={navigate} />
+    return <Suspense fallback={<p role="status" className="p-10">Loading the component library...</p>}><ComponentShowcase onNavigate={navigate} /></Suspense>
   }
 
   // Dedicated /about page
@@ -207,6 +207,7 @@ export default function App() {
         <Work onNavigate={navigate} />
         <Marquee />
         <Services />
+        <CodeShowcase />
         <RateCard />
         <StoreSection onNavigate={navigate} />
         <AILab onNavigate={navigate} />
@@ -215,7 +216,6 @@ export default function App() {
         <FAQ />
         <CollabCTA />
         <Contact />
-        <CodeShowcase />
       </main>
       <Footer onNavigate={navigate} />
       <ProjectBrief />

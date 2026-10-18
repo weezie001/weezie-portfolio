@@ -55,7 +55,7 @@ export default function AboutPage({ onNavigate }) {
                 A designer who <span className="text-gradient">actually builds.</span>
               </h1>
               <p className="mt-6 max-w-2xl text-lg font-medium leading-relaxed text-ink-soft">
-                I am a web designer and full-stack developer based in Abuja, Nigeria, working with startups, agencies,
+                I am a web designer and full-stack developer, working with startups, agencies,
                 and ambitious businesses worldwide. I take ideas from a blank repository to live, revenue-generating software.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-4">

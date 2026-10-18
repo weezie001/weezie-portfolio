@@ -1,3 +1,4 @@
+"use client";
 import { useState, useEffect } from 'react'
 
 /**
@@ -10,13 +11,13 @@ export default function KageGhostCursors({
   activeUsers = [
     { id: 'u1', name: 'Elena (Lead UX)', color: 'bg-violet-500', border: 'border-violet-400', text: 'text-violet-300' },
     { id: 'u2', name: 'Marcus (Frontend)', color: 'bg-blue-500', border: 'border-blue-400', text: 'text-blue-300' },
-    { id: 'u3', name: 'Kage AI Bot', color: 'bg-emerald-500', border: 'border-emerald-400', text: 'text-emerald-300' },
+    { id: 'u3', name: 'Demo Assistant', color: 'bg-emerald-500', border: 'border-emerald-400', text: 'text-emerald-300' },
   ],
   title = "Live Collaborative Canvas",
   subtitle = "Simulated real-time multiplayer presence with cursor coordinates.",
   className = "",
 }) {
-  const [isPlaying, setIsPlaying] = useState(true)
+  const [isPlaying, setIsPlaying] = useState(false)
   const [cursors, setCursors] = useState([
     { id: 'u1', x: 25, y: 35, clicking: false },
     { id: 'u2', x: 68, y: 55, clicking: false },
@@ -50,7 +51,7 @@ export default function KageGhostCursors({
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
           <div className="flex items-center gap-2">
-            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 animate-ping" />
+            <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 motion-safe:animate-ping" />
             <h3 className="text-base font-bold text-white">{title}</h3>
           </div>
           <p className="mt-0.5 text-xs text-zinc-400">{subtitle}</p>
@@ -121,7 +122,7 @@ export default function KageGhostCursors({
             >
               {/* Click Ripple Indicator */}
               {cursor.clicking && (
-                <span className={`absolute -inset-2 rounded-full ${user.color} opacity-40 animate-ping`} />
+                <span className={`absolute -inset-2 rounded-full ${user.color} opacity-40 motion-safe:animate-ping`} />
               )}
 
               {/* Cursor SVG Arrow */}

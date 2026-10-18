@@ -154,33 +154,41 @@ function CodeCard({ r, i }) {
 
 export default function CodeShowcase() {
   return (
-    <section id="code" className="relative overflow-hidden bg-paper-2 px-6 py-24 md:px-10">
+    <section id="code" className="relative overflow-hidden bg-paper-2 px-6 py-24 md:px-10 border-t border-line/40">
       <DoodleScatter variant="a" />
       <div className="relative z-10 mx-auto max-w-6xl">
-        <p className="reveal text-xs font-bold uppercase tracking-[0.2em] text-ink">// on github</p>
-        <h2 className="reveal display mt-4 max-w-3xl text-4xl text-ink md:text-6xl">
-          Straight from the codebase.
-        </h2>
-        <p className="reveal mt-5 max-w-xl text-lg font-medium leading-relaxed text-ink-soft">
-          A peek at the real code behind the work — every project ships on GitHub.
-        </p>
-
-        <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2">
-          {githubRepos.map((r, i) => (
-            <CodeCard key={r.title} r={r} i={i} />
-          ))}
-        </div>
-
-        {/* tech stack */}
-        <div className="mt-20">
+        {/* tech stack / tools I build with */}
+        <div>
           <p className="reveal text-xs font-bold uppercase tracking-[0.2em] text-ink">// tech stack</p>
-          <h3 className="reveal display mt-4 text-3xl text-ink md:text-4xl">Tools I build with.</h3>
+          <h2 className="reveal display mt-4 text-3xl text-ink md:text-5xl">
+            Tools I build with.
+          </h2>
+          <p className="reveal mt-4 max-w-xl text-base font-medium leading-relaxed text-ink-soft">
+            A battle-tested, production-grade stack engineered for high performance, clean architecture, and rapid deployment.
+          </p>
           <div className="reveal mt-8 flex flex-wrap gap-3">
             {TECH.map((t) => (
               <div key={t.name} className="neu-hover flex items-center gap-2.5 rounded-full bg-paper px-4 py-2.5 neu-sm">
                 <span className="h-5 w-5 shrink-0">{t.icon}</span>
                 <span className="text-xs font-bold uppercase tracking-[0.08em] text-ink">{t.name}</span>
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* codebase */}
+        <div className="mt-20">
+          <p className="reveal text-xs font-bold uppercase tracking-[0.2em] text-ink">// on github</p>
+          <h3 className="reveal display mt-4 max-w-3xl text-3xl text-ink md:text-5xl">
+            Straight from the codebase.
+          </h3>
+          <p className="reveal mt-4 max-w-xl text-base font-medium leading-relaxed text-ink-soft">
+            A peek at the real code behind the work — every project ships on GitHub with clean, production-ready code.
+          </p>
+
+          <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2">
+            {githubRepos.map((r, i) => (
+              <CodeCard key={r.title} r={r} i={i} />
             ))}
           </div>
         </div>

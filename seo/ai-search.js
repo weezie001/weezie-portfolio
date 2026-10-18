@@ -17,7 +17,7 @@ const URL = 'https://weezie.site/'
 const STORE_URL = `${URL}store/`
 const STORE_TITLE = 'Digital UI Kits, Templates & AI Packs | Enang Weezie'
 const STORE_DESCRIPTION =
-  'Browse production-ready website templates, React UI components, AI agents, workflows and design systems by Enang Weezie, a designer and developer in Abuja, Nigeria.'
+  'Browse production-ready website templates, React UI components, AI agents, workflows and design systems by Enang Weezie, a designer and developer.'
 const AI_LAB_URL = `${URL}ai-lab/`
 const AI_LAB_TITLE = 'AI Lab: Instant Website Auditor & PRD Architect | Enang Weezie'
 const AI_LAB_DESCRIPTION =
@@ -25,7 +25,7 @@ const AI_LAB_DESCRIPTION =
 const COMPONENTS_URL = `${URL}components/`
 const COMPONENTS_TITLE = 'Copy-Paste React & Tailwind UI Components | Weezie UI'
 const COMPONENTS_DESCRIPTION =
-  'Explore copy-and-paste React and Tailwind UI components inspired by top web design sites. Zero dependencies, accessible, production ready.'
+  'Explore 35 original React and Tailwind UI components across navigation, forms, pricing, design systems and motion. Full source, examples and a runnable starter included.'
 const ID = {
   person: URL + '#person',
   service: URL + '#service',
@@ -35,12 +35,11 @@ const ID = {
 }
 const MARK = { jsonld: '<!-- ai-search:jsonld -->', mirror: '<!-- ai-search:mirror -->' }
 const SUMMARY =
-  'Designer and full-stack developer in Abuja, Nigeria, working with clients worldwide. Designs and builds websites, e-commerce, fintech and investment platforms, web apps and AI tools, end to end.'
+  'Designer and full-stack developer, working with clients worldwide. Designs and builds websites, e-commerce, fintech and investment platforms, web apps and AI tools, end to end.'
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 const toNumber = price => Number(String(price).replace(/[^0-9.]/g, '')) || 0
 const isFrom = price => /^from\s/i.test(String(price).trim())
-const address = { '@type': 'PostalAddress', addressLocality: 'Abuja', addressRegion: 'FCT', addressCountry: 'NG' }
 
 function planOffer(t) {
   return {
@@ -74,7 +73,6 @@ export function jsonLd(includeStore = false) {
         url: URL,
         email: 'mailto:' + site.email,
         image: URL + 'og.png',
-        address,
         knowsLanguage: 'en',
         knowsAbout: [
           'Web Design', 'UI/UX Design', 'Front-End Development', 'Full-Stack Development', 'React',
@@ -89,15 +87,12 @@ export function jsonLd(includeStore = false) {
         '@type': 'ProfessionalService',
         '@id': ID.service,
         name: 'Enang Weezie Design & Development',
-        description: 'Freelance web design and full-stack development studio based in Abuja, Nigeria, working with clients worldwide.',
+        description: 'Freelance web design and full-stack development studio, working with clients worldwide.',
         url: URL,
         image: URL + 'og.png',
         email: 'mailto:' + site.email,
         founder: { '@id': ID.person },
-        address,
         areaServed: [
-          { '@type': 'City', name: 'Abuja' },
-          { '@type': 'Country', name: 'Nigeria' },
           { '@type': 'Place', name: 'Worldwide (remote)' },
         ],
         availableLanguage: 'en',
@@ -178,7 +173,7 @@ function storeMirror() {
     <main>
       <h1>Digital UI Kits, Templates &amp; AI Packs</h1>
       <p>${escapeHtml(STORE_DESCRIPTION)}</p>
-      <p><a href="/">Enang Weezie — designer and developer in Abuja, Nigeria</a></p>
+      <p><a href="/">Enang Weezie — designer and developer</a></p>
       <h2>Digital products</h2>
       <ul>${storeProducts.map(product => `<li><strong>${escapeHtml(product.title)}</strong> — ${escapeHtml(product.category)}. ${escapeHtml(product.description)} Price: ${product.is_freebie ? 'Free' : `$${product.price_usd} USD or ₦${Number(product.price_ngn).toLocaleString('en-NG')} NGN`}.</li>`).join('')}</ul>
       <p>Questions? Email <a href="mailto:${escapeHtml(site.email)}">${escapeHtml(site.email)}</a>.</p>
@@ -233,7 +228,8 @@ function aiLabHtml(homeHtml) {
   html = replaceMeta(html, 'property', 'og:description', `<meta property="og:description" content="${description}" />`)
   html = replaceMeta(html, 'name', 'twitter:title', `<meta name="twitter:title" content="${title}" />`)
   html = replaceMeta(html, 'name', 'twitter:description', `<meta name="twitter:description" content="${description}" />`)
-  return html
+  return toolPageHtml(html, AI_LAB_URL, AI_LAB_TITLE, AI_LAB_DESCRIPTION,
+    '<h2>Website conversion auditor</h2><p>Enter your website URL and business context to get an AI-generated review of potential conversion problems and suggested improvements.</p><h2>PRD architect</h2><p>Describe your app idea to generate a product requirements document and technical architecture outline. Review generated recommendations before implementing them.</p><p>Enable JavaScript to run the tools and view the available report options.</p>')
 }
 
 function componentsHtml(homeHtml) {
@@ -248,7 +244,17 @@ function componentsHtml(homeHtml) {
   html = replaceMeta(html, 'property', 'og:description', `<meta property="og:description" content="${description}" />`)
   html = replaceMeta(html, 'name', 'twitter:title', `<meta name="twitter:title" content="${title}" />`)
   html = replaceMeta(html, 'name', 'twitter:description', `<meta name="twitter:description" content="${description}" />`)
+  return toolPageHtml(html, COMPONENTS_URL, COMPONENTS_TITLE, COMPONENTS_DESCRIPTION,
+    '<p>Explore interactive React and Tailwind UI examples, inspect the JSX source, and copy the implementation into your project.</p><h2>Component examples</h2><ul><li>Asymmetric bento grid</li><li>Usage-based pricing slider</li><li>OTP verification input</li><li>Feature comparison matrix</li><li>Split-screen authentication card</li><li>Minimal cards, navigation, filters, view toggle and submission modal</li></ul><p>Enable JavaScript to interact with previews and copy source code. Authentication and verification interfaces need your own backend integration.</p>')
+}
+
+function toolPageHtml(html, url, title, description, body) {
+  const graph = jsonLd()['@graph'].filter(item => ['Person', 'ProfessionalService', 'WebSite'].includes(item['@type']))
+  graph.push({ '@type': 'WebPage', '@id': url + '#page', url, name: title, description,
+    isPartOf: { '@id': ID.website }, author: { '@id': ID.person } })
   return html
+    .replace(/<noscript>[\s\S]*?<\/noscript>/i, `<noscript><main style="max-width:52rem;margin:auto;padding:2rem;font-family:monospace;line-height:1.7"><h1>${esc(title)}</h1><p>${esc(description)}</p>${body}<nav><a href="/">Home</a> | <a href="/about/">About Enang Weezie</a> | <a href="/work/">Case studies</a> | <a href="/store/">Store</a></nav></main></noscript>`)
+    .replace(/<script type="application\/ld\+json">[\s\S]*?<\/script>/i, `<script type="application/ld+json">${JSON.stringify({ '@context': 'https://schema.org', '@graph': graph }).replace(/</g, '\\u003c')}</script>`)
 }
 
 function sitemap() {
@@ -257,7 +263,7 @@ function sitemap() {
     STORE_URL,
     AI_LAB_URL,
     COMPONENTS_URL,
-    `${URL}privacy.html`,
+    `${URL}privacy`,
     ...editorialPages.map(page => `${URL.replace(/\/$/, '')}${page.path}`),
   ]
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(url => `  <url><loc>${url}</loc></url>`).join('\n')}\n</urlset>\n`
@@ -268,11 +274,11 @@ export function mirror() {
     `<li><strong>${esc(t.name)}</strong>: ${esc(t.price.USD)} (${esc(t.price.NGN)}), ${esc(t.timeline)}. ${esc(t.blurb)} Includes: ${esc(t.includes.join('; '))}.</li>`
   return `<noscript>
       <div style="max-width:52rem;margin:0 auto;padding:2rem 1.25rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;line-height:1.6;color:#2b2f3a">
-        <h1>${esc(site.name)}: Designer &amp; Full-Stack Developer in Abuja, Nigeria</h1>
+        <h1>${esc(site.name)}: Designer &amp; Full-Stack Developer</h1>
         <p><a href="${URL}">weezie.site</a> &mdash; ${esc(site.name)}. Web design, branding and AI tools.</p>
         <p><strong>${esc(site.location)}. Available for new projects.</strong></p>
         <p>${esc(site.aboutBlurb)}</p>
-        <p><a href="/about/">About Enang Weezie</a> | <a href="/work/">Project case studies</a></p>
+        <p><a href="/about/">About Enang Weezie</a> | <a href="/work/">Project case studies</a> | <a href="/store/">Digital products</a> | <a href="/ai-lab/">AI Lab</a> | <a href="/components/">React components</a></p>
         <h2>Selected work</h2>
         <ul>${projects.map(p => `<li><a href="${esc(p.href)}">${esc(p.client)}</a> (${esc(p.tag)}): ${esc(p.desc)}</li>`).join('')}</ul>
         <h2>Services</h2>
@@ -304,6 +310,12 @@ export function llmsTxt() {
     '- LinkedIn: https://www.linkedin.com/in/enang-wisdom-344636237/',
     `- Location: ${site.location}`,
     '- Availability: available for new projects',
+    '',
+    '## Pages and case studies',
+    '',
+    ...editorialPages.map(page => `- [${page.title}](${URL.replace(/\/$/, '')}${page.path}): ${page.description}`),
+    `- [AI Lab](${AI_LAB_URL}): Website auditor and PRD architect.`,
+    `- [React components](${COMPONENTS_URL}): Interactive previews and source code.`,
     '',
     '## Pricing',
     '',
@@ -351,12 +363,14 @@ export default function aiSearch() {
       return ctx.path.startsWith('/store') ? storeHtml(transformed) : transformed
     },
     configureServer(server) {
-      server.middlewares.use((req, res, next) => {
+      server.middlewares.use(async (req, res, next) => {
         const pathname = new globalThis.URL(req.url, 'http://localhost').pathname
         const page = editorialPages.find(page => page.path.replace(/\/$/, '') === pathname.replace(/\/$/, ''))
         if (!page) return next()
         res.setHeader('Content-Type', 'text/html; charset=utf-8')
-        res.end(renderEditorialPage(page, jsonLd()))
+        const source = await readFile(resolve(server.config.root, 'index.html'), 'utf8')
+        const home = await server.transformIndexHtml(req.url, source)
+        res.end(editorialHtml(home, page, jsonLd()))
       })
       server.middlewares.use((req, res, next) => {
         if (req.url !== '/llms.txt') return next()

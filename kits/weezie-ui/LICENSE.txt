@@ -1,0 +1,12 @@
+WEEZIE UI COMMERCIAL LICENSE v1.0
+Copyright 2026 Enang Weezie.
+
+The purchaser may use and modify these original component implementations in unlimited personal and client end products, including commercial websites and applications. The purchaser may share source with collaborators working on those end products and deliver the resulting end-product source to clients.
+
+The purchaser may not redistribute or resell this collection, its substantially unmodified components, or its starter as a competing template, component library or download product. This restriction does not prevent commercial use in finished client websites or applications.
+
+Reference website names identify inspiration only and do not imply affiliation, endorsement, or a license to their content or trademarks. React, Tailwind CSS, Vite and other installed dependencies retain their respective licenses. No third-party source code or branded reference assets are supplied by this license.
+
+Software is provided as-is, without warranty. The purchaser is responsible for integration, testing, security and legal compliance of their end products. Enang Weezie retains ownership of the original component source.
+
+Questions: enang@weezie.site

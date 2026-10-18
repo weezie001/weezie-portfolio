@@ -1,4 +1,5 @@
-import { useState } from 'react'
+"use client";
+import { useState, Fragment } from 'react'
 
 /**
  * FeatureComparisonMatrix — Weezie UI
@@ -133,7 +134,7 @@ export default function FeatureComparisonMatrix({
             {/* Table Body: Categories and Features */}
             <tbody>
               {categories.map((cat, catIdx) => (
-                <div key={cat.category} className="contents">
+                <Fragment key={cat.category}>
                   <tr key={`cat-${catIdx}`} className="border-b border-white/10 bg-white/[0.02]">
                     <td
                       colSpan={plans.length + 1}
@@ -161,7 +162,7 @@ export default function FeatureComparisonMatrix({
                       </td>
                     </tr>
                   ))}
-                </div>
+                </Fragment>
               ))}
             </tbody>
           </table>

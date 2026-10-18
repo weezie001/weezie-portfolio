@@ -7,6 +7,8 @@ dist
 .wrangler/
 .DS_Store
 *.local
+/.tmp/
+__pycache__/
 
 # Raw image drops (optimized copies live in /public)
 /ChatGPT Image*.png

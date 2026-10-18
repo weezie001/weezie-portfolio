@@ -1,3 +1,4 @@
+"use client";
 /**
  * BentoFeatures — Weezie UI
  * Asymmetric bento grid with a cursor-following spotlight + glowing border.
@@ -123,7 +124,7 @@ function AvatarsVisual({ accent }) {
         </div>
       ))}
       <span className="ml-3 flex items-center gap-1.5 text-xs text-zinc-400">
-        <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+        <span className="h-2 w-2 motion-safe:animate-pulse rounded-full bg-emerald-400" />
         12 online
       </span>
     </div>

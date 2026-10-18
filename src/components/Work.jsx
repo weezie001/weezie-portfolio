@@ -40,7 +40,7 @@ export default function Work({ onNavigate }) {
         </div>
 
         <div className="mt-14 flex flex-col gap-12">
-          {projects.map((p, i) => {
+          {projects.slice(0, 3).map((p, i) => {
             const slug = SLUG_MAP[p.client]
 
             return (
@@ -118,6 +118,23 @@ export default function Work({ onNavigate }) {
               </article>
             )
           })}
+        </div>
+
+        {/* See More Works Button to view all works */}
+        <div className="reveal mt-12 flex justify-center">
+          <a
+            href="/work"
+            onClick={(e) => {
+              if (onNavigate) {
+                e.preventDefault()
+                onNavigate('/work')
+              }
+            }}
+            className="btn-gradient inline-flex items-center gap-3 rounded-full px-8 py-4 text-xs font-bold uppercase tracking-[0.14em] shadow-lg transition-transform hover:scale-105"
+          >
+            <span>See More Works ({projects.length}+ Live Builds &amp; Case Studies)</span>
+            <span>→</span>
+          </a>
         </div>
 
         {/* Persuasive Bottom Callout */}

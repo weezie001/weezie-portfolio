@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 
 /**
@@ -65,7 +66,7 @@ export default function SplitAuthCard({
 
           {/* Footer badge */}
           <div className="relative z-10 flex items-center gap-2 text-[11px] text-white/60">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-emerald-400 motion-safe:animate-pulse" />
             <span>Over 2,400+ developers shipping daily</span>
           </div>
         </div>

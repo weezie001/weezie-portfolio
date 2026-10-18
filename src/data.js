@@ -15,7 +15,7 @@ export const site = {
   // Contact form endpoint (Formspree) — submissions land in enangweezie@gmail.com.
   formEndpoint: 'https://formspree.io/f/xlgqezad',
 
-  location: 'Abuja, Nigeria · working worldwide',
+  location: 'Working worldwide',
   roles: ['Web Designer', 'Full-Stack Developer', 'AI / Product Engineer'],
   heroBlurb:
     'A designer and full-stack developer who ships real products: websites, web apps, e-commerce and AI tools.',
@@ -547,8 +547,8 @@ export const faqs = [
     a: 'Yes. I build wallets and ledgers, deposits and withdrawals with limits and approvals, identity checks (KYC), investment plans with portfolio tracking, and admin panels with audit logs, with Paystack or Stripe payments.',
   },
   {
-    q: 'Do you work with clients outside Nigeria?',
-    a: 'Yes. I am based in Abuja, Nigeria and work with clients worldwide, with prices in US dollars or naira.',
+    q: 'Do you work with clients internationally?',
+    a: 'Yes. I work with clients worldwide, with prices in US dollars or naira.',
   },
   {
     q: 'Can you add AI features to my website or app?',
@@ -586,21 +586,21 @@ export const storeProducts = [
   {
     id: 10,
     slug: 'weezie-ui-components-bundle',
-    title: 'Weezie UI — 30 Production React & Tailwind Blocks',
+    title: 'Weezie UI — 35 React & Tailwind Components',
     category: 'Components',
-    tagline: '30 copy-paste React + Tailwind UI components inspired by VibePrompts, Minimal Gallery, Kage, Refero, DESIGN.md & Mobbin.',
+    tagline: '35 copy-paste React + Tailwind UI components inspired by VibePrompts, Minimal Gallery, Kage, Refero, DESIGN.md & Mobbin.',
     description:
-      'The complete 30-component commercial UI system recreated in pure React and Tailwind CSS. Bento grids, dynamic pricing estimators, OTP verification, floating ⌘K palettes, ghost collaborative cursors, luxury typography headlines, device frames, and multi-step flowcharts. Zero external dependency lock-in, accessible, fully responsive, and copy-paste ready.',
+      'The complete 35-component commercial UI collection built in pure React and Tailwind CSS. Bento grids, dynamic pricing estimators, OTP verification, floating ⌘K palettes, ghost collaborative cursors, luxury typography headlines, device frames, and multi-step flowcharts. Includes a runnable starter, original motion demos, design tokens, usage examples and commercial-use license. Backend integrations are supplied by the buyer.',
     price_ngn: 35000,
     price_usd: 29,
     is_freebie: false,
     badge: 'Featured',
-    cover_image: '/og.png',
+    cover_image: '/store/weezie-ui-library.svg',
     preview_url: '/components',
     file_url: '/downloads/weezie-ui-components.zip',
     features: [
-      '30 Standalone React + Tailwind CSS component files',
-      'VibePrompts, Minimal Gallery, Kage, Refero, DESIGN.md & Mobbin inspired',
+      '35 standalone React + Tailwind CSS component files',
+      'Six reference collections plus five Skillry-inspired motion extras',
       'Interactive live showcase with 1-click source code copy',
       'Commercial royalty-free license for unlimited personal & client projects',
     ],

@@ -1,0 +1,469 @@
+{
+  "robots": "# Public portfolio and store pages are open to search and AI crawlers.\nUser-agent: *\nAllow: /\nDisallow: /intake/\nDisallow: /api/\n\n# Generative search and assistant crawlers.\nUser-agent: GPTBot\nUser-agent: OAI-SearchBot\nUser-agent: ChatGPT-User\nUser-agent: ClaudeBot\nUser-agent: Claude-SearchBot\nUser-agent: Claude-User\nUser-agent: PerplexityBot\nUser-agent: Google-Extended\nAllow: /\nDisallow: /intake/\nDisallow: /api/\n\nSitemap: https://weezie.site/sitemap.xml\n",
+  "sitemap_status": 200,
+  "pages": [
+    {
+      "url": "https://weezie.site/",
+      "status": 200,
+      "final": "https://weezie.site/",
+      "title": "Enang Weezie: Designer & Full-Stack Developer in Abuja, Nigeria",
+      "canonical": "https://weezie.site/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Designer and full-stack developer in Abuja, Nigeria, working worldwide. Websites, e-commerce, fintech and investment platforms, web apps and AI tools, from $450.",
+      "h1": [
+        "Enang Weezie: Designer & Full-Stack Developer in Abuja, Nigeria"
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "https://weezie.site/",
+        "/about/",
+        "/work/",
+        "/store/",
+        "/ai-lab/",
+        "/components/",
+        "https://padupcreations.com",
+        "https://ash-co-silk.vercel.app",
+        "https://maxiinovation.vercel.app",
+        "https://heiskits.com",
+        "https://spag-king.vercel.app",
+        "https://b-d-renovations.vercel.app",
+        "https://www.espefawis.com",
+        "https://weezie-stash.vercel.app",
+        "https://certverify-eta.vercel.app",
+        "mailto:enang@weezie.site",
+        "mailto:enangweezie@gmail.com",
+        "https://github.com/weezie001",
+        "https://www.linkedin.com/in/enang-wisdom-344636237/",
+        "/enang-weezie-cv.pdf"
+      ],
+      "bytes": 26129,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/store/",
+      "status": 200,
+      "final": "https://weezie.site/store/",
+      "title": "Digital UI Kits, Templates & AI Packs | Enang Weezie",
+      "canonical": "https://weezie.site/store/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Browse production-ready website templates, React UI components, AI agents, workflows and design systems by Enang Weezie, a designer and developer in Abuja, Nigeria.",
+      "h1": [
+        "Digital UI Kits, Templates & AI Packs"
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/",
+        "mailto:enang@weezie.site"
+      ],
+      "bytes": 34159,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/ai-lab/",
+      "status": 200,
+      "final": "https://weezie.site/ai-lab/",
+      "title": "AI Lab: Instant Website Auditor & PRD Architect | Enang Weezie",
+      "canonical": "https://weezie.site/ai-lab/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Instant AI-powered website conversion audit and technical MVP architecture blueprint generator by Enang Weezie.",
+      "h1": [
+        "AI Lab: Instant Website Auditor & PRD Architect | Enang Weezie"
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/",
+        "/about/",
+        "/work/",
+        "/store/"
+      ],
+      "bytes": 9931,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/components/",
+      "status": 200,
+      "final": "https://weezie.site/components/",
+      "title": "Copy-Paste React & Tailwind UI Components | Weezie UI",
+      "canonical": "https://weezie.site/components/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Explore copy-and-paste React and Tailwind UI components inspired by top web design sites. Zero dependencies, accessible, production ready.",
+      "h1": [
+        "Copy-Paste React & Tailwind UI Components | Weezie UI"
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/",
+        "/about/",
+        "/work/",
+        "/store/"
+      ],
+      "bytes": 10154,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/privacy",
+      "status": 200,
+      "final": "https://weezie.site/privacy",
+      "title": "Privacy Policy | Enang Weezie",
+      "canonical": "https://weezie.site/privacy",
+      "robots": "",
+      "x_robots": "",
+      "description": "How weezie.site handles your data: the contact form, analytics and the rock-paper-scissors game.",
+      "h1": [
+        "Privacy Policy"
+      ],
+      "jsonld_valid": false,
+      "links": [
+        "/cdn-cgi/l/email-protection#284d4649464f685f4d4d52414d065b415c4d",
+        "/cdn-cgi/l/email-protection#9bfef5faf5fcecfefee1f2fedbfcf6faf2f7b5f8f4f6",
+        "/"
+      ],
+      "bytes": 4537,
+      "linkedin": false,
+      "business_email": false,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/about/",
+      "status": 200,
+      "final": "https://weezie.site/about/",
+      "title": "About Enang Weezie \u2014 Web Designer & Product Engineer",
+      "canonical": "https://weezie.site/about/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Meet Enang Weezie, the designer and full-stack developer behind weezie.site. Web design, branding, e-commerce and AI tools for businesses.",
+      "h1": [
+        "Hi, I'mEnang Weezie."
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/work/padup-creations/",
+        "/work/ash-co/",
+        "/work/maxi-innovation/",
+        "/work/heis-kits/",
+        "/work/spag-king/",
+        "/work/b-d-renovations/",
+        "/work/espefawis/",
+        "/work/certverify/",
+        "https://weezie.site/",
+        "https://github.com/weezie001",
+        "https://www.linkedin.com/in/enang-wisdom-344636237/",
+        "mailto:enang@weezie.site",
+        "/enang-weezie-cv.pdf"
+      ],
+      "bytes": 14628,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/work/",
+      "status": 200,
+      "final": "https://weezie.site/work/",
+      "title": "Selected Work & Case Studies | Enang Weezie",
+      "canonical": "https://weezie.site/work/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Explore website and business-platform projects by Enang Weezie, with the design problem, delivered features, user flows, and site maps.",
+      "h1": [
+        "The work.The architecture behind it."
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/work/padup-creations/",
+        "/work/ash-co/",
+        "/work/maxi-innovation/",
+        "/work/heis-kits/",
+        "/work/spag-king/",
+        "/work/b-d-renovations/",
+        "/work/espefawis/",
+        "/work/certverify/"
+      ],
+      "bytes": 12874,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/work/padup-creations/",
+      "status": 200,
+      "final": "https://weezie.site/work/padup-creations/",
+      "title": "PadUp Creations Case Study & Architecture | Enang Weezie",
+      "canonical": "https://weezie.site/work/padup-creations/",
+      "robots": "",
+      "x_robots": "",
+      "description": "How Enang Weezie brought product shopping, Paystack payments, and four role-based business portals together for PadUp Creations.",
+      "h1": [
+        "PadUp Creations: A storefront connected to the multi-portal business behind it."
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/about/",
+        "https://padupcreations.com",
+        "/work/"
+      ],
+      "bytes": 14000,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/work/ash-co/",
+      "status": 200,
+      "final": "https://weezie.site/work/ash-co/",
+      "title": "ASH.CO Case Study & Architecture | Enang Weezie",
+      "canonical": "https://weezie.site/work/ash-co/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Engineered a drop-style streetwear storefront with countdown releases, lookbook gallery, and dual Paystack + WhatsApp checkout routing.",
+      "h1": [
+        "ASH.CO: Street-fashion drop store with lookbook and WhatsApp checkout."
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/about/",
+        "https://ash-co-silk.vercel.app",
+        "/work/"
+      ],
+      "bytes": 13489,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/work/maxi-innovation/",
+      "status": 200,
+      "final": "https://weezie.site/work/maxi-innovation/",
+      "title": "Maxi Innovation Case Study & Architecture | Enang Weezie",
+      "canonical": "https://weezie.site/work/maxi-innovation/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Designed and built the marketing platform and automated AI lead scoring engine for real-estate and construction firms.",
+      "h1": [
+        "Maxi Innovation: AI-powered lead qualification and booking engines that convert 24/7."
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/about/",
+        "https://maxiinovation.vercel.app",
+        "/work/"
+      ],
+      "bytes": 13365,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/work/heis-kits/",
+      "status": 200,
+      "final": "https://weezie.site/work/heis-kits/",
+      "title": "HEIS KITS Case Study & Architecture | Enang Weezie",
+      "canonical": "https://weezie.site/work/heis-kits/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Built a feature-rich sportswear e-commerce platform with real-time score feeds, player customizer, and AI virtual try-on technology.",
+      "h1": [
+        "HEIS KITS: Premium football-kit store with AI virtual try-on and size advisor."
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/about/",
+        "https://heiskits.com",
+        "/work/"
+      ],
+      "bytes": 13220,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/work/spag-king/",
+      "status": 200,
+      "final": "https://weezie.site/work/spag-king/",
+      "title": "SpagKing Case Study & Architecture | Enang Weezie",
+      "canonical": "https://weezie.site/work/spag-king/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Designed a vibrant fast-casual restaurant brand experience with interactive meal builder, live delivery zone validation, and kitchen order dispatch.",
+      "h1": [
+        "SpagKing: Lokoja's No.1 food brand \u2014 signature menu and instant ordering."
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/about/",
+        "https://spag-king.vercel.app",
+        "/work/"
+      ],
+      "bytes": 13189,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/work/b-d-renovations/",
+      "status": 200,
+      "final": "https://weezie.site/work/b-d-renovations/",
+      "title": "B&D Renovations Case Study & Architecture | Enang Weezie",
+      "canonical": "https://weezie.site/work/b-d-renovations/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Crafted a renovation firm web experience combining before-and-after project galleries, verified Google reviews, and a 3-minute cost estimate flow.",
+      "h1": [
+        "B&D Renovations: From renovation ideas to a clearer enquiry."
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/about/",
+        "https://b-d-renovations.vercel.app",
+        "/work/"
+      ],
+      "bytes": 13384,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/work/espefawis/",
+      "status": 200,
+      "final": "https://weezie.site/work/espefawis/",
+      "title": "ESPEFAWIS Case Study & Architecture | Enang Weezie",
+      "canonical": "https://weezie.site/work/espefawis/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Engineered an agro-commodity exchange platform connecting rural cooperative farmers with corporate food processors and institutional buyers.",
+      "h1": [
+        "ESPEFAWIS: Agro supply-chain platform connecting Nigerian farmers to national markets."
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/about/",
+        "https://www.espefawis.com",
+        "/work/"
+      ],
+      "bytes": 13276,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    },
+    {
+      "url": "https://weezie.site/work/certverify/",
+      "status": 200,
+      "final": "https://weezie.site/work/certverify/",
+      "title": "CertVerify Case Study & Architecture | Enang Weezie",
+      "canonical": "https://weezie.site/work/certverify/",
+      "robots": "",
+      "x_robots": "",
+      "description": "Developed a high-performance academic credential verification system that validates university degrees and diplomas in under two seconds.",
+      "h1": [
+        "CertVerify: Instant tamper-proof certificate verification on the blockchain."
+      ],
+      "jsonld_valid": true,
+      "links": [
+        "/about/",
+        "https://certverify-eta.vercel.app",
+        "/work/"
+      ],
+      "bytes": 13329,
+      "linkedin": true,
+      "business_email": true,
+      "allowed": {
+        "Googlebot": true,
+        "OAI-SearchBot": true,
+        "Claude-SearchBot": true,
+        "PerplexityBot": true
+      }
+    }
+  ],
+  "probes": {
+    "/this-page-does-not-exist-search-audit/": {
+      "status": 404,
+      "final": "https://weezie.site/this-page-does-not-exist-search-audit/"
+    },
+    "/llms.txt": {
+      "status": 200,
+      "final": "https://weezie.site/llms.txt"
+    }
+  }
+}

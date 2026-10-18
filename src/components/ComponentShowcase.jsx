@@ -2,252 +2,25 @@ import { useState } from 'react'
 import Navbar from './Navbar.jsx'
 import Footer from './Footer.jsx'
 import ProjectBrief from './ProjectBrief.jsx'
-import BentoFeatures from './ui/BentoFeatures.jsx'
-import UsagePricingSlider from './ui/UsagePricingSlider.jsx'
-import OtpVerificationInput from './ui/OtpVerificationInput.jsx'
-import FeatureComparisonMatrix from './ui/FeatureComparisonMatrix.jsx'
-import SplitAuthCard from './ui/SplitAuthCard.jsx'
-import MinimalCard from './ui/MinimalCard.jsx'
-import MinimalNavbar from './ui/MinimalNavbar.jsx'
-import MinimalFilterBar from './ui/MinimalFilterBar.jsx'
-import MinimalViewToggle from './ui/MinimalViewToggle.jsx'
-import MinimalSubmitModal from './ui/MinimalSubmitModal.jsx'
+import catalog from '../data/componentCatalog.json'
 
-// Import complete raw source code so buyers can copy the full implementation directly
-import bentoRaw from './ui/BentoFeatures.jsx?raw'
-import pricingRaw from './ui/UsagePricingSlider.jsx?raw'
-import otpRaw from './ui/OtpVerificationInput.jsx?raw'
-import matrixRaw from './ui/FeatureComparisonMatrix.jsx?raw'
-import authRaw from './ui/SplitAuthCard.jsx?raw'
-import minimalCardRaw from './ui/MinimalCard.jsx?raw'
-import minimalNavbarRaw from './ui/MinimalNavbar.jsx?raw'
-import minimalFilterBarRaw from './ui/MinimalFilterBar.jsx?raw'
-import minimalViewToggleRaw from './ui/MinimalViewToggle.jsx?raw'
-import minimalSubmitModalRaw from './ui/MinimalSubmitModal.jsx?raw'
-
-/**
- * ComponentShowcase — Interactive Viewer & 1-Click Code Exporter
- * Lets users test live interactive components, view clean copy-paste JSX code,
- * and copy directly to clipboard with zero friction.
- */
-const COMPONENTS = [
-  {
-    id: 'bento',
-    name: 'Asymmetric Bento Grid',
-    category: 'VibePrompts · Features',
-    description: 'Dynamic asymmetric tiles with cursor-following spotlight glow, gradient borders, and reactive micro-visuals.',
-    component: BentoFeatures,
-    fileName: 'BentoFeatures.jsx',
-    source: bentoRaw,
-    code: `import BentoFeatures from '@/components/ui/BentoFeatures'
-
-export default function Example() {
-  return (
-    <BentoFeatures
-      eyebrow="Platform Capabilities"
-      title="Everything you need to grow, nothing you don't"
-      subtitle="One unified platform built to scale seamlessly with your engineering team."
-      accent="59 130 246"
-    />
-  )
-}`,
-  },
-  {
-    id: 'pricing',
-    name: 'Usage-Based Pricing Slider',
-    category: 'VibePrompts · Pricing',
-    description: 'Real-time interactive seat and tracked-event calculator with annual billing discount toggle.',
-    component: UsagePricingSlider,
-    fileName: 'UsagePricingSlider.jsx',
-    source: pricingRaw,
-    code: `import UsagePricingSlider from '@/components/ui/UsagePricingSlider'
-
-export default function Example() {
-  return (
-    <UsagePricingSlider
-      title="Transparent, scale-first pricing"
-      subtitle="Pay only for the active seats and events your team actually tracks."
-      basePrice={29}
-      pricePerSeat={12}
-      onSelectPlan={(plan) => console.log('Selected:', plan)}
-    />
-  )
-}`,
-  },
-  {
-    id: 'otp',
-    name: 'OTP 6-Digit Verification',
-    category: 'VibePrompts · Auth & Security',
-    description: 'Auto-advancing 6-digit security code input with paste detection, backspace navigation, and resend cooldown.',
-    component: OtpVerificationInput,
-    fileName: 'OtpVerificationInput.jsx',
-    source: otpRaw,
-    code: `import OtpVerificationInput from '@/components/ui/OtpVerificationInput'
-
-export default function Example() {
-  return (
-    <OtpVerificationInput
-      length={6}
-      email="alex@acme.studio"
-      onComplete={(code) => console.log('Verifying code:', code)}
-      onResend={() => console.log('Resending code')}
-    />
-  )
-}`,
-  },
-  {
-    id: 'matrix',
-    name: 'Feature Comparison Matrix',
-    category: 'VibePrompts · Pricing & Features',
-    description: 'Multi-tier side-by-side feature comparison table with sticky headers, highlight badges, and category groupings.',
-    component: FeatureComparisonMatrix,
-    fileName: 'FeatureComparisonMatrix.jsx',
-    source: matrixRaw,
-    code: `import FeatureComparisonMatrix from '@/components/ui/FeatureComparisonMatrix'
-
-export default function Example() {
-  return (
-    <FeatureComparisonMatrix
-      title="Compare all features side by side"
-      onSelectPlan={(plan) => console.log('Picked plan:', plan.name)}
-    />
-  )
-}`,
-  },
-  {
-    id: 'auth',
-    name: 'Split-Screen Auth Card',
-    category: 'VibePrompts · Auth & Conversion',
-    description: 'High-converting authentication panel with social OAuth, email magic link flow, and brand testimonial panel.',
-    component: SplitAuthCard,
-    fileName: 'SplitAuthCard.jsx',
-    source: authRaw,
-    code: `import SplitAuthCard from '@/components/ui/SplitAuthCard'
-
-export default function Example() {
-  return (
-    <SplitAuthCard
-      brandName="Weezie Studio"
-      headline="Ship world-class software without the design overhead."
-      authorName="Marcus Vance"
-      authorRole="Head of Engineering @ Hypergrowth"
-      onSubmitEmail={(email) => console.log('Send link to:', email)}
-    />
-  )
-}`,
-  },
-  {
-    id: 'minimal-card',
-    name: 'Minimal Curation Card',
-    category: 'Minimal Gallery · Showcase',
-    description: 'Clean showcase card with hover image zoom, category pill, and interactive bookmark button with live counter.',
-    component: MinimalCard,
-    fileName: 'MinimalCard.jsx',
-    source: minimalCardRaw,
-    code: `import MinimalCard from '@/components/ui/MinimalCard'
-
-export default function Example() {
-  return (
-    <div className="max-w-sm">
-      <MinimalCard
-        title="Studio Linear"
-        category="Design Agency"
-        year="2026"
-        url="https://linear.app"
-        initialBookmarks={142}
-      />
-    </div>
-  )
-}`,
-  },
-  {
-    id: 'minimal-nav',
-    name: 'Minimal Floating Navbar',
-    category: 'Minimal Gallery · Navigation',
-    description: 'Split floating pill header with ⌘K search shortcut, live bookmarks count badge, and clean responsive menu.',
-    component: MinimalNavbar,
-    fileName: 'MinimalNavbar.jsx',
-    source: minimalNavbarRaw,
-    code: `import MinimalNavbar from '@/components/ui/MinimalNavbar'
-
-export default function Example() {
-  return (
-    <MinimalNavbar
-      brandName="Minimal Archive"
-      bookmarksCount={5}
-      onOpenSearch={() => console.log('Open search dialog')}
-      onSubmitClick={() => console.log('Open submit modal')}
-    />
-  )
-}`,
-  },
-  {
-    id: 'minimal-filter',
-    name: 'Horizontal Filter Bar',
-    category: 'Minimal Gallery · Filters',
-    description: 'Horizontal scrolling tag pill bar with active slider indicator, counts per tag, and clear-all reset button.',
-    component: MinimalFilterBar,
-    fileName: 'MinimalFilterBar.jsx',
-    source: minimalFilterBarRaw,
-    code: `import MinimalFilterBar from '@/components/ui/MinimalFilterBar'
-
-export default function Example() {
-  return (
-    <MinimalFilterBar
-      onChange={(activeTag) => console.log('Filtered by:', activeTag)}
-    />
-  )
-}`,
-  },
-  {
-    id: 'minimal-view',
-    name: 'Segmented View Toggle',
-    category: 'Minimal Gallery · Layout Controls',
-    description: 'Smooth sliding layout switcher (2-col, 3-col, compact list) with persisted view state and animated indicators.',
-    component: MinimalViewToggle,
-    fileName: 'MinimalViewToggle.jsx',
-    source: minimalViewToggleRaw,
-    code: `import MinimalViewToggle from '@/components/ui/MinimalViewToggle'
-
-export default function Example() {
-  return (
-    <MinimalViewToggle
-      initialView="3col"
-      onViewChange={(view) => console.log('Switched layout:', view)}
-    />
-  )
-}`,
-  },
-  {
-    id: 'minimal-modal',
-    name: 'Minimal Submission Modal',
-    category: 'Minimal Gallery · Modals',
-    description: 'Minimalist website submission dialog with live URL metadata preview, category selector, and confirmation screen.',
-    component: (props) => (
-      <div className="relative flex min-h-[350px] items-center justify-center p-4">
-        <MinimalSubmitModal isOpen={true} {...props} className="static max-w-md mx-auto" />
-      </div>
-    ),
-    fileName: 'MinimalSubmitModal.jsx',
-    source: minimalSubmitModalRaw,
-    code: `import { useState } from 'react'
-import MinimalSubmitModal from '@/components/ui/MinimalSubmitModal'
-
-export default function Example() {
-  const [open, setOpen] = useState(true)
-
-  return (
-    <MinimalSubmitModal
-      isOpen={open}
-      onClose={() => setOpen(false)}
-      onSubmit={(data) => console.log('Submitted site:', data)}
-    />
-  )
-}`,
-  },
-]
+const modules = import.meta.glob('./ui/*.jsx', { eager: true })
+const sources = import.meta.glob('./ui/*.jsx', { eager: true, query: '?raw', import: 'default' })
+const COMPONENTS = catalog.map(item => ({ ...item,
+  component: modules[`./ui/${item.fileName}`].default,
+  source: sources[`./ui/${item.fileName}`],
+  code: `"use client";\nimport ${item.id} from './components/${item.id}'\n\nexport default function Example() {\n  return <${item.id} />\n}\n`,
+}))
+const categories = [...new Set(catalog.map(item => item.category))]
+const references = [...new Set(catalog.map(item => item.reference))]
 
 export default function ComponentShowcase({ onNavigate }) {
+  const [category, setCategory] = useState('All')
+  const [reference, setReference] = useState('All')
+  const [search, setSearch] = useState('')
+  const [previewKey, setPreviewKey] = useState(0)
+  const [previewClosed, setPreviewClosed] = useState(false)
+  const [previewFeedback, setPreviewFeedback] = useState('')
   const [activeTab, setActiveTab] = useState(COMPONENTS[0].id)
   const [viewMode, setViewMode] = useState('preview') // 'preview' | 'code'
   const [codeTab, setCodeTab] = useState('source') // 'source' | 'usage'
@@ -255,7 +28,8 @@ export default function ComponentShowcase({ onNavigate }) {
   const [device, setDevice] = useState('desktop') // 'desktop' | 'mobile'
   const [copied, setCopied] = useState(false)
 
-  const activeComp = COMPONENTS.find((c) => c.id === activeTab) || COMPONENTS[0]
+  const filtered = COMPONENTS.filter(c => (category === 'All' || c.category === category) && (reference === 'All' || c.reference === reference) && `${c.name} ${c.description}`.toLowerCase().includes(search.toLowerCase()))
+  const activeComp = filtered.find(c => c.id === activeTab) || filtered[0] || COMPONENTS[0]
   const ActiveComponent = activeComp.component
 
   async function handleCopyCode() {
@@ -265,7 +39,8 @@ export default function ComponentShowcase({ onNavigate }) {
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // fallback
+      setCopied(false)
+      setPreviewFeedback('Clipboard unavailable. Open Code to select and copy the source.')
     }
   }
 
@@ -289,7 +64,7 @@ export default function ComponentShowcase({ onNavigate }) {
             ← Back to Portfolio
           </a>
           <span className="rounded-full bg-blue/10 px-3.5 py-1 text-xs font-bold text-blue">
-            30 Production Blocks · Zero Dependencies
+            {COMPONENTS.length} React Blocks + Source
           </span>
         </div>
 
@@ -301,7 +76,7 @@ export default function ComponentShowcase({ onNavigate }) {
               COPY-PASTE <span className="text-gradient">REACT BLOCKS</span>
             </h1>
             <p className="mt-3 max-w-2xl text-base font-medium text-ink-soft">
-              Tested, accessible, zero-dependency Tailwind CSS v4 &amp; React 19 components inspired by modern web benchmarks.
+              Original Tailwind CSS v4 &amp; React 19 interfaces, organized by what you need to build.
               Live interactive previews with light/dark themes, responsive mobile/desktop toggles, and 1-click clipboard export.
             </p>
           </div>
@@ -317,24 +92,32 @@ export default function ComponentShowcase({ onNavigate }) {
               }}
               className="btn-gradient inline-flex items-center gap-2 rounded-full px-6 py-3 text-xs font-bold uppercase tracking-[0.12em]"
             >
-              <span>Get 30-Component Pack ($29)</span>
+              <span>Get 35-Component Pack ($29)</span>
               <span>→</span>
             </a>
           </div>
         </div>
 
+        <section aria-label="Find components" className="mt-8 grid gap-4 rounded-2xl border border-line p-5 md:grid-cols-3">
+          <label className="text-xs font-bold">Search components<input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Try pricing, cards, motion..." className="mt-2 w-full rounded-xl border border-line bg-paper p-3 text-sm" /></label>
+          <label className="text-xs font-bold">Category<select value={category} onChange={e=>setCategory(e.target.value)} className="mt-2 w-full rounded-xl border border-line bg-paper p-3 text-sm"><option>All</option>{categories.map(c=><option key={c}>{c}</option>)}</select></label>
+          <label className="text-xs font-bold">Reference collection<select value={reference} onChange={e=>setReference(e.target.value)} className="mt-2 w-full rounded-xl border border-line bg-paper p-3 text-sm"><option>All</option>{references.map(r=><option key={r}>{r}</option>)}</select></label>
+          <p className="text-xs text-ink-soft md:col-span-3" role="status">{filtered.length} of {COMPONENTS.length} components. Original implementations inspired by the references, with no affiliation. Demo data and backend integrations are clearly separated.</p>
+        </section>
         {/* Component Selector Tabs */}
         <div className="mt-8 flex flex-wrap gap-2.5 pb-2">
-          {COMPONENTS.map((item) => (
+          {filtered.map((item) => (
             <button
               key={item.id}
               type="button"
               onClick={() => {
                 setActiveTab(item.id)
+                setPreviewClosed(false)
+                setPreviewFeedback('')
                 setViewMode('preview')
               }}
               className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] transition ${
-                activeTab === item.id
+                activeComp.id === item.id
                   ? 'btn-gradient text-white shadow-md'
                   : 'bg-paper text-ink-soft neu-sm hover:text-ink'
               }`}
@@ -344,11 +127,13 @@ export default function ComponentShowcase({ onNavigate }) {
           ))}
         </div>
 
+        {!filtered.length && <p className="mt-6 rounded-xl border border-line p-5">No components match. <button className="underline" onClick={()=>{setSearch('');setCategory('All');setReference('All')}}>Clear filters</button></p>}
+        <div hidden={!filtered.length}>
         {/* Active Component Details & View Mode Toggle */}
         <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-paper p-5 neu-sm">
           <div>
             <span className="text-[11px] font-bold uppercase tracking-wider text-blue">
-              {activeComp.category}
+              {activeComp.category} / {activeComp.reference}
             </span>
             <h2 className="display mt-0.5 text-2xl text-ink">{activeComp.name}</h2>
             <p className="mt-1 text-xs font-medium text-ink-soft">{activeComp.description}</p>
@@ -464,7 +249,17 @@ export default function ComponentShowcase({ onNavigate }) {
                     : 'bg-zinc-950 text-white'
                 }`}
               >
-                <ActiveComponent theme={theme} />
+                {!previewClosed && <ActiveComponent key={`${activeComp.id}-${previewKey}`} theme={theme}
+                  onClose={()=>setPreviewClosed(true)}
+                  onSubmit={value=>setPreviewFeedback(`Demo submitted: ${JSON.stringify(value)}`)}
+                  onSelect={value=>setPreviewFeedback(`Selected: ${JSON.stringify(value)}`)}
+                  onApply={value=>setPreviewFeedback(`Filters applied: ${JSON.stringify(value)}`)}
+                  onComplete={()=>setPreviewFeedback('Demo complete. Connect your own application action.')}
+                />}
+                <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-white/15 pt-4 text-xs">
+                  <button className="rounded-full border border-current px-4 py-2" onClick={()=>{setPreviewKey(k=>k+1);setPreviewClosed(false);setPreviewFeedback('')}}>Reset demo</button>
+                  <span role="status">{previewClosed?'Preview closed. Reset to open it again.':previewFeedback}</span>
+                </div>
               </div>
 
               {/* Mobile device frame bottom indicator */}
@@ -510,6 +305,7 @@ export default function ComponentShowcase({ onNavigate }) {
               </div>
             </div>
           )}
+        </div>
         </div>
       </main>
 

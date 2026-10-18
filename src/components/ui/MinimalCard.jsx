@@ -1,3 +1,4 @@
+"use client";
 import { useState } from 'react'
 
 /**
@@ -7,12 +8,12 @@ import { useState } from 'react'
  * Pure React + Tailwind CSS. Zero external dependencies.
  */
 export default function MinimalCard({
-  title = "Studio Linear",
+  title = "Field Studio",
   category = "Design Agency",
   year = "2026",
-  url = "https://linear.app",
-  imageUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1000&q=80",
-  initialBookmarks = 142,
+  url = "https://example.com",
+  imageUrl = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='500'%3E%3Crect width='800' height='500' fill='%23d6ccf2'/%3E%3Ccircle cx='400' cy='250' r='150' fill='%23bef264'/%3E%3Cpath d='M150 380L650 120' stroke='%2318181b' stroke-width='70'/%3E%3C/svg%3E",
+  initialBookmarks = 0,
   onBookmarkChange = () => {},
   className = "",
 }) {

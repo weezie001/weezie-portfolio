@@ -6,5 +6,5 @@ export function outreachDraft({ name = 'there', business = 'your business' } = {
   }
 }
 
-export const outreachFollowup = `Hi {{name}},\n\nOne detail I'd include in that outline for {{business}}: answering the question a customer asks just before they contact you, right beside the next step.\n\nThat gives the page a useful job beyond looking newer.\n\nWould a rough before-and-after layout be useful?\n\nEnang\nhttps://weezie.site`
+export const outreachFollowup = `Hey {{name}},\n\nRunning a business already takes enough out of you. Your website should be helping bring the next customer in, without you having to explain everything yourself.\n\nThat's what I'd like to help with at {{business}}. A clearer reason to choose you, an easier way to reach you, and a better chance of showing up when people ask ChatGPT for a business like yours.\n\nWant me to send over the first thing I'd change?\n\nEnang\nweezie.site\n\nP.S. If this isn't for you, just reply "unsubscribe" and I won't follow up again.`
 
