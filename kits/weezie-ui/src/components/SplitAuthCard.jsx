@@ -37,35 +37,39 @@ export default function SplitAuthCard({
       <div className="grid lg:grid-cols-12">
         
         {/* Left Editorial Visual Panel */}
-        <div className="relative flex flex-col justify-between overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-700 to-zinc-950 p-8 sm:p-12 lg:col-span-5">
-          {/* Subtle noise/mesh overlay */}
-          <div className="pointer-events-none absolute -right-20 -top-20 h-64 w-64 rounded-full bg-blue-400/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-indigo-500/20 blur-3xl" />
+        <div className="relative flex flex-col justify-between overflow-hidden p-8 sm:p-12 lg:col-span-5">
+          {/* Photorealistic 3D Liquid Glass Background */}
+          <img
+            src="/images/auth-scene.png"
+            alt="Atmospheric 3D Liquid Glass"
+            className="absolute inset-0 h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-black/40 backdrop-blur-[2px]" />
 
           {/* Brand header */}
           <div className="relative z-10 flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-white/10 backdrop-blur-md border border-white/15">
               <span className="font-mono text-lg font-black text-white">W</span>
             </div>
             <span className="text-sm font-bold tracking-tight text-white">{brandName}</span>
           </div>
 
           {/* Testimonial body */}
-          <div className="relative z-10 my-12">
-            <p className="text-xl font-medium leading-relaxed tracking-tight text-white/90 sm:text-2xl">
+          <div className="relative z-10 my-12 rounded-2xl border border-white/10 bg-black/40 p-5 backdrop-blur-md">
+            <p className="text-lg font-medium leading-relaxed tracking-tight text-white sm:text-xl">
               {headline}
             </p>
-            <blockquote className="mt-6 border-l-2 border-white/30 pl-4 text-xs italic leading-relaxed text-white/70">
+            <blockquote className="mt-4 border-l-2 border-white/40 pl-3 text-xs italic leading-relaxed text-zinc-300">
               {testimonial}
             </blockquote>
-            <div className="mt-4">
+            <div className="mt-3">
               <p className="text-xs font-bold text-white">{authorName}</p>
-              <p className="text-[11px] text-white/60">{authorRole}</p>
+              <p className="text-[11px] text-zinc-400">{authorRole}</p>
             </div>
           </div>
 
           {/* Footer badge */}
-          <div className="relative z-10 flex items-center gap-2 text-[11px] text-white/60">
+          <div className="relative z-10 flex items-center gap-2 text-[11px] text-zinc-300 font-mono">
             <span className="h-2 w-2 rounded-full bg-emerald-400 motion-safe:animate-pulse" />
             <span>Over 2,400+ developers shipping daily</span>
           </div>

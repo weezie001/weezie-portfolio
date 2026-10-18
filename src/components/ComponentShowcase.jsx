@@ -98,6 +98,29 @@ export default function ComponentShowcase({ onNavigate }) {
           </div>
         </div>
 
+        {/* Visual Hero Banner with 3D UI Render */}
+        <div className="relative mt-8 overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6 md:p-10 shadow-2xl">
+          <img
+            src="/images/ui-showcase-hero.png"
+            alt="Weezie UI 3D Component Suite"
+            className="absolute inset-0 h-full w-full object-cover opacity-30"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-transparent" />
+          
+          <div className="relative z-10 max-w-xl">
+            <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-blue-400">
+              <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+              Flagship Design System
+            </span>
+            <h2 className="display mt-3 text-2xl font-bold text-white sm:text-3xl">
+              High-Velocity UI for Founders Who Build.
+            </h2>
+            <p className="mt-2 text-xs leading-relaxed text-zinc-300 sm:text-sm">
+              Tactile micro-interactions, dark glassmorphism, responsive spring states, and zero runtime dependencies. Every block is crafted to convert and ship.
+            </p>
+          </div>
+        </div>
+
         <section aria-label="Find components" className="mt-8 grid gap-4 rounded-2xl border border-line p-5 md:grid-cols-3">
           <label className="text-xs font-bold">Search components<input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Try pricing, cards, motion..." className="mt-2 w-full rounded-xl border border-line bg-paper p-3 text-sm" /></label>
           <label className="text-xs font-bold">Category<select value={category} onChange={e=>setCategory(e.target.value)} className="mt-2 w-full rounded-xl border border-line bg-paper p-3 text-sm"><option>All</option>{categories.map(c=><option key={c}>{c}</option>)}</select></label>

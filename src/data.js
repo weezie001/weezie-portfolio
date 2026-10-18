@@ -595,7 +595,7 @@ export const storeProducts = [
     price_usd: 29,
     is_freebie: false,
     badge: 'Featured',
-    cover_image: '/store/weezie-ui-library.svg',
+    cover_image: '/images/store-ui-pack-cover.png',
     preview_url: '/components',
     file_url: '/downloads/weezie-ui-components.zip',
     features: [
