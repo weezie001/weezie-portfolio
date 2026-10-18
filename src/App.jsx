@@ -21,6 +21,8 @@ import ProjectBrief from './components/ProjectBrief.jsx'
 import AdminCRM from './components/AdminCRM.jsx'
 import { useReveal } from './hooks/useReveal.js'
 
+import ComponentShowcase from './components/ComponentShowcase.jsx'
+
 export default function App() {
   const [path, setPath] = useState(() => window.location.pathname)
   useReveal()
@@ -28,6 +30,7 @@ export default function App() {
   useEffect(() => {
     const isAdmin = path.startsWith('/admin')
     const isStore = path.startsWith('/store')
+    const isComponents = path.startsWith('/components')
     const page = isAdmin
       ? {
           title: 'Admin CRM | Enang Weezie',
@@ -43,7 +46,15 @@ export default function App() {
             canonical: 'https://weezie.site/store/',
             robots: 'index, follow',
           }
-        : {
+        : isComponents
+          ? {
+              title: 'Copy-Paste React & Tailwind UI Components | Weezie UI',
+              description:
+                'Explore copy-and-paste React and Tailwind UI components inspired by top web design sites. Zero dependencies, accessible, production ready.',
+              canonical: 'https://weezie.site/components/',
+              robots: 'index, follow',
+            }
+          : {
             title: 'Enang Weezie: Designer & Full-Stack Developer in Abuja, Nigeria',
             description:
               'Designer and full-stack developer in Abuja, Nigeria, working worldwide. Websites, e-commerce, fintech and investment platforms, web apps and AI tools, from $450.',
@@ -106,6 +117,11 @@ export default function App() {
         <ProjectBrief />
       </>
     )
+  }
+
+  // Dedicated /components interactive UI showcase & copy-paste library
+  if (path.startsWith('/components')) {
+    return <ComponentShowcase onNavigate={navigate} />
   }
 
   return (
