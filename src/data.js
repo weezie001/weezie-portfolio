@@ -618,7 +618,7 @@ export const storeProducts = [
     price_usd: 15,
     is_freebie: false,
     badge: 'New',
-    cover_image: '/store/brand-delivery-kit.svg',
+    cover_image: '/images/brand-delivery-kit-cover.jpg',
     preview_url: '/kits/brand-delivery-kit/index.html',
     file_url: '/downloads/weezie-brand-delivery-kit.zip',
     features: [

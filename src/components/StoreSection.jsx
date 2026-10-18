@@ -8,6 +8,7 @@ import {
 } from '../lib/crmStore.js'
 import { ev } from '../lib/analytics.js'
 import PaymentStatusModal from './PaymentStatusModal.jsx'
+import BrandKitInteractive from './BrandKitInteractive.jsx'
 
 function formatAmount(product, currency) {
   if (product.is_freebie || (product.price_ngn === 0 && product.price_usd === 0)) {
@@ -328,6 +329,7 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
   const [currency, setCurrency] = useState('NGN')
   const [search, setSearch] = useState('')
   const [activeProduct, setActiveProduct] = useState(null)
+  const [showBrandKitInteractive, setShowBrandKitInteractive] = useState(false)
   const [paymentModal, setPaymentModal] = useState({
     isOpen: false,
     status: 'confirmed', // 'confirmed' | 'pending' | 'failed'
@@ -349,6 +351,10 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
       const params = new URLSearchParams(window.location.search)
       const ref = params.get('reference') || params.get('trxref')
       const preview = params.get('preview_payment')
+
+      if (params.get('preview_brand_kit')) {
+        setShowBrandKitInteractive(true)
+      }
 
       if (preview && ['confirmed', 'pending', 'failed'].includes(preview)) {
         setPaymentModal({
@@ -463,6 +469,17 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 self-start md:self-auto">
+            {/* Interactive 3D Brand Delivery Kit Trigger */}
+            <button
+              type="button"
+              onClick={() => setShowBrandKitInteractive(true)}
+              className="neu-hover flex items-center gap-1.5 rounded-full bg-paper px-3.5 py-2 text-[11px] font-bold uppercase tracking-wider text-ink-soft hover:text-ink neu-sm"
+              title="Interactive 3D Brand Delivery Kit Studio Demo"
+            >
+              <span className="text-amber-500">✦</span>
+              <span>Brand Kit 3D Demo</span>
+            </button>
+
             {/* Direct preview trigger for testing all 3 brand popups */}
             <button
               type="button"
@@ -546,7 +563,10 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
                 className="neu-hover flex flex-col justify-between overflow-hidden rounded-[26px] bg-paper p-5 neu"
               >
                 <div>
-                  <div className="relative h-48 w-full overflow-hidden rounded-2xl bg-ink/5 neu-inset">
+                  <div
+                    onClick={item.slug === 'weezie-brand-delivery-kit' ? () => setShowBrandKitInteractive(true) : undefined}
+                    className={`relative h-48 w-full overflow-hidden rounded-2xl bg-ink/5 neu-inset ${item.slug === 'weezie-brand-delivery-kit' ? 'cursor-pointer group' : ''}`}
+                  >
                     {item.cover_image ? (
                       <img
                         src={item.cover_image}
@@ -559,7 +579,12 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
                       <span className="rounded-full bg-paper/95 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-ink backdrop-blur-sm">
                         {item.category}
                       </span>
-                      {item.badge && (
+                      {item.slug === 'weezie-brand-delivery-kit' && (
+                        <span className="rounded-full bg-amber-400 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-ink shadow-sm animate-pulse">
+                          ✦ Interactive 3D
+                        </span>
+                      )}
+                      {item.badge && item.slug !== 'weezie-brand-delivery-kit' && (
                         <span className="rounded-full bg-blue px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
                           {item.badge}
                         </span>
@@ -580,7 +605,15 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {item.preview_url && (
+                    {item.slug === 'weezie-brand-delivery-kit' ? (
+                      <button
+                        type="button"
+                        onClick={() => setShowBrandKitInteractive(true)}
+                        className="neu-hover rounded-full bg-paper px-3.5 py-2.5 text-xs font-bold text-amber-700 hover:text-ink neu-sm"
+                      >
+                        ✦ 3D Demo ↗
+                      </button>
+                    ) : item.preview_url ? (
                       <a
                         href={item.preview_url}
                         onClick={(e) => {
@@ -595,7 +628,7 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
                       >
                         Preview ↗
                       </a>
-                    )}
+                    ) : null}
                     <button
                       type="button"
                       onClick={() => setActiveProduct(item)}
@@ -660,6 +693,43 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
         }}
         onSwitchState={(nextStatus) => setPaymentModal((prev) => ({ ...prev, status: nextStatus }))}
       />
+
+      {/* Brand Delivery Kit Interactive 3D Showcase Modal */}
+      {showBrandKitInteractive && (
+        <div
+          className="fixed inset-0 z-[260] flex items-center justify-center p-3 sm:p-6 overflow-y-auto"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Brand Delivery Kit Interactive 3D Demo"
+        >
+          <div
+            className="fixed inset-0 bg-ink/80 backdrop-blur-md transition-opacity"
+            onClick={() => setShowBrandKitInteractive(false)}
+          />
+          <div className="relative z-10 my-auto w-full max-w-5xl">
+            <button
+              type="button"
+              onClick={() => setShowBrandKitInteractive(false)}
+              aria-label="Close"
+              className="neu-hover absolute right-4 top-4 z-30 flex h-9 w-9 items-center justify-center rounded-full bg-paper text-sm font-bold text-ink neu-sm"
+            >
+              ✕
+            </button>
+            <BrandKitInteractive
+              onBuy={() => {
+                setShowBrandKitInteractive(false)
+                const target =
+                  products.find((p) => p.slug === 'weezie-brand-delivery-kit') ||
+                  fallbackProducts.find((p) => p.slug === 'weezie-brand-delivery-kit')
+                if (target) setActiveProduct(target)
+              }}
+              onOpenBrandBook={() => {
+                window.open('/kits/brand-delivery-kit/index.html', '_blank')
+              }}
+            />
+          </div>
+        </div>
+      )}
     </section>
   )
 }
