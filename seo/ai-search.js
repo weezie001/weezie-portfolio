@@ -377,11 +377,15 @@ export default function aiSearch() {
       }))
       await mkdir(resolve(outputDir, 'store'), { recursive: true })
       await mkdir(resolve(outputDir, 'admin'), { recursive: true })
+      await mkdir(resolve(outputDir, 'crm'), { recursive: true })
+      await mkdir(resolve(outputDir, 'dashboard'), { recursive: true })
       await mkdir(resolve(outputDir, 'components'), { recursive: true })
       await mkdir(resolve(outputDir, 'ai-lab'), { recursive: true })
       await Promise.all([
         writeFile(resolve(outputDir, 'store/index.html'), storeHtml(homeHtml)),
         writeFile(resolve(outputDir, 'admin/index.html'), adminHtml(homeHtml)),
+        writeFile(resolve(outputDir, 'crm/index.html'), adminHtml(homeHtml)),
+        writeFile(resolve(outputDir, 'dashboard/index.html'), adminHtml(homeHtml)),
         writeFile(resolve(outputDir, 'components/index.html'), componentsHtml(homeHtml)),
         writeFile(resolve(outputDir, 'ai-lab/index.html'), aiLabHtml(homeHtml)),
         writeFile(resolve(outputDir, 'sitemap.xml'), sitemap()),

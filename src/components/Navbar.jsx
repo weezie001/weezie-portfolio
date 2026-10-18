@@ -117,14 +117,27 @@ export default function Navbar({ onNavigate, currentPath = '/' }) {
           })}
         </ul>
 
-        {/* CTA Contact Button */}
-        <a
-          href="#contact"
-          onClick={(e) => handleLinkClick(e, '#contact')}
-          className="btn-gradient hidden rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-[0.12em] md:inline-block focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
-        >
-          Contact Me
-        </a>
+        {/* CTA Contact & Admin Buttons */}
+        <div className="hidden items-center gap-3 md:flex">
+          <a
+            href="/admin"
+            onClick={(e) => handleLinkClick(e, '/admin')}
+            className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.12em] transition-all ${
+              currentPath.startsWith('/admin')
+                ? 'bg-white text-zinc-950 shadow'
+                : 'text-white/80 hover:text-white border border-white/20 hover:border-white/50 hover:bg-white/5'
+            }`}
+          >
+            Admin ↗
+          </a>
+          <a
+            href="#contact"
+            onClick={(e) => handleLinkClick(e, '#contact')}
+            className="btn-gradient rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-[0.12em] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white"
+          >
+            Contact Me
+          </a>
+        </div>
 
         {/* Mobile Menu Toggle */}
         <button
@@ -178,9 +191,9 @@ export default function Navbar({ onNavigate, currentPath = '/' }) {
             <a
               href="/admin"
               onClick={(e) => handleLinkClick(e, '/admin')}
-              className="block text-center text-xs font-bold uppercase tracking-[0.12em] text-white/40 hover:text-white transition-colors"
+              className="block rounded-xl border border-white/20 bg-white/10 px-4 py-3 text-center text-xs font-bold uppercase tracking-[0.12em] text-white hover:bg-white/20 transition-colors"
             >
-              Admin CRM ↗
+              ⚡ Admin Panel (CRM) ↗
             </a>
           </li>
         </ul>

@@ -31,7 +31,7 @@ export default function App() {
   useReveal(path)
 
   useEffect(() => {
-    const isAdmin = path.startsWith('/admin')
+    const isAdmin = path.startsWith('/admin') || path.startsWith('/crm') || path.startsWith('/dashboard')
     const isStore = path.startsWith('/store')
     const isComponents = path.startsWith('/components')
     const isAILab = path.startsWith('/ai-lab')
@@ -138,8 +138,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Dedicated /admin CRM dashboard route
-  if (path.startsWith('/admin')) {
+  // Dedicated /admin CRM dashboard route (with /crm and /dashboard aliases)
+  if (path.startsWith('/admin') || path.startsWith('/crm') || path.startsWith('/dashboard')) {
     return <AdminCRM onNavigate={navigate} />
   }
 
