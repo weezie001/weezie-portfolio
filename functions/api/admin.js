@@ -371,7 +371,7 @@ export async function onRequestPost({ request, env }) {
           .replace(/\{\{\s*website\s*\}\}/gi, t.website || 'your site')
           .replace(/\{\{\s*niche\s*\}\}/gi, t.niche || 'your industry')
 
-        const trackingPixelUrl = `https://weezie.site/api/track?p=${t.id || ''}&e=${encodeURIComponent(t.email)}`
+        const trackingPixelUrl = `https://weezie.site/api/track?p=${t.id || ''}&e=${encodeURIComponent(t.email)}&type=${isFollowup ? 'followup' : 'initial'}`
 
         const sendRes = await sendBrevoEmail(env, {
           fromEmail,
@@ -390,15 +390,18 @@ export async function onRequestPost({ request, env }) {
         }
 
         sentCount += 1
-        const nextStatus = isFollowup ? `Follow-up ${(Number(t.followup_count || 0) + 1)}` : 'Sent'
+        const nextStatus = isFollowup ? 'Follow-up Sent' : 'Sent'
         if (db) {
           await db
             .prepare(
               `UPDATE cold_prospects
-               SET status = ?, followup_count = followup_count + ?, last_contacted_at = datetime('now')
+               SET status = ?,
+                   followup_count = followup_count + ?,
+                   followup_sent_at = CASE WHEN ? = 1 THEN datetime('now') ELSE followup_sent_at END,
+                   last_contacted_at = datetime('now')
                WHERE LOWER(email) = ?`,
             )
-            .bind(nextStatus, isFollowup ? 1 : 0, String(t.email).toLowerCase())
+            .bind(nextStatus, isFollowup ? 1 : 0, isFollowup ? 1 : 0, String(t.email).toLowerCase())
             .run()
 
           await db

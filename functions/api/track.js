@@ -14,31 +14,49 @@ export async function onRequestGet({ request, env }) {
   const url = new URL(request.url)
   const prospectId = url.searchParams.get('p')
   const email = url.searchParams.get('e')
+  const trackType = (url.searchParams.get('type') || '').toLowerCase() // 'followup' | 'initial'
 
   if (prospectId || email) {
     try {
       const db = await ensureDb(env)
       if (db) {
+        let prospect = null
         if (prospectId && !isNaN(Number(prospectId))) {
-          await db.prepare(`
-            UPDATE cold_prospects
-            SET
-              status = CASE WHEN status IN ('Pending', 'Sent', 'Follow-up 1', 'Follow-up 2') THEN 'Opened' ELSE status END,
-              open_count = COALESCE(open_count, 0) + 1,
-              opened_at = CASE WHEN opened_at IS NULL OR opened_at = '' THEN datetime('now') ELSE opened_at END,
-              last_opened_at = datetime('now')
-            WHERE id = ?
-          `).bind(Number(prospectId)).run()
+          prospect = await db.prepare('SELECT id, status, followup_count FROM cold_prospects WHERE id = ?').bind(Number(prospectId)).first()
         } else if (email) {
-          await db.prepare(`
-            UPDATE cold_prospects
-            SET
-              status = CASE WHEN status IN ('Pending', 'Sent', 'Follow-up 1', 'Follow-up 2') THEN 'Opened' ELSE status END,
-              open_count = COALESCE(open_count, 0) + 1,
-              opened_at = CASE WHEN opened_at IS NULL OR opened_at = '' THEN datetime('now') ELSE opened_at END,
-              last_opened_at = datetime('now')
-            WHERE LOWER(email) = LOWER(?)
-          `).bind(email.trim()).run()
+          prospect = await db.prepare('SELECT id, status, followup_count FROM cold_prospects WHERE LOWER(email) = LOWER(?)').bind(email.trim()).first()
+        }
+
+        if (prospect) {
+          const isFollowup =
+            trackType === 'followup' ||
+            prospect.status === 'Follow-up Sent' ||
+            prospect.status === 'Follow-up Opened' ||
+            prospect.status === 'Follow-up 1' ||
+            prospect.status === 'Follow-up 2' ||
+            (Number(prospect.followup_count || 0) > 0 && trackType !== 'initial')
+
+          if (isFollowup) {
+            await db.prepare(`
+              UPDATE cold_prospects
+              SET
+                status = 'Follow-up Opened',
+                followup_open_count = COALESCE(followup_open_count, 0) + 1,
+                followup_opened_at = CASE WHEN followup_opened_at IS NULL OR followup_opened_at = '' THEN datetime('now') ELSE followup_opened_at END,
+                last_opened_at = datetime('now')
+              WHERE id = ?
+            `).bind(prospect.id).run()
+          } else {
+            await db.prepare(`
+              UPDATE cold_prospects
+              SET
+                status = CASE WHEN status IN ('Pending', 'Sent') THEN 'Opened' ELSE status END,
+                open_count = COALESCE(open_count, 0) + 1,
+                opened_at = CASE WHEN opened_at IS NULL OR opened_at = '' THEN datetime('now') ELSE opened_at END,
+                last_opened_at = datetime('now')
+              WHERE id = ?
+            `).bind(prospect.id).run()
+          }
         }
       }
     } catch (err) {
@@ -66,15 +84,40 @@ export async function onRequestPost({ request, env }) {
       const db = await ensureDb(env)
       const isReadEvent = ['opened', 'unique_opened', 'click', 'first_opening'].includes(String(data.event).toLowerCase())
       if (db && isReadEvent) {
-        await db.prepare(`
-          UPDATE cold_prospects
-          SET
-            status = CASE WHEN status IN ('Pending', 'Sent', 'Follow-up 1', 'Follow-up 2') THEN 'Opened' ELSE status END,
-            open_count = COALESCE(open_count, 0) + 1,
-            opened_at = CASE WHEN opened_at IS NULL OR opened_at = '' THEN datetime('now') ELSE opened_at END,
-            last_opened_at = datetime('now')
-          WHERE LOWER(email) = LOWER(?)
-        `).bind(String(data.email).trim()).run()
+        const email = String(data.email).trim().toLowerCase()
+        const prospect = await db.prepare('SELECT id, status, followup_count FROM cold_prospects WHERE LOWER(email) = ?').bind(email).first()
+        if (prospect) {
+          const isFollowup =
+            (data?.subject && String(data.subject).toLowerCase().startsWith('re:')) ||
+            (data?.tag && String(data.tag).toLowerCase().includes('followup')) ||
+            prospect.status === 'Follow-up Sent' ||
+            prospect.status === 'Follow-up Opened' ||
+            prospect.status === 'Follow-up 1' ||
+            prospect.status === 'Follow-up 2' ||
+            Number(prospect.followup_count || 0) > 0
+
+          if (isFollowup) {
+            await db.prepare(`
+              UPDATE cold_prospects
+              SET
+                status = 'Follow-up Opened',
+                followup_open_count = COALESCE(followup_open_count, 0) + 1,
+                followup_opened_at = CASE WHEN followup_opened_at IS NULL OR followup_opened_at = '' THEN datetime('now') ELSE followup_opened_at END,
+                last_opened_at = datetime('now')
+              WHERE id = ?
+            `).bind(prospect.id).run()
+          } else {
+            await db.prepare(`
+              UPDATE cold_prospects
+              SET
+                status = CASE WHEN status IN ('Pending', 'Sent') THEN 'Opened' ELSE status END,
+                open_count = COALESCE(open_count, 0) + 1,
+                opened_at = CASE WHEN opened_at IS NULL OR opened_at = '' THEN datetime('now') ELSE opened_at END,
+                last_opened_at = datetime('now')
+              WHERE id = ?
+            `).bind(prospect.id).run()
+          }
+        }
       }
     }
   } catch (err) {

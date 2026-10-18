@@ -176,6 +176,15 @@ export async function ensureDb(env) {
   if (!existingCols.has('open_count')) {
     await db.prepare("ALTER TABLE cold_prospects ADD COLUMN open_count INTEGER NOT NULL DEFAULT 0").run()
   }
+  if (!existingCols.has('followup_opened_at')) {
+    await db.prepare("ALTER TABLE cold_prospects ADD COLUMN followup_opened_at TEXT DEFAULT ''").run()
+  }
+  if (!existingCols.has('followup_open_count')) {
+    await db.prepare("ALTER TABLE cold_prospects ADD COLUMN followup_open_count INTEGER NOT NULL DEFAULT 0").run()
+  }
+  if (!existingCols.has('followup_sent_at')) {
+    await db.prepare("ALTER TABLE cold_prospects ADD COLUMN followup_sent_at TEXT DEFAULT ''").run()
+  }
 
   const inserts = storeProducts.map((p) =>
     db

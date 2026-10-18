@@ -130,6 +130,9 @@ export default function AdminCRM({ onNavigate }) {
   const [coldBody, setColdBody] = useState(outreachDraft({ name: '{{name}}', business: '{{business}}' }).body)
   const [coldAttachment, setColdAttachment] = useState(null)
   const [coldStatusMsg, setColdStatusMsg] = useState('')
+  const [coldSearch, setColdSearch] = useState('')
+  const [displayLimit, setDisplayLimit] = useState(25)
+  const [showColdTemplateEditor, setShowColdTemplateEditor] = useState(false)
 
   // Product editor + universal file upload state
   const [editingProduct, setEditingProduct] = useState(EMPTY_PRODUCT)
@@ -459,11 +462,15 @@ export default function AdminCRM({ onNavigate }) {
   // Cold Outreach Tool 3: Send Cold Campaign or Follow-Up
   function handlePreviewColdToTargets(targets, isFollowup = false, sendNow = false) {
     if (coldSendLock.current) return
-    targets = (targets || []).filter((target) => target.email && target.status !== 'Unsubscribed')
-    if (targets.length === 0) {
-      setColdStatusMsg('❌ No prospects in this filter to send to.')
+    let validTargets = (targets || []).filter((target) => target.email && target.status !== 'Unsubscribed')
+    if (isFollowup && validTargets.length > 1) {
+      validTargets = validTargets.filter((t) => Number(t.followup_count || 0) === 0 && t.status !== 'Follow-up Sent' && t.status !== 'Follow-up Opened')
+    }
+    if (validTargets.length === 0) {
+      setColdStatusMsg('ℹ️ All selected prospects have already received a follow-up and are protected from resending.')
       return
     }
+    targets = validTargets
 
     const blocked = targets
       .map((prospect) => {
@@ -669,18 +676,98 @@ export default function AdminCRM({ onNavigate }) {
   const unreadCount = inboxList.filter((m) => !m.is_read).length
   const filteredInbox = inboxList.filter((m) => mailboxFilter === 'all' || m.mailbox === mailboxFilter)
 
-  const openedColdList = coldList.filter((p) => p.status === 'Opened' || (p.open_count && p.open_count > 0))
+  const pendingColdList = coldList.filter((p) => p.status === 'Pending')
+  const sentColdList = coldList.filter((p) => p.status === 'Sent')
+  
+  // Prospects who opened initial email (and have NOT received follow-up yet)
+  const initialOpenedColdList = coldList.filter(
+    (p) =>
+      p.status === 'Opened' ||
+      (Number(p.open_count || 0) > 0 && Number(p.followup_count || 0) === 0),
+  )
+
+  // Follow-up Sent (dispatched, waiting for open)
+  const followupSentList = coldList.filter(
+    (p) =>
+      p.status === 'Follow-up Sent' ||
+      p.status === 'Follow-up 1' ||
+      (Number(p.followup_count || 0) > 0 && p.status !== 'Follow-up Opened' && Number(p.followup_open_count || 0) === 0),
+  )
+
+  // Follow-up Opened (prospect opened the follow-up email!)
+  const followupOpenedList = coldList.filter(
+    (p) =>
+      p.status === 'Follow-up Opened' ||
+      Number(p.followup_open_count || 0) > 0,
+  )
+
+  const repliedColdList = coldList.filter((p) => p.status === 'Replied')
+  const unsubscribedColdList = coldList.filter((p) => p.status === 'Unsubscribed')
+
+  // Total unique prospects who opened ANY outreach email
+  const allOpenedColdList = coldList.filter(
+    (p) =>
+      p.status === 'Opened' ||
+      p.status === 'Follow-up Opened' ||
+      Number(p.open_count || 0) > 0 ||
+      Number(p.followup_open_count || 0) > 0,
+  )
+
   const sentColdCount = coldList.filter((p) => p.status !== 'Pending').length
-  const coldOpenRate = sentColdCount > 0 ? Math.round((openedColdList.length / sentColdCount) * 100) : 0
+  const coldOpenRate = sentColdCount > 0 ? Math.round((allOpenedColdList.length / sentColdCount) * 100) : 0
+
+  // Needs follow-up: Outreached (Sent or Opened), but ZERO follow-ups sent yet, AND not already followed up!
+  const needsFollowupList = coldList.filter(
+    (p) =>
+      (p.status === 'Sent' || p.status === 'Opened' || Number(p.open_count || 0) > 0) &&
+      Number(p.followup_count || 0) === 0 &&
+      p.status !== 'Follow-up Sent' &&
+      p.status !== 'Follow-up Opened' &&
+      p.status !== 'Follow-up 1' &&
+      p.status !== 'Replied' &&
+      p.status !== 'Unsubscribed',
+  )
+
+  // Priority follow-up: specifically those who opened the initial email and haven't received a follow-up yet!
+  const openedNeedsFollowupList = needsFollowupList.filter(
+    (p) => p.status === 'Opened' || Number(p.open_count || 0) > 0,
+  )
+
+  const needsDraftList = coldList.filter((p) => p.status === 'Pending' && !p.custom_opener)
 
   const filteredCold = coldList.filter((p) => {
-    if (coldFilter === 'all') return true
-    if (coldFilter === 'Opened') return p.status === 'Opened' || (p.open_count && p.open_count > 0)
-    return p.status === coldFilter
+    // 1. Status Filter
+    if (coldFilter === 'Pending' && p.status !== 'Pending') return false
+    if (coldFilter === 'Sent' && p.status !== 'Sent') return false
+    if (coldFilter === 'Opened') {
+      const isInitialOpened = p.status === 'Opened' || (Number(p.open_count || 0) > 0 && Number(p.followup_count || 0) === 0)
+      if (!isInitialOpened) return false
+    }
+    if (coldFilter === 'Follow-up Sent') {
+      const isFUSent =
+        p.status === 'Follow-up Sent' ||
+        p.status === 'Follow-up 1' ||
+        (Number(p.followup_count || 0) > 0 && p.status !== 'Follow-up Opened' && Number(p.followup_open_count || 0) === 0)
+      if (!isFUSent) return false
+    }
+    if (coldFilter === 'Follow-up Opened') {
+      const isFUOpened = p.status === 'Follow-up Opened' || Number(p.followup_open_count || 0) > 0
+      if (!isFUOpened) return false
+    }
+    if (coldFilter === 'Replied' && p.status !== 'Replied') return false
+    if (coldFilter === 'Unsubscribed' && p.status !== 'Unsubscribed') return false
+
+    // 2. Search Filter
+    if (coldSearch && coldSearch.trim()) {
+      const q = coldSearch.trim().toLowerCase()
+      const matchName = (p.name || '').toLowerCase().includes(q)
+      const matchEmail = (p.email || '').toLowerCase().includes(q)
+      const matchBiz = (p.business || '').toLowerCase().includes(q)
+      const matchNiche = (p.niche || '').toLowerCase().includes(q)
+      if (!matchName && !matchEmail && !matchBiz && !matchNiche) return false
+    }
+    return true
   })
-  const needsDraftList = coldList.filter((p) => p.status === 'Pending' && !p.custom_opener)
-  const needsFollowupList = coldList.filter((p) => p.status === 'Sent' || p.status === 'Opened')
-  const pendingColdList = coldList.filter((p) => p.status === 'Pending')
 
   const filteredLeads = leadsList.filter((l) => sourceFilter === 'all' || l.source === sourceFilter)
   const totalNgnRevenue = ordersList
@@ -1081,7 +1168,7 @@ export default function AdminCRM({ onNavigate }) {
 
             <div className="grid gap-8 lg:grid-cols-12">
               {/* Left panel: Tool 1, Tool 2, Tool 3, or Cron Dashboard */}
-              <div className="rounded-[28px] bg-paper p-6 neu lg:col-span-6">
+              <div className={`rounded-[28px] bg-paper p-4 sm:p-6 neu ${coldSubTab === 'tracker' ? 'lg:col-span-12' : 'lg:col-span-6'}`}>
                 {coldSubTab === 'cron' && (
                   <div className="space-y-6">
                     <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1112,7 +1199,7 @@ export default function AdminCRM({ onNavigate }) {
                       <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Opened &amp; Read</p>
                         <p className="display mt-1 text-xl sm:text-2xl text-indigo-600">
-                          {openedColdList.length} <span className="text-xs font-semibold text-ink-soft">({coldOpenRate}%)</span>
+                          {allOpenedColdList.length} <span className="text-xs font-semibold text-ink-soft">({coldOpenRate}%)</span>
                         </p>
                         <p className="mt-0.5 text-[10px] text-ink-soft">Read receipts</p>
                       </div>
@@ -1267,122 +1354,366 @@ export default function AdminCRM({ onNavigate }) {
                 )}
 
                 {coldSubTab === 'tracker' && (
-                  <div>
-                    <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="space-y-5">
+                    {/* Header & Overall Stats */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
-                        <h3 className="display text-xl text-ink">3. Prospect &amp; Follow-Up Tracker</h3>
-                        <p className="mt-0.5 text-[11px] text-ink-soft">
-                          {coldList.length} Total · {pendingColdList.length} Pending · {sentColdCount} Sent · <span className="font-bold text-blue">{openedColdList.length} Read Receipts ({coldOpenRate}% open rate)</span>
+                        <h3 className="display text-2xl text-ink">3. Prospect &amp; Follow-Up Tracker</h3>
+                        <p className="mt-1 text-xs text-ink-soft">
+                          {coldList.length} Total Prospects · {pendingColdList.length} Pending · {sentColdList.length} Initial Sent · <span className="font-bold text-blue">{initialOpenedColdList.length} Initial Read</span> · <span className="font-bold text-purple-700">{followupSentList.length} Followed Up</span> · <span className="font-bold text-amber-600">{followupOpenedList.length} Follow-up Read 🔥</span>
                         </p>
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <label className="flex items-center gap-2 text-[10px] font-bold uppercase text-ink-soft">
-                          Batch
-                          <select
-                            value={coldBatchSize}
-                            onChange={(event) => setColdBatchSize(Number(event.target.value))}
-                            className="rounded-full bg-paper px-2.5 py-1.5 text-xs text-ink neu-sm"
+                      <div className="flex items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setShowColdTemplateEditor(!showColdTemplateEditor)}
+                          className="rounded-full bg-paper px-4 py-2 text-xs font-bold text-blue neu-sm hover:underline"
+                        >
+                          {showColdTemplateEditor ? '▲ Close Template Editor' : '✏️ View & Edit Email Templates'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => loadDashboard()}
+                          className="rounded-full bg-paper px-3 py-2 text-xs font-bold text-ink neu-sm"
+                          title="Refresh Queue"
+                        >
+                          🔄 Refresh
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Resend Safety & Action Bar */}
+                    <div className="rounded-2xl bg-paper p-4 neu-inset">
+                      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-bold text-green-700 bg-green-500/15 border border-green-500/20 px-3 py-1 rounded-full shrink-0">
+                            🛡️ Resend Protection Active
+                          </span>
+                          <span className="text-[11px] text-ink-soft">
+                            {followupSentList.length + followupOpenedList.length} prospect(s) already followed up are locked from accidental re-batching.
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-2">
+                          <label className="flex items-center gap-1.5 text-[11px] font-bold uppercase text-ink-soft">
+                            Batch
+                            <select
+                              value={coldBatchSize}
+                              onChange={(e) => setColdBatchSize(Number(e.target.value))}
+                              className="rounded-full bg-paper px-2.5 py-1 text-xs font-bold text-ink neu-sm"
+                            >
+                              {[5, 10, 25, 50, 100].map((size) => (
+                                <option key={size} value={size}>{size}</option>
+                              ))}
+                            </select>
+                          </label>
+
+                          {openedNeedsFollowupList.length > 0 && (
+                            <button
+                              type="button"
+                              disabled={draftGenerating || coldSending}
+                              onClick={() => handlePreviewColdToTargets(openedNeedsFollowupList.slice(0, coldBatchSize), true)}
+                              className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wider disabled:opacity-60"
+                            >
+                              🔥 Follow-up to Opened ({openedNeedsFollowupList.length})
+                            </button>
+                          )}
+
+                          {needsFollowupList.length > 0 && (
+                            <button
+                              type="button"
+                              disabled={draftGenerating || coldSending}
+                              onClick={() => handlePreviewColdToTargets(needsFollowupList.slice(0, coldBatchSize), true)}
+                              className="rounded-full bg-paper px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-purple-800 neu-sm hover:text-purple-900 disabled:opacity-60"
+                            >
+                              Follow-up All Unreplied ({needsFollowupList.length})
+                            </button>
+                          )}
+
+                          {pendingColdList.length > 0 && (
+                            <button
+                              type="button"
+                              disabled={draftGenerating || coldSending}
+                              onClick={() => handlePreviewColdToTargets(pendingColdList.slice(0, coldBatchSize), false)}
+                              className="rounded-full bg-paper px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-ink neu-sm hover:text-blue disabled:opacity-60"
+                            >
+                              Review Initial Batch ({pendingColdList.length})
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Collapsible Template Editor within Tracker */}
+                    {showColdTemplateEditor && (
+                      <div className="rounded-2xl border border-blue/20 bg-blue/5 p-5 transition-all">
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <h4 className="display text-lg text-ink">Cold Pitch &amp; Follow-Up Templates</h4>
+                          <span
+                            className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] ${
+                              coldSpamCheck.score >= 80
+                                ? 'bg-green-600/15 text-green-700'
+                                : coldSpamCheck.score >= 60
+                                  ? 'bg-amber-500/20 text-amber-800'
+                                  : 'bg-red-600/15 text-red-700'
+                            }`}
                           >
-                            {[5, 10, 25, 50].map((size) => (
-                              <option key={size} value={size}>{size}</option>
-                            ))}
-                          </select>
-                        </label>
-                        {pendingColdList.some((prospect) => prospect.custom_opener) && (
-                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handleGenerateBulkDrafts(pendingColdList, true)} className="rounded-full px-3.5 py-1.5 text-xs font-bold neu-sm disabled:opacity-60">Rewrite pending</button>
-                        )}
-                        {needsDraftList.length > 0 && (
+                            🛡️ Deliverability: {coldSpamCheck.score}/100 ({coldSpamCheck.status})
+                          </span>
+                        </div>
+                        <div className="mt-4 grid gap-4 md:grid-cols-2">
+                          <div>
+                            <label className="mb-1 block text-[11px] font-bold uppercase text-ink-soft">
+                              Initial Cold Pitch Subject
+                            </label>
+                            <input
+                              type="text"
+                              value={coldSubject}
+                              onChange={(e) => setColdSubject(e.target.value)}
+                              className="w-full rounded-xl bg-paper px-3.5 py-2.5 text-xs font-bold text-ink outline-none neu-inset"
+                            />
+                            <label className="mt-3 mb-1 block text-[11px] font-bold uppercase text-ink-soft">
+                              Initial Cold Pitch Body
+                            </label>
+                            <textarea
+                              rows="6"
+                              value={coldBody}
+                              onChange={(e) => setColdBody(e.target.value)}
+                              className="w-full rounded-xl bg-paper p-3 font-mono text-xs leading-relaxed text-ink outline-none neu-inset"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-1 block text-[11px] font-bold uppercase text-ink-soft">
+                              Follow-Up Subject Line (Auto-Re: prefixed)
+                            </label>
+                            <input
+                              type="text"
+                              value={`Re: ${coldSubject.replace(/^re:\s*/i, '')}`}
+                              disabled
+                              className="w-full rounded-xl bg-paper px-3.5 py-2.5 text-xs font-bold text-ink-soft outline-none neu-inset opacity-80"
+                            />
+                            <label className="mt-3 mb-1 block text-[11px] font-bold uppercase text-ink-soft">
+                              Approved Polite Follow-Up Template
+                            </label>
+                            <div className="rounded-xl bg-paper p-3 font-mono text-xs leading-relaxed text-ink outline-none neu-inset whitespace-pre-wrap">
+                              {outreachFollowup}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Search & Filter Bar */}
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+                      <div className="relative flex-1 max-w-md">
+                        <input
+                          type="text"
+                          value={coldSearch}
+                          onChange={(e) => {
+                            setColdSearch(e.target.value)
+                            setDisplayLimit(25)
+                          }}
+                          placeholder="🔍 Search name, company, email, or niche…"
+                          className="w-full rounded-full bg-paper px-4 py-2 text-xs font-medium text-ink outline-none neu-inset placeholder:text-ink-soft"
+                        />
+                        {coldSearch && (
                           <button
                             type="button"
-                            disabled={draftGenerating || coldSending}
-                            onClick={() => handleGenerateBulkDrafts(needsDraftList)}
-                            className="btn-gradient rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] disabled:opacity-60"
+                            onClick={() => setColdSearch('')}
+                            className="absolute right-3 top-2 text-xs font-bold text-ink-soft hover:text-red-500"
                           >
-                            {draftGenerating ? 'Drafting…' : `Draft ${needsDraftList.length} Emails ✨`}
+                            ✕
                           </button>
                         )}
-                        {needsFollowupList.length > 0 && (
-                        <><button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(needsFollowupList.slice(0, coldBatchSize), true)} className="btn-gradient rounded-full px-3 py-1.5 text-[11px] font-bold uppercase disabled:opacity-60">Review follow-ups</button>
-                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(needsFollowupList.slice(0, coldBatchSize), true, true)} className="btn-gradient rounded-full px-3 py-1.5 text-[11px] font-bold uppercase disabled:opacity-60">Send follow-ups</button></>
-                        )}
-                        {pendingColdList.length > 0 && (
-                          <><button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(pendingColdList.slice(0, coldBatchSize), false)} className="btn-gradient rounded-full px-3 py-1.5 text-[11px] font-bold uppercase disabled:opacity-60">Review batch</button>
-                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(pendingColdList.slice(0, coldBatchSize), false, true)} className="btn-gradient rounded-full px-3 py-1.5 text-[11px] font-bold uppercase disabled:opacity-60">Send batch</button></>
-                        )}
+                      </div>
+
+                      <div className="flex gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+                        {[
+                          { id: 'all', label: `All (${coldList.length})` },
+                          { id: 'Pending', label: `⏳ Pending (${pendingColdList.length})` },
+                          { id: 'Sent', label: `📤 Sent (${sentColdList.length})` },
+                          { id: 'Opened', label: `👁️ Initial Opened (${initialOpenedColdList.length})` },
+                          { id: 'Follow-up Sent', label: `📨 Follow-up Sent (${followupSentList.length})` },
+                          { id: 'Follow-up Opened', label: `🔥 Follow-up Opened (${followupOpenedList.length})` },
+                          { id: 'Replied', label: `💬 Replied (${repliedColdList.length})` },
+                          { id: 'Unsubscribed', label: `🚫 Unsubscribed (${unsubscribedColdList.length})` },
+                        ].map(({ id, label }) => (
+                          <button
+                            key={id}
+                            type="button"
+                            onClick={() => {
+                              setColdFilter(id)
+                              setDisplayLimit(25)
+                            }}
+                            className={`shrink-0 rounded-full px-3 py-1.5 text-[10px] font-bold uppercase whitespace-nowrap transition-all ${
+                              coldFilter === id ? 'bg-ink text-white' : 'bg-paper text-ink-soft neu-sm hover:text-ink'
+                            }`}
+                          >
+                            {label}
+                          </button>
+                        ))}
                       </div>
                     </div>
-                    <p className="mt-2 text-xs font-medium text-ink-soft">
-                      Review opens the message. Send delivers immediately. Rewrite pending drafts replaces existing unsent copy with the new approach; drafting never sends email.
-                    </p>
 
-                    <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
-                      {['all', 'Pending', 'Sent', 'Opened', 'Follow-up 1', 'Replied', 'Unsubscribed'].map((st) => (
-                        <button
-                          key={st}
-                          type="button"
-                          onClick={() => setColdFilter(st)}
-                          className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-bold uppercase whitespace-nowrap ${
-                            coldFilter === st ? 'bg-ink text-white' : 'bg-paper text-ink-soft neu-sm'
-                          }`}
-                        >
-                          {st === 'Opened' ? `👁️ Opened (${openedColdList.length})` : st}
-                        </button>
-                      ))}
-                    </div>
-
-                    <div className="mt-4 max-h-96 space-y-2.5 overflow-y-auto pr-1">
+                    {/* Prospects List (No max-h-96 truncation!) */}
+                    <div className="space-y-3">
                       {filteredCold.length === 0 ? (
-                        <p className="text-xs font-medium text-ink-soft">
-                          No prospects in this status yet. Import a CSV or generate one with AI!
-                        </p>
+                        <div className="rounded-2xl bg-paper p-8 text-center neu-inset">
+                          <p className="text-xs font-medium text-ink-soft">
+                            {coldSearch ? `No prospects match "${coldSearch}".` : 'No prospects found in this status filter.'}
+                          </p>
+                        </div>
                       ) : (
-                        filteredCold.map((p) => {
-                          const isOpened = p.status === 'Opened' || (p.open_count && p.open_count > 0)
+                        filteredCold.slice(0, displayLimit).map((p) => {
+                          const isInitialOpened = p.status === 'Opened' || Number(p.open_count || 0) > 0
+                          const isFollowupSent = p.status === 'Follow-up Sent' || p.status === 'Follow-up 1' || Number(p.followup_count || 0) > 0
+                          const isFollowupOpened = p.status === 'Follow-up Opened' || Number(p.followup_open_count || 0) > 0
+
                           return (
                             <div
                               key={p.id || p.email}
-                              className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-paper p-3.5 neu-sm"
+                              className="rounded-2xl bg-paper p-4 neu-sm flex flex-col md:flex-row md:items-center justify-between gap-4 transition-all"
                             >
                               <div className="min-w-0 flex-1">
-                                <div className="flex flex-wrap items-center gap-1.5">
-                                  <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold uppercase ${
-                                    isOpened ? 'bg-blue/15 text-blue' : 'bg-paper text-ink neu-inset'
-                                  }`}>
-                                    {p.status}
-                                  </span>
-                                  {isOpened && (
-                                    <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[10px] font-bold text-green-700">
-                                      👁️ Opened {p.open_count > 1 ? `(${p.open_count}x)` : ''}
+                                <div className="flex flex-wrap items-center gap-2">
+                                  {/* Status Pill */}
+                                  {isFollowupOpened ? (
+                                    <span className="rounded-full bg-amber-500/20 text-amber-900 border border-amber-500/30 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                      🔥 Follow-up Opened {Number(p.followup_open_count || 0) > 1 ? `(${p.followup_open_count}x)` : ''}
+                                    </span>
+                                  ) : isFollowupSent ? (
+                                    <span className="rounded-full bg-purple-500/15 text-purple-800 border border-purple-500/20 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                      📨 Follow-up Sent
+                                    </span>
+                                  ) : isInitialOpened ? (
+                                    <span className="rounded-full bg-blue/15 text-blue border border-blue/20 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                      👁️ Initial Opened {Number(p.open_count || 0) > 1 ? `(${p.open_count}x)` : ''}
+                                    </span>
+                                  ) : p.status === 'Sent' ? (
+                                    <span className="rounded-full bg-paper text-ink neu-inset px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                      📤 Initial Sent
+                                    </span>
+                                  ) : (
+                                    <span className="rounded-full bg-paper text-ink-soft neu-inset px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider">
+                                      ⏳ Pending Initial
                                     </span>
                                   )}
+
                                   {p.niche && (
-                                    <span className="rounded-full bg-paper px-2 py-0.5 text-[10px] font-medium text-ink-soft neu-sm">
+                                    <span className="rounded-full bg-paper px-2.5 py-0.5 text-[10px] font-semibold text-ink-soft neu-sm">
                                       {p.niche}
                                     </span>
                                   )}
                                 </div>
-                                <p className="mt-1 text-xs font-bold text-ink break-words">
-                                  {p.name} {p.business ? `· ${p.business}` : ''}
-                                </p>
-                                <p className="text-[11px] font-medium text-ink-soft break-all">{p.email}</p>
-                                {(p.last_opened_at || p.opened_at) && (
-                                  <p className="mt-0.5 text-[10px] font-semibold text-green-700">
-                                    👁️ Read: {new Date(p.last_opened_at || p.opened_at).toLocaleString()}
-                                  </p>
-                                )}
+
+                                <div className="mt-2 flex flex-wrap items-baseline gap-2">
+                                  <h4 className="text-sm font-bold text-ink break-words">{p.name || 'Unnamed Contact'}</h4>
+                                  {p.business && (
+                                    <span className="text-xs font-semibold text-ink-soft break-words">· {p.business}</span>
+                                  )}
+                                </div>
+
+                                <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-ink-soft">
+                                  <span className="font-mono font-medium select-all text-ink break-all">{p.email}</span>
+                                  {p.website && (
+                                    <a
+                                      href={p.website.startsWith('http') ? p.website : `https://${p.website}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-blue hover:underline break-all"
+                                    >
+                                      {p.website.replace(/^https?:\/\//, '')} ↗
+                                    </a>
+                                  )}
+                                </div>
+
+                                {/* Read & Send Timestamps */}
+                                <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px]">
+                                  {(p.last_opened_at || p.opened_at) && (
+                                    <span className="font-semibold text-blue">
+                                      👁️ Initial Read: {new Date(p.last_opened_at || p.opened_at).toLocaleString()}
+                                    </span>
+                                  )}
+                                  {(p.followup_sent_at || (isFollowupSent && p.last_contacted_at)) && (
+                                    <span className="font-semibold text-purple-700">
+                                      📨 Follow-up Dispatched: {new Date(p.followup_sent_at || p.last_contacted_at).toLocaleString()}
+                                    </span>
+                                  )}
+                                  {(p.followup_opened_at || (isFollowupOpened && p.last_opened_at)) && (
+                                    <span className="font-semibold text-amber-700">
+                                      🔥 Follow-up Read: {new Date(p.followup_opened_at || p.last_opened_at).toLocaleString()}
+                                    </span>
+                                  )}
+                                </div>
+
                                 {p.custom_opener && (
-                                  <details className="mt-2 max-w-xl rounded-xl bg-paper p-3 neu-inset">
+                                  <details className="mt-2.5 max-w-2xl rounded-xl bg-paper p-3 neu-inset">
                                     <summary className="cursor-pointer text-[10px] font-bold uppercase tracking-[0.08em] text-blue">
-                                      Review personalized draft
+                                      Review personalized AI pitch
                                     </summary>
                                     <p className="mt-2 text-xs font-bold text-ink break-words">{p.custom_subject || `A website idea for ${p.business || 'your business'}`}</p>
                                     <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-soft break-words">{p.custom_opener}</p>
                                   </details>
                                 )}
                               </div>
-                              <div className="flex items-center gap-1.5 pt-1 sm:pt-0 shrink-0">
-                                <button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending')} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Review</button>
-                                <button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending', true)} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Send</button>
+
+                              {/* Card Action Buttons */}
+                              <div className="flex flex-wrap sm:flex-nowrap items-center gap-2 pt-2 md:pt-0 shrink-0">
+                                {p.status === 'Pending' ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      disabled={draftGenerating || coldSending}
+                                      onClick={() => handlePreviewColdToTargets([p], false)}
+                                      className="rounded-full bg-paper px-3 py-1.5 text-[10px] font-bold uppercase text-ink neu-sm"
+                                    >
+                                      Review
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={draftGenerating || coldSending}
+                                      onClick={() => handlePreviewColdToTargets([p], false, true)}
+                                      className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60"
+                                    >
+                                      Send Initial
+                                    </button>
+                                  </>
+                                ) : !isFollowupSent ? (
+                                  <>
+                                    <button
+                                      type="button"
+                                      disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'}
+                                      onClick={() => handlePreviewColdToTargets([p], true)}
+                                      className="rounded-full bg-paper px-3 py-1.5 text-[10px] font-bold uppercase text-blue neu-sm"
+                                    >
+                                      Review F/U
+                                    </button>
+                                    <button
+                                      type="button"
+                                      disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'}
+                                      onClick={() => handlePreviewColdToTargets([p], true, true)}
+                                      className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60"
+                                    >
+                                      Send Follow-up 🚀
+                                    </button>
+                                  </>
+                                ) : (
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="rounded-full bg-paper px-3 py-1 text-[10px] font-bold text-green-700 neu-inset">
+                                      Followed Up ✓
+                                    </span>
+                                    <button
+                                      type="button"
+                                      disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'}
+                                      onClick={() => handlePreviewColdToTargets([p], true)}
+                                      className="rounded-full bg-paper px-2.5 py-1 text-[10px] font-bold text-ink-soft neu-sm hover:text-blue"
+                                      title="Manually re-send another follow-up"
+                                    >
+                                      Re-send
+                                    </button>
+                                  </div>
+                                )}
+
                                 <button
                                   type="button"
                                   onClick={() =>
@@ -1390,7 +1721,8 @@ export default function AdminCRM({ onNavigate }) {
                                       loadDashboard(),
                                     )
                                   }
-                                  className="px-2 text-xs font-bold text-ink-soft hover:text-red-600"
+                                  className="px-2 py-1 text-xs font-bold text-ink-soft hover:text-red-600"
+                                  title="Delete prospect"
                                 >
                                   ✕
                                 </button>
@@ -1400,20 +1732,41 @@ export default function AdminCRM({ onNavigate }) {
                         })
                       )}
                     </div>
+
+                    {/* Pagination / Show More */}
+                    {filteredCold.length > displayLimit && (
+                      <div className="mt-4 flex flex-wrap items-center justify-center gap-3 pt-2">
+                        <button
+                          type="button"
+                          onClick={() => setDisplayLimit((n) => n + 25)}
+                          className="btn-gradient rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-wider"
+                        >
+                          Load More (+25) · Showing {displayLimit} of {filteredCold.length}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDisplayLimit(filteredCold.length)}
+                          className="rounded-full bg-paper px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-ink neu-sm"
+                        >
+                          Show All ({filteredCold.length})
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
               {/* Right panel: Live Activity Stream (when cron) OR Cold Campaign Composer */}
-              <div className="rounded-[28px] bg-paper p-6 neu lg:col-span-6">
-                {coldSubTab === 'cron' ? (
-                  <div>
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <h3 className="display text-xl text-ink">Recent Drip Activity</h3>
-                      <span className="text-xs font-bold text-ink-soft">
-                        {sentColdCount} contacted · {openedColdList.length} read
-                      </span>
-                    </div>
+              {coldSubTab !== 'tracker' && (
+                <div className="rounded-[28px] bg-paper p-6 neu lg:col-span-6">
+                  {coldSubTab === 'cron' ? (
+                    <div>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <h3 className="display text-xl text-ink">Recent Drip Activity</h3>
+                        <span className="text-xs font-bold text-ink-soft">
+                          {sentColdCount} contacted · {allOpenedColdList.length} read
+                        </span>
+                      </div>
                     <p className="mt-1 text-xs font-medium text-ink-soft">
                       Real-time audit log of prospects contacted by the automated engine with live open tracking.
                     </p>
@@ -1535,6 +1888,7 @@ export default function AdminCRM({ onNavigate }) {
               </>
             )}
               </div>
+            )}
             </div>
           </div>
         )}
