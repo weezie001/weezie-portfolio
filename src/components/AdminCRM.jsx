@@ -712,6 +712,7 @@ export default function AdminCRM({ onNavigate }) {
       Number(p.open_count || 0) > 0 ||
       Number(p.followup_open_count || 0) > 0,
   )
+  const openedColdList = allOpenedColdList
 
   const sentColdCount = coldList.filter((p) => p.status !== 'Pending').length
   const coldOpenRate = sentColdCount > 0 ? Math.round((allOpenedColdList.length / sentColdCount) * 100) : 0
@@ -1148,7 +1149,7 @@ export default function AdminCRM({ onNavigate }) {
               <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
                 {[
                   ['cron', `⏱️ 24h Auto-Drip (${pendingColdList.length} Pending)`],
-                  ['tracker', `Prospect Tracker (${coldList.length}) · ${openedColdList.length} Read`],
+                  ['tracker', `Prospect Tracker (${coldList.length}) · ${allOpenedColdList.length} Read`],
                   ['import', 'CSV Importer'],
                   ['ai', 'AI Copy Generator'],
                 ].map(([id, label]) => (
