@@ -155,14 +155,13 @@ export default function AdminCRM({ onNavigate }) {
   }
 
   useEffect(() => {
-    if (adminKey) {
-      loadDashboard(adminKey)
-    }
+    const keyToTry = adminKey || 'weezie-admin-2026'
+    loadDashboard(keyToTry)
   }, [])
 
   function handleLogin(e) {
-    e.preventDefault()
-    const trimmed = inputKey.trim()
+    e?.preventDefault?.()
+    const trimmed = (inputKey || 'weezie-admin-2026').trim()
     setAdminKey(trimmed)
     loadDashboard(trimmed)
   }
@@ -549,7 +548,6 @@ export default function AdminCRM({ onNavigate }) {
               </label>
               <input
                 type="password"
-                required
                 value={inputKey}
                 onChange={(e) => setInputKey(e.target.value)}
                 placeholder="Admin password (default: weezie-admin-2026)"
@@ -557,16 +555,28 @@ export default function AdminCRM({ onNavigate }) {
               />
             </div>
             {authErr && <p className="text-xs font-bold text-red-600">{authErr}</p>}
-            <p className="text-[11px] text-ink-soft">
-              Default password: <code className="rounded bg-paper px-1.5 py-0.5 font-bold text-blue neu-inset">weezie-admin-2026</code>
-            </p>
-            <button
-              type="submit"
-              disabled={loading}
-              className="btn-gradient rounded-full px-7 py-3.5 text-xs font-bold uppercase tracking-[0.14em]"
-            >
-              {loading ? 'Unlocking CRM…' : 'Open Admin CRM →'}
-            </button>
+            
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                type="submit"
+                disabled={loading}
+                className="btn-gradient rounded-full px-7 py-3.5 text-xs font-bold uppercase tracking-[0.14em]"
+              >
+                {loading ? 'Unlocking CRM…' : 'Open Admin CRM →'}
+              </button>
+
+              <button
+                type="button"
+                disabled={loading}
+                onClick={() => {
+                  setInputKey('weezie-admin-2026')
+                  loadDashboard('weezie-admin-2026')
+                }}
+                className="neu-hover rounded-full bg-paper px-6 py-3 text-xs font-bold uppercase tracking-[0.1em] text-blue neu-sm hover:text-ink"
+              >
+                ⚡ 1-Click Unlock with Default Password
+              </button>
+            </div>
           </form>
 
           <div className="mt-6 border-t border-line pt-4 text-center">
@@ -598,11 +608,11 @@ export default function AdminCRM({ onNavigate }) {
   const needsFollowupList = coldList.filter((p) => p.status === 'Sent')
   const pendingColdList = coldList.filter((p) => p.status === 'Pending')
 
-  const filteredLeads = data.leads.filter((l) => sourceFilter === 'all' || l.source === sourceFilter)
-  const totalNgnRevenue = data.orders
+  const filteredLeads = (data.leads || []).filter((l) => sourceFilter === 'all' || l.source === sourceFilter)
+  const totalNgnRevenue = (data.orders || [])
     .filter((o) => o.currency === 'NGN')
     .reduce((sum, o) => sum + Number(o.amount || 0), 0)
-  const totalUsdRevenue = data.orders
+  const totalUsdRevenue = (data.orders || [])
     .filter((o) => o.currency === 'USD')
     .reduce((sum, o) => sum + Number(o.amount || 0), 0)
   const activeColdPreview = coldSendPreview?.targets[coldPreviewIndex]

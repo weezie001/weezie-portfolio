@@ -4,10 +4,9 @@ import { site } from '../data.js'
 const links = [
   { label: 'About', href: '/about' },
   { label: 'Work', href: '/work' },
+  { label: 'AI Lab', href: '/ai-lab' },
   { label: 'Store', href: '/store' },
   { label: 'Components', href: '/components' },
-  { label: 'Play', href: '#play' },
-  { label: 'Contact', href: '#contact' },
 ]
 
 export default function Navbar({ onNavigate, currentPath = '/' }) {
@@ -23,17 +22,6 @@ export default function Navbar({ onNavigate, currentPath = '/' }) {
   }, [])
 
   function handleLinkClick(e, href) {
-    if (href === '/about' && isHome) {
-      const target = document.querySelector('#about')
-      if (target) {
-        e.preventDefault()
-        target.scrollIntoView({ behavior: 'smooth' })
-        target.querySelectorAll('.reveal').forEach((el) => el.classList.add('in'))
-        setOpen(false)
-        return
-      }
-    }
-
     if (href.startsWith('#')) {
       if (isHome) {
         // smooth scroll on home
@@ -184,6 +172,15 @@ export default function Navbar({ onNavigate, currentPath = '/' }) {
               className="btn-gradient mt-2 block rounded-full px-6 py-3 text-center text-sm font-bold uppercase tracking-[0.1em]"
             >
               Contact Me
+            </a>
+          </li>
+          <li className="pt-2">
+            <a
+              href="/admin"
+              onClick={(e) => handleLinkClick(e, '/admin')}
+              className="block text-center text-xs font-bold uppercase tracking-[0.12em] text-white/40 hover:text-white transition-colors"
+            >
+              Admin CRM ↗
             </a>
           </li>
         </ul>

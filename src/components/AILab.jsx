@@ -3,7 +3,7 @@ import { aiLabConfig } from '../data.js'
 import { runAITool, launchPaystackPopup, verifyAndRecordOrder } from '../lib/crmStore.js'
 import { ev } from '../lib/analytics.js'
 
-export default function AILab() {
+export default function AILab({ fullPage = false, onNavigate }) {
   const [activeTool, setActiveTool] = useState('audit') // 'audit' | 'architect'
   const [currency, setCurrency] = useState('USD')
   const [input, setInput] = useState('')
@@ -116,6 +116,26 @@ export default function AILab() {
   return (
     <section id="ai-lab" className="relative bg-paper px-6 py-24 md:px-10">
       <div className="mx-auto max-w-6xl">
+        {fullPage && (
+          <div className="mb-8 flex items-center justify-between">
+            <a
+              href="/"
+              onClick={(e) => {
+                if (onNavigate) {
+                  e.preventDefault()
+                  onNavigate('/')
+                }
+              }}
+              className="neu-hover inline-flex items-center gap-2 rounded-full bg-paper px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-ink neu-sm"
+            >
+              ← Back to Portfolio
+            </a>
+            <span className="rounded-full bg-blue/10 px-3.5 py-1 text-xs font-bold text-blue">
+              Cloudflare Workers AI · Live Engine
+            </span>
+          </div>
+        )}
+
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue">// Interactive AI Tools · Powered by Cloudflare AI</p>

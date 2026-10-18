@@ -197,7 +197,7 @@ export default function AboutPage({ onNavigate }) {
         </section>
       </main>
 
-      <Footer />
+      <Footer onNavigate={onNavigate} />
       <ProjectBrief />
     </div>
   )

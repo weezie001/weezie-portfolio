@@ -165,7 +165,7 @@ export default function WorkPage({ onNavigate }) {
         </section>
       </main>
 
-      <Footer />
+      <Footer onNavigate={onNavigate} />
       <ProjectBrief />
     </div>
   )

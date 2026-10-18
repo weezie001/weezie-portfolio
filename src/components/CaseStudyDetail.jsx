@@ -232,7 +232,7 @@ export default function CaseStudyDetail({ slug, onNavigate }) {
         </section>
       </main>
 
-      <Footer />
+      <Footer onNavigate={onNavigate} />
       <ProjectBrief />
     </div>
   )

@@ -251,6 +251,8 @@ export default function ComponentShowcase({ onNavigate }) {
   const [activeTab, setActiveTab] = useState(COMPONENTS[0].id)
   const [viewMode, setViewMode] = useState('preview') // 'preview' | 'code'
   const [codeTab, setCodeTab] = useState('source') // 'source' | 'usage'
+  const [theme, setTheme] = useState('dark') // 'dark' | 'light'
+  const [device, setDevice] = useState('desktop') // 'desktop' | 'mobile'
   const [copied, setCopied] = useState(false)
 
   const activeComp = COMPONENTS.find((c) => c.id === activeTab) || COMPONENTS[0]
@@ -300,7 +302,7 @@ export default function ComponentShowcase({ onNavigate }) {
             </h1>
             <p className="mt-3 max-w-2xl text-base font-medium text-ink-soft">
               Tested, accessible, zero-dependency Tailwind CSS v4 &amp; React 19 components inspired by modern web benchmarks.
-              Live interactive previews and 1-click clipboard export.
+              Live interactive previews with light/dark themes, responsive mobile/desktop toggles, and 1-click clipboard export.
             </p>
           </div>
 
@@ -352,7 +354,60 @@ export default function ComponentShowcase({ onNavigate }) {
             <p className="mt-1 text-xs font-medium text-ink-soft">{activeComp.description}</p>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Viewport device switcher */}
+            {viewMode === 'preview' && (
+              <div className="inline-flex rounded-full bg-paper p-1 neu-inset">
+                <button
+                  type="button"
+                  onClick={() => setDevice('desktop')}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.08em] transition ${
+                    device === 'desktop' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
+                  }`}
+                  title="Desktop View"
+                >
+                  🖥️ Desktop
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDevice('mobile')}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.08em] transition ${
+                    device === 'mobile' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
+                  }`}
+                  title="Mobile View (390px)"
+                >
+                  📱 Mobile
+                </button>
+              </div>
+            )}
+
+            {/* Theme mode switcher */}
+            {viewMode === 'preview' && (
+              <div className="inline-flex rounded-full bg-paper p-1 neu-inset">
+                <button
+                  type="button"
+                  onClick={() => setTheme('dark')}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.08em] transition ${
+                    theme === 'dark' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
+                  }`}
+                  title="Dark Theme"
+                >
+                  🌙 Dark
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTheme('light')}
+                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.08em] transition ${
+                    theme === 'light' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
+                  }`}
+                  title="Light Theme"
+                >
+                  ☀️ Light
+                </button>
+              </div>
+            )}
+
+            {/* View mode switcher */}
             <div className="inline-flex rounded-full bg-paper p-1 neu-inset">
               <button
                 type="button"
@@ -387,8 +442,37 @@ export default function ComponentShowcase({ onNavigate }) {
         {/* Display Canvas */}
         <div className="mt-6 overflow-hidden rounded-[28px] bg-paper p-3 neu md:p-6">
           {viewMode === 'preview' ? (
-            <div className="overflow-hidden rounded-2xl border border-line/40 bg-zinc-950 p-4 sm:p-8">
-              <ActiveComponent />
+            <div
+              className={`transition-all duration-300 ${
+                device === 'mobile'
+                  ? 'mx-auto max-w-[390px] rounded-[44px] border-[10px] border-zinc-900 shadow-2xl overflow-hidden'
+                  : 'w-full rounded-2xl overflow-hidden border border-line/40'
+              }`}
+            >
+              {/* Mobile device frame top bar */}
+              {device === 'mobile' && (
+                <div className="relative flex h-8 items-center justify-center bg-zinc-950 px-6">
+                  <div className="h-4 w-24 rounded-full bg-black" />
+                </div>
+              )}
+
+              {/* Component Canvas with Light/Dark Theme */}
+              <div
+                className={`overflow-x-hidden p-4 sm:p-8 transition-colors duration-300 ${
+                  theme === 'light'
+                    ? 'component-light-canvas'
+                    : 'bg-zinc-950 text-white'
+                }`}
+              >
+                <ActiveComponent theme={theme} />
+              </div>
+
+              {/* Mobile device frame bottom indicator */}
+              {device === 'mobile' && (
+                <div className="flex h-5 items-center justify-center bg-zinc-950">
+                  <div className="h-1 w-28 rounded-full bg-white/30" />
+                </div>
+              )}
             </div>
           ) : (
             <div className="overflow-hidden rounded-2xl border border-line/40 bg-zinc-950">
@@ -429,7 +513,7 @@ export default function ComponentShowcase({ onNavigate }) {
         </div>
       </main>
 
-      <Footer />
+      <Footer onNavigate={onNavigate} />
       <ProjectBrief />
     </div>
   )

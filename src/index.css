@@ -32,6 +32,16 @@
 html { scroll-behavior: smooth; overflow-x: clip; }
 section[id] { scroll-margin-top: 5rem; }
 
+/* --- Component showcase light mode inversion wrapper --- */
+.component-light-canvas {
+  filter: invert(0.93) hue-rotate(180deg);
+  background-color: #ffffff !important;
+}
+.component-light-canvas img,
+.component-light-canvas video {
+  filter: invert(1) hue-rotate(180deg);
+}
+
 body {
   @apply bg-paper text-ink font-sans antialiased;
   overflow-x: clip; /* parallax elements slide off-screen — never a horizontal scrollbar */

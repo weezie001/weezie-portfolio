@@ -18,6 +18,14 @@ const STORE_URL = `${URL}store/`
 const STORE_TITLE = 'Digital UI Kits, Templates & AI Packs | Enang Weezie'
 const STORE_DESCRIPTION =
   'Browse production-ready website templates, React UI components, AI agents, workflows and design systems by Enang Weezie, a designer and developer in Abuja, Nigeria.'
+const AI_LAB_URL = `${URL}ai-lab/`
+const AI_LAB_TITLE = 'AI Lab: Instant Website Auditor & PRD Architect | Enang Weezie'
+const AI_LAB_DESCRIPTION =
+  'Instant AI-powered website conversion audit and technical MVP architecture blueprint generator by Enang Weezie.'
+const COMPONENTS_URL = `${URL}components/`
+const COMPONENTS_TITLE = 'Copy-Paste React & Tailwind UI Components | Weezie UI'
+const COMPONENTS_DESCRIPTION =
+  'Explore copy-and-paste React and Tailwind UI components inspired by top web design sites. Zero dependencies, accessible, production ready.'
 const ID = {
   person: URL + '#person',
   service: URL + '#service',
@@ -213,8 +221,45 @@ function adminHtml(homeHtml) {
     .replace('</head>', '<meta name="robots" content="noindex, nofollow" />\n  </head>')
 }
 
+function aiLabHtml(homeHtml) {
+  const title = escapeHtml(AI_LAB_TITLE)
+  const description = escapeHtml(AI_LAB_DESCRIPTION)
+  let html = homeHtml
+    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`)
+    .replace(/<link rel="canonical"[^>]*>/i, `<link rel="canonical" href="${AI_LAB_URL}" />`)
+  html = replaceMeta(html, 'name', 'description', `<meta name="description" content="${description}" />`)
+  html = replaceMeta(html, 'property', 'og:url', `<meta property="og:url" content="${AI_LAB_URL}" />`)
+  html = replaceMeta(html, 'property', 'og:title', `<meta property="og:title" content="${title}" />`)
+  html = replaceMeta(html, 'property', 'og:description', `<meta property="og:description" content="${description}" />`)
+  html = replaceMeta(html, 'name', 'twitter:title', `<meta name="twitter:title" content="${title}" />`)
+  html = replaceMeta(html, 'name', 'twitter:description', `<meta name="twitter:description" content="${description}" />`)
+  return html
+}
+
+function componentsHtml(homeHtml) {
+  const title = escapeHtml(COMPONENTS_TITLE)
+  const description = escapeHtml(COMPONENTS_DESCRIPTION)
+  let html = homeHtml
+    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${title}</title>`)
+    .replace(/<link rel="canonical"[^>]*>/i, `<link rel="canonical" href="${COMPONENTS_URL}" />`)
+  html = replaceMeta(html, 'name', 'description', `<meta name="description" content="${description}" />`)
+  html = replaceMeta(html, 'property', 'og:url', `<meta property="og:url" content="${COMPONENTS_URL}" />`)
+  html = replaceMeta(html, 'property', 'og:title', `<meta property="og:title" content="${title}" />`)
+  html = replaceMeta(html, 'property', 'og:description', `<meta property="og:description" content="${description}" />`)
+  html = replaceMeta(html, 'name', 'twitter:title', `<meta name="twitter:title" content="${title}" />`)
+  html = replaceMeta(html, 'name', 'twitter:description', `<meta name="twitter:description" content="${description}" />`)
+  return html
+}
+
 function sitemap() {
-  const urls = [URL, STORE_URL, `${URL}privacy.html`, ...editorialPages.map(page => `${URL.replace(/\/$/, '')}${page.path}`)]
+  const urls = [
+    URL,
+    STORE_URL,
+    AI_LAB_URL,
+    COMPONENTS_URL,
+    `${URL}privacy.html`,
+    ...editorialPages.map(page => `${URL.replace(/\/$/, '')}${page.path}`),
+  ]
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(url => `  <url><loc>${url}</loc></url>`).join('\n')}\n</urlset>\n`
 }
 
@@ -333,10 +378,12 @@ export default function aiSearch() {
       await mkdir(resolve(outputDir, 'store'), { recursive: true })
       await mkdir(resolve(outputDir, 'admin'), { recursive: true })
       await mkdir(resolve(outputDir, 'components'), { recursive: true })
+      await mkdir(resolve(outputDir, 'ai-lab'), { recursive: true })
       await Promise.all([
         writeFile(resolve(outputDir, 'store/index.html'), storeHtml(homeHtml)),
         writeFile(resolve(outputDir, 'admin/index.html'), adminHtml(homeHtml)),
-        writeFile(resolve(outputDir, 'components/index.html'), homeHtml),
+        writeFile(resolve(outputDir, 'components/index.html'), componentsHtml(homeHtml)),
+        writeFile(resolve(outputDir, 'ai-lab/index.html'), aiLabHtml(homeHtml)),
         writeFile(resolve(outputDir, 'sitemap.xml'), sitemap()),
       ])
     },

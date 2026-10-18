@@ -7,7 +7,14 @@ const FOOTER_DOODLES = [
   'arc', 'wave', 'ringRed', 'bee', 'faceGreen', 'dots',
 ]
 
-export default function Footer() {
+export default function Footer({ onNavigate }) {
+  function handleNav(e, path) {
+    if (onNavigate && path.startsWith('/')) {
+      e.preventDefault()
+      onNavigate(path)
+    }
+  }
+
   return (
     <footer className="border-t border-line bg-paper-2 px-6 pt-20 pb-10 md:px-10">
       <div className="mx-auto max-w-7xl">
@@ -70,10 +77,12 @@ export default function Footer() {
 
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
           <p className="text-xs font-semibold text-ink-soft">© 2026 {site.name} — Built with React</p>
-          <div className="flex items-center gap-6">
-            <a href="/about/" className="text-xs font-bold uppercase text-ink-soft hover:text-blue">About</a>
-            <a href="/work/" className="text-xs font-bold uppercase text-ink-soft hover:text-blue">Case studies</a>
+          <div className="flex flex-wrap items-center gap-6">
+            <a href="/about/" onClick={(e) => handleNav(e, '/about')} className="text-xs font-bold uppercase text-ink-soft hover:text-blue">About</a>
+            <a href="/work/" onClick={(e) => handleNav(e, '/work')} className="text-xs font-bold uppercase text-ink-soft hover:text-blue">Case studies</a>
+            <a href="/ai-lab" onClick={(e) => handleNav(e, '/ai-lab')} className="text-xs font-bold uppercase text-ink-soft hover:text-blue">AI Lab</a>
             <a href="/privacy.html" className="text-xs font-bold uppercase tracking-[0.1em] text-ink-soft hover:text-ink">Privacy</a>
+            <a href="/admin" onClick={(e) => handleNav(e, '/admin')} className="text-xs font-bold uppercase tracking-[0.1em] text-ink-soft hover:text-blue">Admin CRM ↗</a>
             <a href="#home" className="text-xs font-bold uppercase tracking-[0.1em] text-ink-soft hover:text-ink">Back to top ↑</a>
           </div>
         </div>

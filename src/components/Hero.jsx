@@ -43,9 +43,11 @@ export default function Hero() {
     if (v && !reduceMotion) v.play?.().catch(() => {})
   }, [src, reduceMotion])
 
-  // Auto-unmute on the visitor's first interaction so the intro actually talks.
+  // Auto-unmute on the visitor's first interaction so the intro actually talks (only on fresh visit).
   useEffect(() => {
     if (reduceMotion) return
+    if (sessionStorage.getItem('weezie_hero_intro_done')) return
+
     function onFirst() {
       const v = videoRef.current
       if (v && v.muted) {
@@ -73,9 +75,14 @@ export default function Hero() {
     if (!next) { v.currentTime = 0; v.play?.().catch(() => {}) }
   }
 
-  // When the intro finishes, glide straight down into the game.
+  // When the intro finishes for the very first time on a fresh session, glide into the game once.
+  // Never forcibly redirect after internal route navigation.
   function handleEnded() {
-    document.querySelector('#play')?.scrollIntoView({ behavior: 'smooth' })
+    const alreadyPlayed = sessionStorage.getItem('weezie_hero_intro_done')
+    if (!alreadyPlayed) {
+      sessionStorage.setItem('weezie_hero_intro_done', '1')
+      document.querySelector('#play')?.scrollIntoView({ behavior: 'smooth' })
+    }
   }
 
   return (

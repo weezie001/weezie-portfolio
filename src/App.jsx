@@ -34,6 +34,7 @@ export default function App() {
     const isAdmin = path.startsWith('/admin')
     const isStore = path.startsWith('/store')
     const isComponents = path.startsWith('/components')
+    const isAILab = path.startsWith('/ai-lab')
     const isAbout = path.startsWith('/about')
     const isWork = path.startsWith('/work')
     const workSlug = isWork ? path.replace(/^\/work\/?/, '').replace(/\/$/, '') : null
@@ -48,6 +49,10 @@ export default function App() {
       pageDesc = ''
       pageCanonical = ''
       pageRobots = 'noindex, nofollow'
+    } else if (isAILab) {
+      pageTitle = 'AI Lab: Instant Website Auditor & PRD Architect | Enang Weezie'
+      pageDesc = 'Instant AI-powered website conversion audit and technical MVP architecture blueprint generator by Enang Weezie.'
+      pageCanonical = 'https://weezie.site/ai-lab/'
     } else if (isStore) {
       pageTitle = 'Digital UI Kits, Templates & AI Packs | Enang Weezie'
       pageDesc = 'Browse production-ready website templates, React UI components, AI agents, workflows and design systems by Enang Weezie.'
@@ -138,6 +143,20 @@ export default function App() {
     return <AdminCRM onNavigate={navigate} />
   }
 
+  // Dedicated /ai-lab route
+  if (path.startsWith('/ai-lab')) {
+    return (
+      <div className="min-h-screen bg-paper text-ink selection:bg-blue selection:text-white">
+        <Navbar onNavigate={navigate} currentPath="/ai-lab" />
+        <main className="pt-24 pb-12 md:pt-28">
+          <AILab fullPage onNavigate={navigate} />
+        </main>
+        <Footer onNavigate={navigate} />
+        <ProjectBrief />
+      </div>
+    )
+  }
+
   // Dedicated /store digital products & freebies route
   if (path.startsWith('/store')) {
     return (
@@ -146,7 +165,7 @@ export default function App() {
         <main className="pt-24 pb-12 md:pt-28">
           <StoreSection fullPage onNavigate={navigate} />
         </main>
-        <Footer />
+        <Footer onNavigate={navigate} />
         <ProjectBrief />
       </div>
     )
@@ -190,7 +209,7 @@ export default function App() {
         <Services />
         <RateCard />
         <StoreSection onNavigate={navigate} />
-        <AILab />
+        <AILab onNavigate={navigate} />
         <Clients />
         <Partnership />
         <FAQ />
@@ -198,7 +217,7 @@ export default function App() {
         <Contact />
         <CodeShowcase />
       </main>
-      <Footer />
+      <Footer onNavigate={navigate} />
       <ProjectBrief />
     </>
   )
