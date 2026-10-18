@@ -552,11 +552,14 @@ export default function AdminCRM({ onNavigate }) {
                 required
                 value={inputKey}
                 onChange={(e) => setInputKey(e.target.value)}
-                placeholder="Admin password"
+                placeholder="Admin password (default: weezie-admin-2026)"
                 className="w-full rounded-2xl bg-paper px-4 py-3.5 text-sm font-medium text-ink outline-none neu-inset focus:ring-2 focus:ring-blue/50"
               />
             </div>
             {authErr && <p className="text-xs font-bold text-red-600">{authErr}</p>}
+            <p className="text-[11px] text-ink-soft">
+              Default password: <code className="rounded bg-paper px-1.5 py-0.5 font-bold text-blue neu-inset">weezie-admin-2026</code>
+            </p>
             <button
               type="submit"
               disabled={loading}

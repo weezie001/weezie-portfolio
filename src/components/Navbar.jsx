@@ -2,10 +2,10 @@ import { useEffect, useState } from 'react'
 import { site } from '../data.js'
 
 const links = [
+  { label: 'About', href: '/about' },
   { label: 'Work', href: '/work' },
   { label: 'Store', href: '/store' },
   { label: 'Components', href: '/components' },
-  { label: 'About', href: '/about' },
   { label: 'Play', href: '#play' },
   { label: 'Contact', href: '#contact' },
 ]
@@ -23,6 +23,17 @@ export default function Navbar({ onNavigate, currentPath = '/' }) {
   }, [])
 
   function handleLinkClick(e, href) {
+    if (href === '/about' && isHome) {
+      const target = document.querySelector('#about')
+      if (target) {
+        e.preventDefault()
+        target.scrollIntoView({ behavior: 'smooth' })
+        target.querySelectorAll('.reveal').forEach((el) => el.classList.add('in'))
+        setOpen(false)
+        return
+      }
+    }
+
     if (href.startsWith('#')) {
       if (isHome) {
         // smooth scroll on home
@@ -30,6 +41,7 @@ export default function Navbar({ onNavigate, currentPath = '/' }) {
         if (target) {
           e.preventDefault()
           target.scrollIntoView({ behavior: 'smooth' })
+          target.querySelectorAll('.reveal').forEach((el) => el.classList.add('in'))
           setOpen(false)
         }
       } else {

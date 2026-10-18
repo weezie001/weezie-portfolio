@@ -2,14 +2,27 @@ import { useEffect, useState } from 'react'
 import { site } from '../data.js'
 
 export default function Loader() {
-  const [gone, setGone] = useState(false)
-  const [hidden, setHidden] = useState(false)
+  const [hidden, setHidden] = useState(() => {
+    try {
+      return Boolean(sessionStorage.getItem('weezie_seen_loader'))
+    } catch {
+      return false
+    }
+  })
+  const [gone, setGone] = useState(hidden)
 
   useEffect(() => {
-    const t1 = setTimeout(() => setGone(true), 1200)
-    const t2 = setTimeout(() => setHidden(true), 1800)
-    return () => { clearTimeout(t1); clearTimeout(t2) }
-  }, [])
+    if (hidden) return
+    try {
+      sessionStorage.setItem('weezie_seen_loader', '1')
+    } catch {}
+    const t1 = setTimeout(() => setGone(true), 700)
+    const t2 = setTimeout(() => setHidden(true), 1100)
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+    }
+  }, [hidden])
 
   if (hidden) return null
 

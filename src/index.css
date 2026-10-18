@@ -30,6 +30,7 @@
 }
 
 html { scroll-behavior: smooth; overflow-x: clip; }
+section[id] { scroll-margin-top: 5rem; }
 
 body {
   @apply bg-paper text-ink font-sans antialiased;

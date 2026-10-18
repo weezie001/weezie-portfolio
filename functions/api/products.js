@@ -13,7 +13,9 @@ export async function onRequestGet({ env }) {
     }
 
     const { results } = await db
-      .prepare('SELECT * FROM products WHERE active = 1 ORDER BY is_freebie ASC, id ASC')
+      .prepare(
+        "SELECT * FROM products WHERE active = 1 ORDER BY is_freebie ASC, (badge = 'Featured') DESC, (badge = 'Bestseller') DESC, id DESC",
+      )
       .all()
 
     const products = (results || []).map((p) => ({

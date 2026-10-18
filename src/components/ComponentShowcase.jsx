@@ -1,4 +1,7 @@
 import { useState } from 'react'
+import Navbar from './Navbar.jsx'
+import Footer from './Footer.jsx'
+import ProjectBrief from './ProjectBrief.jsx'
 import BentoFeatures from './ui/BentoFeatures.jsx'
 import UsagePricingSlider from './ui/UsagePricingSlider.jsx'
 import OtpVerificationInput from './ui/OtpVerificationInput.jsx'
@@ -265,58 +268,61 @@ export default function ComponentShowcase({ onNavigate }) {
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 text-white selection:bg-blue-600 selection:text-white">
-      {/* Top Header */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-zinc-950/80 backdrop-blur-xl">
-        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              onClick={() => onNavigate ? onNavigate('/') : window.location.href = '/'}
-              className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-zinc-400 hover:text-white"
-            >
-              ← Back to Portfolio
-            </button>
-            <span className="text-zinc-600">/</span>
-            <div className="flex items-center gap-2">
-              <span className="flex h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
-              <span className="font-mono text-xs font-bold text-white">Weezie UI Component Library</span>
-            </div>
-          </div>
+    <div className="min-h-screen bg-paper text-ink selection:bg-blue selection:text-white">
+      <Navbar onNavigate={onNavigate} currentPath="/components" />
 
-          <div className="flex items-center gap-3">
-            <span className="rounded-full bg-emerald-500/10 px-3 py-1 text-[11px] font-bold text-emerald-400 border border-emerald-500/20">
-              10 of 30 Ready to Copy
-            </span>
-            <button
-              type="button"
-              onClick={() => onNavigate ? onNavigate('/store') : window.location.href = '/store'}
-              className="rounded-full bg-white px-4 py-1.5 text-xs font-bold text-zinc-950 hover:bg-zinc-200 transition-colors"
-            >
-              Get Full Bundle
-            </button>
-          </div>
+      <main className="mx-auto max-w-7xl px-6 pt-24 pb-16 md:px-10 md:pt-28">
+        {/* Breadcrumb / Top Bar */}
+        <div className="mb-6 flex items-center justify-between">
+          <a
+            href="/"
+            onClick={(e) => {
+              if (onNavigate) {
+                e.preventDefault()
+                onNavigate('/')
+              }
+            }}
+            className="neu-hover inline-flex items-center gap-2 rounded-full bg-paper px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em] text-ink neu-sm"
+          >
+            ← Back to Portfolio
+          </a>
+          <span className="rounded-full bg-blue/10 px-3.5 py-1 text-xs font-bold text-blue">
+            30 Production Blocks · Zero Dependencies
+          </span>
         </div>
-      </header>
 
-      {/* Main Content Area */}
-      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12">
-        {/* Title & Description */}
-        <div className="max-w-2xl">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">
-            Copy & Paste Ready · Zero Dependencies
-          </p>
-          <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            Production React & Tailwind Components
-          </h1>
-          <p className="mt-3 text-sm leading-relaxed text-zinc-400">
-            Recreated from the web's cleanest interfaces. Pure React with Tailwind CSS classes,
-            clean props, accessible semantics, and zero bloated npm libraries.
-          </p>
+        {/* Hero Section */}
+        <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue">// Weezie UI · Design &amp; Systems Lab</p>
+            <h1 className="display mt-2 text-4xl text-ink md:text-6xl">
+              COPY-PASTE <span className="text-gradient">REACT BLOCKS</span>
+            </h1>
+            <p className="mt-3 max-w-2xl text-base font-medium text-ink-soft">
+              Tested, accessible, zero-dependency Tailwind CSS v4 &amp; React 19 components inspired by modern web benchmarks.
+              Live interactive previews and 1-click clipboard export.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3">
+            <a
+              href="/store"
+              onClick={(e) => {
+                if (onNavigate) {
+                  e.preventDefault()
+                  onNavigate('/store')
+                }
+              }}
+              className="btn-gradient inline-flex items-center gap-2 rounded-full px-6 py-3 text-xs font-bold uppercase tracking-[0.12em]"
+            >
+              <span>Get 30-Component Pack ($29)</span>
+              <span>→</span>
+            </a>
+          </div>
         </div>
 
         {/* Component Selector Tabs */}
-        <div className="mt-8 flex flex-wrap gap-2 border-b border-white/10 pb-4">
+        <div className="mt-8 flex flex-wrap gap-2.5 pb-2">
           {COMPONENTS.map((item) => (
             <button
               key={item.id}
@@ -325,10 +331,10 @@ export default function ComponentShowcase({ onNavigate }) {
                 setActiveTab(item.id)
                 setViewMode('preview')
               }}
-              className={`rounded-full px-4 py-2 text-xs font-semibold transition-all ${
+              className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] transition ${
                 activeTab === item.id
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/30'
-                  : 'border border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-white'
+                  ? 'btn-gradient text-white shadow-md'
+                  : 'bg-paper text-ink-soft neu-sm hover:text-ink'
               }`}
             >
               {item.name}
@@ -337,22 +343,22 @@ export default function ComponentShowcase({ onNavigate }) {
         </div>
 
         {/* Active Component Details & View Mode Toggle */}
-        <div className="mt-6 flex flex-wrap items-center justify-between gap-4">
+        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-paper p-5 neu-sm">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-blue">
               {activeComp.category}
             </span>
-            <h2 className="text-xl font-bold text-white">{activeComp.name}</h2>
-            <p className="text-xs text-zinc-400">{activeComp.description}</p>
+            <h2 className="display mt-0.5 text-2xl text-ink">{activeComp.name}</h2>
+            <p className="mt-1 text-xs font-medium text-ink-soft">{activeComp.description}</p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <div className="inline-flex rounded-xl border border-white/10 bg-zinc-900 p-1">
+          <div className="flex items-center gap-3">
+            <div className="inline-flex rounded-full bg-paper p-1 neu-inset">
               <button
                 type="button"
                 onClick={() => setViewMode('preview')}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  viewMode === 'preview' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:text-white'
+                className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.1em] transition ${
+                  viewMode === 'preview' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
                 }`}
               >
                 👁️ Preview
@@ -360,8 +366,8 @@ export default function ComponentShowcase({ onNavigate }) {
               <button
                 type="button"
                 onClick={() => setViewMode('code')}
-                className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
-                  viewMode === 'code' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:text-white'
+                className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.1em] transition ${
+                  viewMode === 'code' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
                 }`}
               >
                 💻 Code
@@ -371,7 +377,7 @@ export default function ComponentShowcase({ onNavigate }) {
             <button
               type="button"
               onClick={handleCopyCode}
-              className="inline-flex items-center gap-1.5 rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-xs font-bold text-blue-400 transition-all hover:bg-blue-500/20 active:scale-95"
+              className="btn-gradient inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em]"
             >
               {copied ? '✅ Copied!' : '📋 Copy Code'}
             </button>
@@ -379,20 +385,20 @@ export default function ComponentShowcase({ onNavigate }) {
         </div>
 
         {/* Display Canvas */}
-        <div className="mt-6 overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 shadow-2xl">
+        <div className="mt-6 overflow-hidden rounded-[28px] bg-paper p-3 neu md:p-6">
           {viewMode === 'preview' ? (
-            <div className="p-4 sm:p-8">
+            <div className="overflow-hidden rounded-2xl border border-line/40 bg-zinc-950 p-4 sm:p-8">
               <ActiveComponent />
             </div>
           ) : (
-            <div>
+            <div className="overflow-hidden rounded-2xl border border-line/40 bg-zinc-950">
               {/* Code sub-toolbar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-zinc-900/60 px-6 py-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-zinc-900/80 px-6 py-3.5">
                 <div className="flex items-center gap-2">
                   <button
                     type="button"
                     onClick={() => setCodeTab('source')}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
                       codeTab === 'source' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:text-white'
                     }`}
                   >
@@ -401,20 +407,20 @@ export default function ComponentShowcase({ onNavigate }) {
                   <button
                     type="button"
                     onClick={() => setCodeTab('usage')}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
                       codeTab === 'usage' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:text-white'
                     }`}
                   >
                     🚀 Usage Example
                   </button>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-zinc-500">
-                  <span>File path: <code className="rounded bg-white/5 px-2 py-0.5 text-blue-400">src/components/ui/{activeComp.fileName}</code></span>
+                <div className="flex items-center gap-2 text-xs text-zinc-400">
+                  <span>File path: <code className="rounded bg-white/10 px-2 py-0.5 text-blue-400 font-mono">src/components/ui/{activeComp.fileName}</code></span>
                 </div>
               </div>
 
-              <div className="relative p-6 font-mono text-xs leading-relaxed text-zinc-300">
-                <pre className="max-h-[600px] overflow-x-auto overflow-y-auto rounded-2xl bg-black/60 p-6 leading-relaxed">
+              <div className="relative p-4 font-mono text-xs leading-relaxed text-zinc-300 md:p-6">
+                <pre className="max-h-[600px] overflow-x-auto overflow-y-auto rounded-xl bg-black/60 p-4 md:p-6 leading-relaxed">
                   <code>{codeTab === 'source' ? activeComp.source : activeComp.code}</code>
                 </pre>
               </div>
@@ -422,6 +428,9 @@ export default function ComponentShowcase({ onNavigate }) {
           )}
         </div>
       </main>
+
+      <Footer />
+      <ProjectBrief />
     </div>
   )
 }

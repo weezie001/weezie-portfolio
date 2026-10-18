@@ -28,7 +28,7 @@ import { useReveal } from './hooks/useReveal.js'
 
 export default function App() {
   const [path, setPath] = useState(() => window.location.pathname)
-  useReveal()
+  useReveal(path)
 
   useEffect(() => {
     const isAdmin = path.startsWith('/admin')
@@ -118,9 +118,13 @@ export default function App() {
       setPath(targetRoute)
       setTimeout(() => {
         const el = document.getElementById(hash)
-        if (el) el.scrollIntoView({ behavior: 'smooth' })
-        else window.scrollTo({ top: 0, behavior: 'smooth' })
-      }, 50)
+        if (el) {
+          el.scrollIntoView({ behavior: 'smooth' })
+          el.querySelectorAll('.reveal').forEach((item) => item.classList.add('in'))
+        } else {
+          window.scrollTo({ top: 0, behavior: 'smooth' })
+        }
+      }, 70)
       return
     }
 
@@ -180,6 +184,7 @@ export default function App() {
       <main>
         <Hero />
         <RockPaperScissors />
+        <About onNavigate={navigate} />
         <Work onNavigate={navigate} />
         <Marquee />
         <Services />
@@ -187,7 +192,6 @@ export default function App() {
         <StoreSection onNavigate={navigate} />
         <AILab />
         <Clients />
-        <About onNavigate={navigate} />
         <Partnership />
         <FAQ />
         <CollabCTA />
