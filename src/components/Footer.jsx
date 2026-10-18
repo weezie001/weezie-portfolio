@@ -46,7 +46,14 @@ export default function Footer() {
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">Contact</p>
             <ul className="mt-4 space-y-2 text-base font-medium text-ink">
-              <li><a href={`mailto:${site.email}`} className="hover:text-blue">{site.email}</a></li>
+              <li><a href={`mailto:${site.email}`} className="font-bold hover:text-blue">{site.email}</a></li>
+              {site.secondaryEmail && (
+                <li>
+                  <a href={`mailto:${site.secondaryEmail}`} className="text-sm text-ink-soft hover:text-blue">
+                    {site.secondaryEmail}
+                  </a>
+                </li>
+              )}
               <li><a href="https://weezie.site/" className="hover:text-blue">weezie.site &mdash; Enang Weezie</a></li>
               <li>{site.location}</li>
             </ul>

@@ -204,6 +204,14 @@ export default function Contact() {
                     {site.email}
                   </a>
                 </dd>
+                {site.secondaryEmail && (
+                  <dd className="mt-1 text-sm text-ink-soft">
+                    Direct / Alt:{' '}
+                    <a href={`mailto:${site.secondaryEmail}`} className="font-semibold text-ink underline hover:text-blue">
+                      {site.secondaryEmail}
+                    </a>
+                  </dd>
+                )}
               </div>
               <div>
                 <dt className="text-xs font-bold uppercase tracking-[0.12em] text-ink-soft">Résumé</dt>

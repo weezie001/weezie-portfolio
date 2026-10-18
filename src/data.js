@@ -9,7 +9,8 @@ export const site = {
   firstName: 'WEEZIE',
   logo: 'Weezie.',
   wordmark: 'enang weezie',
-  email: 'enangweezie@gmail.com',
+  email: 'enang@weezie.site',
+  secondaryEmail: 'enangweezie@gmail.com',
   cv: '/enang-weezie-cv.pdf', // downloadable résumé hosted on the site
   // Contact form endpoint (Formspree) — submissions land in enangweezie@gmail.com.
   formEndpoint: 'https://formspree.io/f/xlgqezad',

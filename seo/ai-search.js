@@ -240,7 +240,7 @@ export function mirror() {
         <h2>Skills</h2>
         <p>${esc(skills.join(', '))}.</p>
         <h2>Contact</h2>
-        <p>Email: <a href="mailto:${esc(site.email)}">${esc(site.email)}</a><br />GitHub: <a href="https://github.com/weezie001">github.com/weezie001</a><br />LinkedIn: <a href="https://www.linkedin.com/in/enang-wisdom-344636237/">Enang Wisdom (Enang Weezie)</a><br />CV: <a href="${esc(site.cv)}">download my CV (PDF)</a></p>
+        <p>Email: <a href="mailto:${esc(site.email)}">${esc(site.email)}</a> (alt: <a href="mailto:${esc(site.secondaryEmail)}">${esc(site.secondaryEmail)}</a>)<br />GitHub: <a href="https://github.com/weezie001">github.com/weezie001</a><br />LinkedIn: <a href="https://www.linkedin.com/in/enang-wisdom-344636237/">Enang Wisdom (Enang Weezie)</a><br />CV: <a href="${esc(site.cv)}">download my CV (PDF)</a></p>
       </div>
     </noscript>`
 }
@@ -253,7 +253,8 @@ export function llmsTxt() {
     '',
     `- Website: ${URL}`,
     `- Digital products: ${STORE_URL}`,
-    `- Email: ${site.email}`,
+    `- Business Email: ${site.email}`,
+    `- Alternative Email: ${site.secondaryEmail}`,
     '- GitHub: https://github.com/weezie001',
     '- LinkedIn: https://www.linkedin.com/in/enang-wisdom-344636237/',
     `- Location: ${site.location}`,
