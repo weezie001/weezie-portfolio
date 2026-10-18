@@ -62,11 +62,12 @@ const EMPTY_PRODUCT = {
 }
 
 export default function AdminCRM({ onNavigate }) {
-  const [adminKey, setAdminKey] = useState(() => getSavedAdminKey() || 'weezie-admin-2026')
+  const [adminKey, setAdminKey] = useState(getSavedAdminKey)
   const [inputKey, setInputKey] = useState('')
-  const [authed, setAuthed] = useState(true)
+  const [authed, setAuthed] = useState(() => Boolean(getSavedAdminKey()))
   const [loading, setLoading] = useState(false)
   const [authErr, setAuthErr] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
 
   // Tabs: 'inbox' | 'cold' | 'mail' | 'leads' | 'store' | 'orders'
   const [tab, setTab] = useState('inbox')
@@ -139,7 +140,10 @@ export default function AdminCRM({ onNavigate }) {
   const coldSpamCheck = useMemo(() => analyzeSpamRisk(coldSubject, coldBody), [coldSubject, coldBody])
 
   async function loadDashboard(keyToUse = adminKey) {
-    if (!keyToUse) return
+    if (!keyToUse) {
+      setAuthed(false)
+      return
+    }
     setLoading(true)
     setAuthErr('')
     const res = await fetchAdminDashboard(keyToUse)
@@ -150,7 +154,8 @@ export default function AdminCRM({ onNavigate }) {
       setData(res)
     } else if (res?.unauthorized) {
       setAuthed(false)
-      setAuthErr(res?.error || 'Invalid admin password.')
+      setSavedAdminKey('')
+      setAuthErr(res?.error || 'Invalid admin password. Please try again.')
     } else {
       // Keep dashboard authed on network glitch or local mode
       setAuthed(true)
@@ -158,13 +163,21 @@ export default function AdminCRM({ onNavigate }) {
   }
 
   useEffect(() => {
-    const keyToTry = adminKey || 'weezie-admin-2026'
-    loadDashboard(keyToTry)
+    const saved = getSavedAdminKey()
+    if (saved) {
+      loadDashboard(saved)
+    } else {
+      setAuthed(false)
+    }
   }, [])
 
   function handleLogin(e) {
     e?.preventDefault?.()
-    const trimmed = (inputKey || 'weezie-admin-2026').trim()
+    const trimmed = inputKey.trim()
+    if (!trimmed) {
+      setAuthErr('Please enter your admin password.')
+      return
+    }
     setAdminKey(trimmed)
     loadDashboard(trimmed)
   }
@@ -172,6 +185,7 @@ export default function AdminCRM({ onNavigate }) {
   function handleLogout() {
     setSavedAdminKey('')
     setAdminKey('')
+    setInputKey('')
     setAuthed(false)
   }
 
@@ -535,13 +549,12 @@ export default function AdminCRM({ onNavigate }) {
 
   if (!authed) {
     return (
-      <section className="min-h-screen bg-paper px-6 py-20 md:px-10">
-        <div className="mx-auto max-w-md rounded-[28px] bg-paper p-8 neu">
+      <section className="flex min-h-screen items-center justify-center bg-paper px-4 py-12 sm:px-6 md:px-10">
+        <div className="w-full max-w-md rounded-[28px] bg-paper p-6 neu sm:p-8">
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue">// weezie.site · Admin CRM</p>
-          <h1 className="display mt-2 text-4xl text-ink">CRM Login.</h1>
-          <p className="mt-2 text-xs font-medium text-ink-soft">
-            Log in to read your <strong>enang@weezie.site</strong> &amp; <strong>hello@weezie.site</strong> inbox, run
-            AI cold email campaigns, upload any file, and manage your digital store.
+          <h1 className="display mt-2 text-3xl text-ink sm:text-4xl">CRM Login.</h1>
+          <p className="mt-2 text-xs font-medium leading-relaxed text-ink-soft">
+            Enter your admin password to access your dedicated <strong>enang@weezie.site</strong> inbox, cold outreach engine, store catalogue, and CRM records.
           </p>
 
           <form onSubmit={handleLogin} className="mt-6 flex flex-col gap-4">
@@ -549,35 +562,41 @@ export default function AdminCRM({ onNavigate }) {
               <label className="mb-1.5 block text-xs font-bold uppercase tracking-[0.1em] text-ink-soft">
                 Admin Password
               </label>
-              <input
-                type="password"
-                value={inputKey}
-                onChange={(e) => setInputKey(e.target.value)}
-                placeholder="Admin password (default: weezie-admin-2026)"
-                className="w-full rounded-2xl bg-paper px-4 py-3.5 text-sm font-medium text-ink outline-none neu-inset focus:ring-2 focus:ring-blue/50"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={inputKey}
+                  onChange={(e) => {
+                    setInputKey(e.target.value)
+                    if (authErr) setAuthErr('')
+                  }}
+                  placeholder="Enter admin password"
+                  autoFocus
+                  className="w-full rounded-2xl bg-paper px-4 py-3.5 pr-16 text-sm font-medium text-ink outline-none neu-inset focus:ring-2 focus:ring-blue/50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg px-2 py-1 text-xs font-bold text-ink-soft hover:text-ink transition"
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? 'Hide' : 'Show'}
+                </button>
+              </div>
             </div>
-            {authErr && <p className="text-xs font-bold text-red-600">{authErr}</p>}
+            {authErr && (
+              <div className="rounded-xl bg-red-500/10 p-3 text-xs font-bold text-red-600">
+                {authErr}
+              </div>
+            )}
             
-            <div className="flex flex-col gap-2 pt-1">
+            <div className="pt-1">
               <button
                 type="submit"
-                disabled={loading}
-                className="btn-gradient rounded-full px-7 py-3.5 text-xs font-bold uppercase tracking-[0.14em]"
+                disabled={loading || !inputKey.trim()}
+                className="btn-gradient w-full rounded-full py-3.5 text-xs font-bold uppercase tracking-[0.14em] disabled:opacity-50"
               >
-                {loading ? 'Unlocking CRM…' : 'Open Admin CRM →'}
-              </button>
-
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => {
-                  setInputKey('weezie-admin-2026')
-                  loadDashboard('weezie-admin-2026')
-                }}
-                className="neu-hover rounded-full bg-paper px-6 py-3 text-xs font-bold uppercase tracking-[0.1em] text-blue neu-sm hover:text-ink"
-              >
-                ⚡ 1-Click Unlock with Default Password
+                {loading ? 'Verifying Password…' : 'Unlock Admin CRM →'}
               </button>
             </div>
           </form>
@@ -630,7 +649,7 @@ export default function AdminCRM({ onNavigate }) {
     : null
 
   return (
-    <section className="min-h-screen bg-paper px-6 py-12 md:px-10">
+    <section className="min-h-screen bg-paper px-3 sm:px-6 py-6 sm:py-10 md:px-10">
       {mailPreview && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center overflow-y-auto bg-ink/60 p-4">
           <div role="dialog" aria-modal="true" aria-labelledby="mail-preview-title"
@@ -780,15 +799,15 @@ export default function AdminCRM({ onNavigate }) {
       )}
       <div className="mx-auto max-w-6xl">
         {/* Top bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue">
               // weezie.site · Webmail, Cold Outreach, CRM &amp; Store
             </p>
-            <h1 className="display mt-1 text-4xl text-ink md:text-5xl">WEEZIE CONTROL CENTER</h1>
+            <h1 className="display mt-1 text-2xl sm:text-4xl md:text-5xl text-ink">WEEZIE CONTROL CENTER</h1>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-3">
             <a
               href="/store/"
               onClick={(e) => {
@@ -797,7 +816,7 @@ export default function AdminCRM({ onNavigate }) {
                   onNavigate('/store/')
                 }
               }}
-              className="neu-hover rounded-full bg-paper px-4 py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-ink neu-sm"
+              className="neu-hover rounded-full bg-paper px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-ink neu-sm"
             >
               View Store ↗
             </a>
@@ -809,14 +828,14 @@ export default function AdminCRM({ onNavigate }) {
                   onNavigate('/')
                 }
               }}
-              className="neu-hover rounded-full bg-paper px-4 py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-ink neu-sm"
+              className="neu-hover rounded-full bg-paper px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-ink neu-sm"
             >
               Portfolio ↗
             </a>
             <button
               type="button"
               onClick={handleLogout}
-              className="rounded-full bg-ink px-4 py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-white"
+              className="rounded-full bg-ink px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold uppercase tracking-[0.1em] text-white"
             >
               Log out
             </button>
@@ -824,12 +843,12 @@ export default function AdminCRM({ onNavigate }) {
         </div>
 
         {/* Status pills & KPIs */}
-        <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-2xl bg-paper p-5 neu-sm">
+        <div className="mt-6 grid gap-3 sm:gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-2xl bg-paper p-4 sm:p-5 neu-sm">
             <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">
               Dedicated Inbox (@weezie.site)
             </span>
-            <p className="display mt-1 text-3xl text-ink">
+            <p className="display mt-1 text-2xl sm:text-3xl text-ink">
               {inboxList.length}{' '}
               {unreadCount > 0 && <span className="text-sm font-bold text-blue">({unreadCount} unread)</span>}
             </p>
@@ -838,19 +857,19 @@ export default function AdminCRM({ onNavigate }) {
             </span>
           </div>
 
-          <div className="rounded-2xl bg-paper p-5 neu-sm">
+          <div className="rounded-2xl bg-paper p-4 sm:p-5 neu-sm">
             <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">
               Cold Outreach &amp; Anti-Spam
             </span>
-            <p className="display mt-1 text-3xl text-ink">{coldList.length} prospects</p>
+            <p className="display mt-1 text-2xl sm:text-3xl text-ink">{coldList.length} prospects</p>
             <span className="mt-1 block text-[11px] font-medium text-green-700">
               🛡️ SPF + DKIM + DMARC Active
             </span>
           </div>
 
-          <div className="rounded-2xl bg-paper p-5 neu-sm">
+          <div className="rounded-2xl bg-paper p-4 sm:p-5 neu-sm">
             <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">CRM Leads &amp; Store</span>
-            <p className="display mt-1 text-3xl text-ink">
+            <p className="display mt-1 text-2xl sm:text-3xl text-ink">
               {leadsList.length} leads · {productsList.length} items
             </p>
             <span className="mt-1 block text-[11px] font-medium text-ink-soft">
@@ -858,9 +877,9 @@ export default function AdminCRM({ onNavigate }) {
             </span>
           </div>
 
-          <div className="rounded-2xl bg-paper p-5 neu-sm">
+          <div className="rounded-2xl bg-paper p-4 sm:p-5 neu-sm">
             <span className="text-[11px] font-bold uppercase tracking-[0.12em] text-ink-soft">Store &amp; AI Revenue</span>
-            <p className="display mt-1 text-2xl text-ink">
+            <p className="display mt-1 text-xl sm:text-2xl text-ink">
               ${totalUsdRevenue.toLocaleString('en-US')} · ₦{totalNgnRevenue.toLocaleString('en-US')}
             </p>
             <span className="mt-1 block text-[11px] font-medium text-ink-soft">{ordersList.length} paid orders</span>
@@ -868,41 +887,42 @@ export default function AdminCRM({ onNavigate }) {
         </div>
 
         {/* Navigation Tabs */}
-        <div className="mt-8 flex flex-wrap gap-2">
+        <div className="mt-6 sm:mt-8 flex gap-2 overflow-x-auto pb-2 scrollbar-none sm:flex-wrap">
           {[
-            ['inbox', `1. Inbox (${inboxList.length})`],
-            ['cold', `2. Cold Email & Auto-Drip (${pendingColdList.length} Pending)`],
-            ['mail', `3. Compose & Broadcast (${emailsList.length})`],
-            ['leads', `4. Leads & Briefs (${leadsList.length})`],
-            ['store', `5. Store & File Uploader (${productsList.length})`],
-            ['orders', `6. Orders & Keys (${ordersList.length})`],
-          ].map(([id, label]) => (
+            ['inbox', 'Inbox', `1. Inbox (${inboxList.length})`],
+            ['cold', 'Cold Email', `2. Cold Email & Auto-Drip (${pendingColdList.length} Pending)`],
+            ['mail', 'Compose', `3. Compose & Broadcast (${emailsList.length})`],
+            ['leads', 'Leads', `4. Leads & Briefs (${leadsList.length})`],
+            ['store', 'Store', `5. Store & File Uploader (${productsList.length})`],
+            ['orders', 'Orders', `6. Orders & Keys (${ordersList.length})`],
+          ].map(([id, shortLabel, fullLabel]) => (
             <button
               key={id}
               type="button"
               onClick={() => setTab(id)}
-              className={`rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-[0.1em] transition ${
+              className={`shrink-0 rounded-full px-3.5 sm:px-4 py-2 sm:py-2.5 text-xs font-bold uppercase tracking-[0.08em] sm:tracking-[0.1em] transition whitespace-nowrap ${
                 tab === id ? 'btn-gradient text-white' : 'neu-hover bg-paper text-ink-soft neu-sm hover:text-ink'
               }`}
             >
-              {label}
+              <span className="sm:hidden">{shortLabel} ({id === 'cold' ? pendingColdList.length : id === 'inbox' ? inboxList.length : id === 'mail' ? emailsList.length : id === 'leads' ? leadsList.length : id === 'store' ? productsList.length : ordersList.length})</span>
+              <span className="hidden sm:inline">{fullLabel}</span>
             </button>
           ))}
         </div>
 
         {/* TAB 1: DEDICATED INBOX FOR ENANG@WEEZIE.SITE & HELLO@WEEZIE.SITE */}
         {tab === 'inbox' && (
-          <div className="mt-8 rounded-[28px] bg-paper p-6 neu">
-            <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="mt-6 sm:mt-8 rounded-[28px] bg-paper p-4 sm:p-6 neu">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
-                <h2 className="display text-2xl text-ink">Dedicated @weezie.site Inbox</h2>
+                <h2 className="display text-xl sm:text-2xl text-ink">Dedicated @weezie.site Inbox</h2>
                 <p className="mt-1 text-xs font-medium text-ink-soft">
                   All incoming messages to <strong>enang@weezie.site</strong> &amp; <strong>hello@weezie.site</strong>{' '}
                   land here. Your main Gmail receives a read-only alert so you can log in here and reply as your custom
                   domain.
                 </p>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
                 {[
                   ['all', 'All Mailboxes'],
                   ['enang@weezie.site', 'enang@weezie.site'],
@@ -912,7 +932,7 @@ export default function AdminCRM({ onNavigate }) {
                     key={mb}
                     type="button"
                     onClick={() => setMailboxFilter(mb)}
-                    className={`rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] ${
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] whitespace-nowrap ${
                       mailboxFilter === mb ? 'bg-ink text-white' : 'bg-paper text-ink-soft neu-sm'
                     }`}
                   >
@@ -929,10 +949,10 @@ export default function AdminCRM({ onNavigate }) {
                 {filteredInbox.map((msg) => (
                   <div
                     key={msg.id}
-                    className={`rounded-2xl bg-paper p-5 neu-sm ${!msg.is_read ? 'ring-2 ring-blue/40' : ''}`}
+                    className={`rounded-2xl bg-paper p-4 sm:p-5 neu-sm ${!msg.is_read ? 'ring-2 ring-blue/40' : ''}`}
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-3">
-                      <div>
+                    <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                      <div className="min-w-0 flex-1">
                         <div className="flex flex-wrap items-center gap-2">
                           <span className="rounded-full bg-blue/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-blue">
                             To: {msg.mailbox}
@@ -946,17 +966,17 @@ export default function AdminCRM({ onNavigate }) {
                             {new Date(msg.created_at).toLocaleString()}
                           </span>
                         </div>
-                        <h3 className="display mt-2 text-lg text-ink">{msg.subject}</h3>
-                        <p className="text-xs font-bold text-ink-soft">
+                        <h3 className="display mt-2 text-base sm:text-lg text-ink break-words">{msg.subject}</h3>
+                        <p className="text-xs font-bold text-ink-soft break-all">
                           From: {msg.from_name ? `${msg.from_name} (${msg.from_email})` : msg.from_email}
                         </p>
                       </div>
 
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 pt-1 sm:pt-0 shrink-0">
                         <button
                           type="button"
                           onClick={() => replyToInboxMessage(msg)}
-                          className="btn-gradient rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.1em]"
+                          className="btn-gradient rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold uppercase tracking-[0.1em]"
                         >
                           Reply as {msg.mailbox} ↩
                         </button>
@@ -971,7 +991,7 @@ export default function AdminCRM({ onNavigate }) {
                         </button>
                       </div>
                     </div>
-                    <p className="mt-3 whitespace-pre-wrap rounded-xl bg-paper p-3.5 font-mono text-xs leading-relaxed text-ink neu-inset">
+                    <p className="mt-3 whitespace-pre-wrap break-words rounded-xl bg-paper p-3.5 font-mono text-xs leading-relaxed text-ink neu-inset">
                       {msg.body_text}
                     </p>
                   </div>
@@ -985,14 +1005,14 @@ export default function AdminCRM({ onNavigate }) {
         {tab === 'cold' && (
           <div className="mt-8 space-y-8">
             {/* Sub-tool picker */}
-            <div className="flex flex-wrap items-center justify-between gap-4 rounded-[28px] bg-paper p-6 neu">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-[28px] bg-paper p-4 sm:p-6 neu">
               <div>
                 <p className="text-xs font-bold uppercase tracking-[0.15em] text-blue">
                   // Zero API Credits Needed · Powered by Free Cloudflare Workers AI + Anti-Spam Guard
                 </p>
-                <h2 className="display mt-1 text-2xl text-ink">Cold Email Outreach Suite (enang@weezie.site)</h2>
+                <h2 className="display mt-1 text-xl sm:text-2xl text-ink">Cold Email Outreach Suite (enang@weezie.site)</h2>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
                 {[
                   ['cron', `⏱️ 24h Auto-Drip (${pendingColdList.length} Pending)`],
                   ['tracker', `Prospect Tracker (${coldList.length})`],
@@ -1003,7 +1023,7 @@ export default function AdminCRM({ onNavigate }) {
                     key={id}
                     type="button"
                     onClick={() => setColdSubTab(id)}
-                    className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] ${
+                    className={`shrink-0 rounded-full px-3.5 sm:px-4 py-1.5 sm:py-2 text-xs font-bold uppercase tracking-[0.08em] sm:tracking-[0.1em] whitespace-nowrap ${
                       coldSubTab === id ? 'btn-gradient text-white' : 'bg-paper text-ink-soft neu-sm'
                     }`}
                   >
@@ -1032,28 +1052,28 @@ export default function AdminCRM({ onNavigate }) {
                     </div>
 
                     {/* Metric Cards */}
-                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                      <div className="rounded-2xl bg-paper p-4 neu-sm">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Pending in Queue</p>
-                        <p className="display mt-1 text-2xl text-blue">{pendingColdList.length}</p>
-                        <p className="mt-0.5 text-[10px] text-ink-soft">Waiting in queue</p>
+                    <div className="grid grid-cols-2 gap-2.5 sm:gap-3 sm:grid-cols-4">
+                      <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Pending</p>
+                        <p className="display mt-1 text-xl sm:text-2xl text-blue">{pendingColdList.length}</p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">In queue</p>
                       </div>
-                      <div className="rounded-2xl bg-paper p-4 neu-sm">
+                      <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Outreached</p>
-                        <p className="display mt-1 text-2xl text-green-600">{coldList.filter((p) => p.status !== 'Pending').length}</p>
-                        <p className="mt-0.5 text-[10px] text-ink-soft">Total contacted</p>
+                        <p className="display mt-1 text-xl sm:text-2xl text-green-600">{coldList.filter((p) => p.status !== 'Pending').length}</p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">Total sent</p>
                       </div>
-                      <div className="rounded-2xl bg-paper p-4 neu-sm">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Sending Cadence</p>
-                        <p className="display mt-1 text-2xl text-ink">~1 / 14m</p>
-                        <p className="mt-0.5 text-[10px] text-ink-soft">~4.3 emails / hour</p>
+                      <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Cadence</p>
+                        <p className="display mt-1 text-xl sm:text-2xl text-ink">~1 / 14m</p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">~4.3 / hour</p>
                       </div>
-                      <div className="rounded-2xl bg-paper p-4 neu-sm">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Est. Time Remaining</p>
-                        <p className="display mt-1 text-2xl text-ink">
+                      <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Est. Time</p>
+                        <p className="display mt-1 text-xl sm:text-2xl text-ink">
                           {pendingColdList.length === 0 ? '0h' : `~${Math.round((pendingColdList.length * 14) / 60 * 10) / 10}h`}
                         </p>
-                        <p className="mt-0.5 text-[10px] text-ink-soft">Auto-adapts to queue</p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">Auto-adapts</p>
                       </div>
                     </div>
 
@@ -1199,11 +1219,11 @@ export default function AdminCRM({ onNavigate }) {
                       <h3 className="display text-xl text-ink">3. Prospect &amp; Follow-Up Tracker</h3>
                       <div className="flex flex-wrap items-center gap-2">
                         <label className="flex items-center gap-2 text-[10px] font-bold uppercase text-ink-soft">
-                          Batch size
+                          Batch
                           <select
                             value={coldBatchSize}
                             onChange={(event) => setColdBatchSize(Number(event.target.value))}
-                            className="rounded-full bg-paper px-3 py-2 text-xs text-ink neu-sm"
+                            className="rounded-full bg-paper px-2.5 py-1.5 text-xs text-ink neu-sm"
                           >
                             {[5, 10, 25, 50].map((size) => (
                               <option key={size} value={size}>{size}</option>
@@ -1211,25 +1231,25 @@ export default function AdminCRM({ onNavigate }) {
                           </select>
                         </label>
                         {pendingColdList.some((prospect) => prospect.custom_opener) && (
-                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handleGenerateBulkDrafts(pendingColdList, true)} className="rounded-full px-4 py-2 text-xs font-bold neu-sm disabled:opacity-60">Rewrite pending drafts</button>
+                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handleGenerateBulkDrafts(pendingColdList, true)} className="rounded-full px-3.5 py-1.5 text-xs font-bold neu-sm disabled:opacity-60">Rewrite pending</button>
                         )}
                         {needsDraftList.length > 0 && (
                           <button
                             type="button"
                             disabled={draftGenerating || coldSending}
                             onClick={() => handleGenerateBulkDrafts(needsDraftList)}
-                            className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60"
+                            className="btn-gradient rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.08em] disabled:opacity-60"
                           >
-                            {draftGenerating ? 'Drafting…' : `Draft ${needsDraftList.length} Personalized Emails ✨`}
+                            {draftGenerating ? 'Drafting…' : `Draft ${needsDraftList.length} Emails ✨`}
                           </button>
                         )}
                         {needsFollowupList.length > 0 && (
-                        <><button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(needsFollowupList.slice(0, coldBatchSize), true)} className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60">Review follow-ups</button>
-                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(needsFollowupList.slice(0, coldBatchSize), true, true)} className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60">Send follow-ups</button></>
+                        <><button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(needsFollowupList.slice(0, coldBatchSize), true)} className="btn-gradient rounded-full px-3 py-1.5 text-[11px] font-bold uppercase disabled:opacity-60">Review follow-ups</button>
+                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(needsFollowupList.slice(0, coldBatchSize), true, true)} className="btn-gradient rounded-full px-3 py-1.5 text-[11px] font-bold uppercase disabled:opacity-60">Send follow-ups</button></>
                         )}
                         {pendingColdList.length > 0 && (
-                          <><button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(pendingColdList.slice(0, coldBatchSize), false)} className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60">Review batch</button>
-                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(pendingColdList.slice(0, coldBatchSize), false, true)} className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-[0.1em] disabled:opacity-60">Send batch</button></>
+                          <><button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(pendingColdList.slice(0, coldBatchSize), false)} className="btn-gradient rounded-full px-3 py-1.5 text-[11px] font-bold uppercase disabled:opacity-60">Review batch</button>
+                          <button type="button" disabled={draftGenerating || coldSending} onClick={() => handlePreviewColdToTargets(pendingColdList.slice(0, coldBatchSize), false, true)} className="btn-gradient rounded-full px-3 py-1.5 text-[11px] font-bold uppercase disabled:opacity-60">Send batch</button></>
                         )}
                       </div>
                     </div>
@@ -1237,13 +1257,13 @@ export default function AdminCRM({ onNavigate }) {
                       Review opens the message. Send delivers immediately. Rewrite pending drafts replaces existing unsent copy with the new approach; drafting never sends email.
                     </p>
 
-                    <div className="mt-3 flex flex-wrap gap-1.5">
+                    <div className="mt-3 flex gap-1.5 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
                       {['all', 'Pending', 'Sent', 'Follow-up 1', 'Replied', 'Unsubscribed'].map((st) => (
                         <button
                           key={st}
                           type="button"
                           onClick={() => setColdFilter(st)}
-                          className={`rounded-full px-3 py-1 text-[10px] font-bold uppercase ${
+                          className={`shrink-0 rounded-full px-3 py-1 text-[10px] font-bold uppercase whitespace-nowrap ${
                             coldFilter === st ? 'bg-ink text-white' : 'bg-paper text-ink-soft neu-sm'
                           }`}
                         >
@@ -1261,29 +1281,29 @@ export default function AdminCRM({ onNavigate }) {
                         filteredCold.map((p) => (
                           <div
                             key={p.id || p.email}
-                            className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-paper p-3.5 neu-sm"
+                            className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-paper p-3.5 neu-sm"
                           >
-                            <div>
+                            <div className="min-w-0 flex-1">
                               <span className="rounded-full bg-blue/10 px-2 py-0.5 text-[10px] font-bold uppercase text-blue">
                                 {p.status}
                               </span>
-                              <p className="mt-1 text-xs font-bold text-ink">
-                                {p.name} · {p.business || p.email}
+                              <p className="mt-1 text-xs font-bold text-ink break-words">
+                                {p.name} {p.business ? `· ${p.business}` : ''}
                               </p>
-                              <p className="text-[11px] font-medium text-ink-soft">{p.email}</p>
+                              <p className="text-[11px] font-medium text-ink-soft break-all">{p.email}</p>
                               {p.custom_opener && (
                                 <details className="mt-2 max-w-xl rounded-xl bg-paper p-3 neu-inset">
                                   <summary className="cursor-pointer text-[10px] font-bold uppercase tracking-[0.08em] text-blue">
                                     Review personalized draft
                                   </summary>
-                                  <p className="mt-2 text-xs font-bold text-ink">{p.custom_subject || `A website idea for ${p.business || 'your business'}`}</p>
-                                  <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-soft">{p.custom_opener}</p>
+                                  <p className="mt-2 text-xs font-bold text-ink break-words">{p.custom_subject || `A website idea for ${p.business || 'your business'}`}</p>
+                                  <p className="mt-2 whitespace-pre-wrap text-xs leading-relaxed text-ink-soft break-words">{p.custom_opener}</p>
                                 </details>
                               )}
                             </div>
-                            <div className="flex gap-1.5">
-                              <><button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending')} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Review</button>
-                          <button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending', true)} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Send</button></>
+                            <div className="flex items-center gap-1.5 pt-1 sm:pt-0 shrink-0">
+                              <button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending')} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Review</button>
+                              <button type="button" disabled={draftGenerating || coldSending || p.status === 'Unsubscribed'} onClick={() => handlePreviewColdToTargets([p], p.status !== 'Pending', true)} className="btn-gradient rounded-full px-3 py-1.5 text-[10px] font-bold uppercase disabled:opacity-60">Send</button>
                               <button
                                 type="button"
                                 onClick={() =>
@@ -1328,17 +1348,17 @@ export default function AdminCRM({ onNavigate }) {
                           .filter((p) => p.status !== 'Pending')
                           .slice(0, 25)
                           .map((p) => (
-                            <div key={p.id} className="flex items-center justify-between rounded-xl bg-paper p-3 text-xs neu-sm">
-                              <div className="min-w-0 pr-2">
-                                <p className="truncate font-bold text-ink">
+                            <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl bg-paper p-3 text-xs neu-sm">
+                              <div className="min-w-0 flex-1">
+                                <p className="font-bold text-ink break-words">
                                   {p.name} · <span className="font-normal text-ink-soft">{p.business || p.email}</span>
                                 </p>
-                                <p className="truncate text-[11px] text-ink-soft">{p.email}</p>
+                                <p className="text-[11px] text-ink-soft break-all">{p.email}</p>
                                 {p.last_contacted_at && (
                                   <p className="text-[10px] text-blue">Contacted: {new Date(p.last_contacted_at).toLocaleString()}</p>
                                 )}
                               </div>
-                              <span className="shrink-0 rounded-full bg-green-500/15 px-2.5 py-1 text-[10px] font-bold text-green-700">
+                              <span className="self-start sm:self-center shrink-0 rounded-full bg-green-500/15 px-2.5 py-1 text-[10px] font-bold text-green-700">
                                 {p.status || 'Sent'} ✅
                               </span>
                             </div>
@@ -1656,13 +1676,13 @@ export default function AdminCRM({ onNavigate }) {
           <div className="mt-8 rounded-[28px] bg-paper p-6 neu">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <h2 className="display text-2xl text-ink">Leads, Briefs &amp; Freebie Subscribers</h2>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
                 {['all', 'brief', 'contact', 'freebie', 'store', 'ai_tool'].map((src) => (
                   <button
                     key={src}
                     type="button"
                     onClick={() => setSourceFilter(src)}
-                    className={`rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] ${
+                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] whitespace-nowrap ${
                       sourceFilter === src ? 'bg-ink text-white' : 'bg-paper text-ink-soft neu-sm'
                     }`}
                   >
@@ -1690,9 +1710,9 @@ export default function AdminCRM({ onNavigate }) {
                   }
 
                   return (
-                    <div key={lead.id} className="rounded-2xl bg-paper p-5 neu-sm">
-                      <div className="flex flex-wrap items-start justify-between gap-4">
-                        <div>
+                    <div key={lead.id} className="rounded-2xl bg-paper p-4 sm:p-5 neu-sm">
+                      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-4">
+                        <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <span className="rounded-full bg-blue/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-blue">
                               {lead.source}
@@ -1712,18 +1732,18 @@ export default function AdminCRM({ onNavigate }) {
                             </span>
                           </div>
 
-                          <h3 className="display mt-2 text-xl text-ink">
+                          <h3 className="display mt-2 text-lg sm:text-xl text-ink break-words">
                             {lead.name}{' '}
-                            <span className="font-mono text-sm font-normal text-ink-soft">({lead.email})</span>
+                            <span className="font-mono text-xs sm:text-sm font-normal text-ink-soft break-all">({lead.email})</span>
                           </h3>
-                          {lead.phone && <p className="text-xs font-semibold text-ink-soft">📞 {lead.phone}</p>}
+                          {lead.phone && <p className="text-xs font-semibold text-ink-soft break-all">📞 {lead.phone}</p>}
                           {lead.estimated_total && (
                             <p className="mt-1 text-xs font-bold text-blue">Estimate shown: {lead.estimated_total}</p>
                           )}
-                          {lead.message && <p className="mt-2 text-sm font-medium text-ink">{lead.message}</p>}
+                          {lead.message && <p className="mt-2 text-sm font-medium text-ink whitespace-pre-wrap break-words">{lead.message}</p>}
                         </div>
 
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-2 shrink-0">
                           <select
                             value={lead.status || 'New'}
                             onChange={(e) => handleLeadStatusChange(lead.id, e.target.value)}
@@ -1983,17 +2003,17 @@ export default function AdminCRM({ onNavigate }) {
                 {productsList.map((p) => (
                   <div
                     key={p.slug || p.id}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-paper p-4 neu-sm"
+                    className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-2xl bg-paper p-4 neu-sm"
                   >
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <span className="text-[10px] font-bold uppercase tracking-[0.12em] text-blue">{p.category}</span>
-                      <h4 className="display text-lg text-ink">{p.title}</h4>
+                      <h4 className="display text-base sm:text-lg text-ink break-words">{p.title}</h4>
                       <p className="text-xs font-medium text-ink-soft">
                         {p.is_freebie ? 'FREEBIE' : `$${p.price_usd} · ₦${Number(p.price_ngn || 0).toLocaleString()}`} ·{' '}
                         {p.downloads_count || 0} downloads
                       </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex items-center gap-2 shrink-0">
                       <button
                         type="button"
                         onClick={() => startEditProduct(p)}
@@ -2030,17 +2050,17 @@ export default function AdminCRM({ onNavigate }) {
                 <div className="mt-4 space-y-3">
                   {ordersList.map((o) => (
                     <div key={o.reference || o.id} className="rounded-2xl bg-paper p-4 neu-sm">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-blue">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-blue break-all">
                           {o.reference} · {o.item_type}
                         </span>
-                        <span className="display text-lg text-ink">
+                        <span className="display text-base sm:text-lg text-ink">
                           {o.currency === 'NGN' ? '₦' : '$'}
                           {Number(o.amount || 0).toLocaleString('en-US')}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm font-bold text-ink">{o.item_title}</p>
-                      <p className="text-xs font-medium text-ink-soft">
+                      <p className="mt-1 text-sm font-bold text-ink break-words">{o.item_title}</p>
+                      <p className="text-xs font-medium text-ink-soft break-all">
                         Buyer: {o.buyer_name} ({o.buyer_email})
                       </p>
                     </div>

@@ -36,7 +36,12 @@ function writeLocal(key, val) {
 
 export function getSavedAdminKey() {
   try {
-    return localStorage.getItem(LS_KEYS.adminKey) || ''
+    const key = localStorage.getItem(LS_KEYS.adminKey) || ''
+    if (key === 'weezie-admin-2026') {
+      localStorage.removeItem(LS_KEYS.adminKey)
+      return ''
+    }
+    return key
   } catch {
     return ''
   }

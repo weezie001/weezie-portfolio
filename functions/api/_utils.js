@@ -28,7 +28,6 @@ export function isAuthorizedAdmin(request, env) {
 
   const configured = (env?.ADMIN_PASSWORD || '').trim()
   if (configured && headerKey === configured) return true
-  if (headerKey === 'weezie-admin-2026') return true
 
   return false
 }
