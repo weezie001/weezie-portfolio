@@ -5,7 +5,7 @@ import { ev } from '../lib/analytics.js'
 
 export default function AILab({ fullPage = false, onNavigate }) {
   const [activeTool, setActiveTool] = useState('audit') // 'audit' | 'architect'
-  const [currency, setCurrency] = useState('USD')
+  const [currency, setCurrency] = useState('NGN')
   const [input, setInput] = useState('')
   const [context, setContext] = useState('')
   const [status, setStatus] = useState('idle') // idle | running | ready | unlocking | unlocked
@@ -57,14 +57,18 @@ export default function AILab({ fullPage = false, onNavigate }) {
         ? `Full 10-Point Website Audit & Copy Pack (${input.trim().slice(0, 32)})`
         : `Full Technical PRD & SQL Schema Pack (${input.trim().slice(0, 32)})`
 
+    const payCurrency = 'NGN'
+    const payAmount = aiLabConfig.unlockPrice.NGN
+
     launchPaystackPopup({
       email: buyerEmail.trim(),
-      amount: unlockAmount,
-      currency,
+      amount: payAmount,
+      currency: payCurrency,
       metadata: {
         custom_fields: [
           { display_name: 'Customer', variable_name: 'buyer_name', value: buyerName.trim() },
           { display_name: 'AI Tool', variable_name: 'ai_tool', value: activeTool },
+          { display_name: 'Selected Currency', variable_name: 'selected_currency', value: currency },
         ],
       },
       onSuccess: async ({ reference }) => {
@@ -75,8 +79,8 @@ export default function AILab({ fullPage = false, onNavigate }) {
           item_type: 'ai_unlock',
           item_id: `ai-${activeTool}-${result?.runId || Date.now()}`,
           item_title: packTitle,
-          currency,
-          amount: unlockAmount,
+          currency: payCurrency,
+          amount: payAmount,
           ai_run_id: result?.runId,
         })
         if (!verified?.ok || !verified.fullReportMd) {
@@ -86,7 +90,7 @@ export default function AILab({ fullPage = false, onNavigate }) {
         }
         setUnlockedMd(verified.fullReportMd)
         setStatus('unlocked')
-        ev('ai_tool_unlocked', { tool: activeTool, currency, amount: unlockAmount })
+        ev('ai_tool_unlocked', { tool: activeTool, currency: payCurrency, amount: payAmount })
       },
       onCancel: () => {
         setStatus('ready')

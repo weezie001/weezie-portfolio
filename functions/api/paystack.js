@@ -35,17 +35,20 @@ export async function onRequestPost({ request, env }) {
     }
 
     // Work out the real price on the server (ignore the amount the browser sent).
-    let expectedAmount = 0
+    let expectedNgn = 0
+    let expectedUsd = 0
     if (itemType === 'ai_unlock') {
       const { aiLabConfig } = await import('../../src/data.js')
-      expectedAmount = currency === 'NGN' ? aiLabConfig.unlockPrice.NGN : aiLabConfig.unlockPrice.USD
+      expectedNgn = aiLabConfig.unlockPrice.NGN
+      expectedUsd = aiLabConfig.unlockPrice.USD
     } else {
       let p = db
         ? await db.prepare('SELECT price_ngn, price_usd FROM products WHERE slug = ? OR CAST(id AS TEXT) = ?').bind(itemId, itemId).first()
         : null
       if (!p) p = storeProducts.find((x) => x.slug === itemId || String(x.id) === itemId)
       if (!p) return json({ ok: false, error: 'Unknown product.' }, 400)
-      expectedAmount = currency === 'NGN' ? Number(p.price_ngn) : Number(p.price_usd)
+      expectedNgn = Number(p.price_ngn)
+      expectedUsd = Number(p.price_usd)
     }
 
     const verifyRes = await fetch(`https://api.paystack.co/transaction/verify/${encodeURIComponent(reference)}`, {
@@ -53,12 +56,17 @@ export async function onRequestPost({ request, env }) {
     })
     const verifyData = verifyRes.ok ? await verifyRes.json() : null
     const tx = verifyData?.data
+    const txCurrency = String(tx?.currency || '').toUpperCase()
+
+    // Accept payment if it satisfies either the NGN price or the USD price
     const paidOk =
       tx?.status === 'success' &&
-      String(tx.currency || '').toUpperCase() === currency.toUpperCase() &&
-      Number(tx.amount) >= Math.round(expectedAmount * 100)
+      ((txCurrency === 'NGN' && Number(tx.amount) >= Math.round(expectedNgn * 100)) ||
+       (txCurrency === 'USD' && Number(tx.amount) >= Math.round(expectedUsd * 100)))
+
     if (!paidOk) {
-      return json({ ok: false, error: 'Payment verification failed with Paystack.' }, 400)
+      const errMsg = verifyData?.message || (verifyRes.ok ? 'Payment verification failed: Amount or currency did not match.' : 'Could not verify payment with Paystack.')
+      return json({ ok: false, error: errMsg }, 400)
     }
 
     // Block re-using the same payment reference for another item.

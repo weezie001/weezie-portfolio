@@ -60,14 +60,19 @@ export function StoreModal({ product, currency, onClose }) {
     }
 
     // Paid template/product -> Paystack checkout
+    // Paystack accounts operate in NGN (Nigerian integrations reject USD).
+    // Local and international cards are processed seamlessly in NGN.
+    const payCurrency = 'NGN'
+    const payAmount = Number(product.price_ngn || 0)
     launchPaystackPopup({
       email: email.trim(),
-      amount,
-      currency,
+      amount: payAmount,
+      currency: payCurrency,
       metadata: {
         custom_fields: [
           { display_name: 'Buyer Name', variable_name: 'buyer_name', value: name.trim() },
           { display_name: 'Product', variable_name: 'product_slug', value: product.slug },
+          { display_name: 'Store Currency', variable_name: 'store_currency', value: currency },
         ],
       },
       onSuccess: async ({ reference }) => {
@@ -78,8 +83,8 @@ export function StoreModal({ product, currency, onClose }) {
           item_type: 'product',
           item_id: product.slug,
           item_title: product.title,
-          currency,
-          amount,
+          currency: payCurrency,
+          amount: payAmount,
           download_url: product.file_url,
         })
         if (!verified?.ok) {
@@ -90,7 +95,7 @@ export function StoreModal({ product, currency, onClose }) {
         setOrderRef(reference)
         setDownloadUrl(verified.downloadUrl || product.file_url || `/downloads/${product.slug}.zip`)
         setStatus('unlocked')
-        ev('store_purchase_complete', { slug: product.slug, currency, amount })
+        ev('store_purchase_complete', { slug: product.slug, currency: payCurrency, amount: payAmount })
       },
       onCancel: () => {
         setStatus('idle')
@@ -237,7 +242,9 @@ export function StoreModal({ product, currency, onClose }) {
                   ? 'Processing…'
                   : isFreebie
                     ? 'Send My Free Download →'
-                    : `Buy Now (${formatAmount(product, currency)}) via Paystack →`}
+                    : currency === 'USD'
+                      ? `Buy Now ($${product.price_usd} · ₦${Number(product.price_ngn || 0).toLocaleString()}) via Paystack →`
+                      : `Buy Now (₦${Number(product.price_ngn || 0).toLocaleString()}) via Paystack →`}
               </button>
               <p className="text-center text-[11px] font-medium text-ink-soft">
                 {isFreebie
@@ -255,7 +262,7 @@ export function StoreModal({ product, currency, onClose }) {
 export default function StoreSection({ fullPage = false, onNavigate }) {
   const [products, setProducts] = useState(fallbackProducts)
   const [category, setCategory] = useState('All')
-  const [currency, setCurrency] = useState('USD')
+  const [currency, setCurrency] = useState('NGN')
   const [search, setSearch] = useState('')
   const [activeProduct, setActiveProduct] = useState(null)
 
