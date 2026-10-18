@@ -1,3 +1,4 @@
+import { editorialPages, renderEditorialPage } from './editorial-pages.js'
 // Builds everything search engines and AI assistants read without running
 // JavaScript, straight from src/data.js, so it can never drift from the site:
 //
@@ -73,7 +74,7 @@ export function jsonLd(includeStore = false) {
           'Payment Integration (Paystack, Stripe)', 'KYC and Identity Verification', 'AI Integration',
           'Brand Identity', 'Figma', 'Prototyping', 'Web Applications',
         ],
-        sameAs: ['https://github.com/weezie001'],
+        sameAs: ['https://github.com/weezie001', 'https://www.linkedin.com/in/enang-wisdom-344636237/'],
         worksFor: { '@id': ID.service },
       },
       {
@@ -213,7 +214,7 @@ function adminHtml(homeHtml) {
 }
 
 function sitemap() {
-  const urls = [URL, STORE_URL, `${URL}privacy.html`]
+  const urls = [URL, STORE_URL, `${URL}privacy.html`, ...editorialPages.map(page => `${URL.replace(/\/$/, '')}${page.path}`)]
   return `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(url => `  <url><loc>${url}</loc></url>`).join('\n')}\n</urlset>\n`
 }
 
@@ -226,6 +227,7 @@ export function mirror() {
         <p><a href="${URL}">weezie.site</a> &mdash; ${esc(site.name)}. Web design, branding and AI tools.</p>
         <p><strong>${esc(site.location)}. Available for new projects.</strong></p>
         <p>${esc(site.aboutBlurb)}</p>
+        <p><a href="/about/">About Enang Weezie</a> | <a href="/work/">Project case studies</a></p>
         <h2>Selected work</h2>
         <ul>${projects.map(p => `<li><a href="${esc(p.href)}">${esc(p.client)}</a> (${esc(p.tag)}): ${esc(p.desc)}</li>`).join('')}</ul>
         <h2>Services</h2>
@@ -238,7 +240,7 @@ export function mirror() {
         <h2>Skills</h2>
         <p>${esc(skills.join(', '))}.</p>
         <h2>Contact</h2>
-        <p>Email: <a href="mailto:${esc(site.email)}">${esc(site.email)}</a><br />GitHub: <a href="https://github.com/weezie001">github.com/weezie001</a><br />CV: <a href="${esc(site.cv)}">download my CV (PDF)</a></p>
+        <p>Email: <a href="mailto:${esc(site.email)}">${esc(site.email)}</a><br />GitHub: <a href="https://github.com/weezie001">github.com/weezie001</a><br />LinkedIn: <a href="https://www.linkedin.com/in/enang-wisdom-344636237/">Enang Wisdom (Enang Weezie)</a><br />CV: <a href="${esc(site.cv)}">download my CV (PDF)</a></p>
       </div>
     </noscript>`
 }
@@ -253,6 +255,7 @@ export function llmsTxt() {
     `- Digital products: ${STORE_URL}`,
     `- Email: ${site.email}`,
     '- GitHub: https://github.com/weezie001',
+    '- LinkedIn: https://www.linkedin.com/in/enang-wisdom-344636237/',
     `- Location: ${site.location}`,
     '- Availability: available for new projects',
     '',
@@ -303,6 +306,13 @@ export default function aiSearch() {
     },
     configureServer(server) {
       server.middlewares.use((req, res, next) => {
+        const pathname = new globalThis.URL(req.url, 'http://localhost').pathname
+        const page = editorialPages.find(page => page.path.replace(/\/$/, '') === pathname.replace(/\/$/, ''))
+        if (!page) return next()
+        res.setHeader('Content-Type', 'text/html; charset=utf-8')
+        res.end(renderEditorialPage(page, jsonLd()))
+      })
+      server.middlewares.use((req, res, next) => {
         if (req.url !== '/llms.txt') return next()
         res.setHeader('Content-Type', 'text/plain; charset=utf-8')
         res.end(llmsTxt())
@@ -314,6 +324,11 @@ export default function aiSearch() {
     async closeBundle() {
       if (command !== 'build') return
       const homeHtml = await readFile(resolve(outputDir, 'index.html'), 'utf8')
+      await Promise.all(editorialPages.map(async page => {
+        const dir = resolve(outputDir, page.path.replace(/^\//, ''))
+        await mkdir(dir, { recursive: true })
+        await writeFile(resolve(dir, 'index.html'), renderEditorialPage(page, jsonLd()))
+      }))
       await mkdir(resolve(outputDir, 'store'), { recursive: true })
       await mkdir(resolve(outputDir, 'admin'), { recursive: true })
       await Promise.all([

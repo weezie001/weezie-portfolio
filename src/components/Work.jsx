@@ -49,6 +49,9 @@ export default function Work() {
                 </a>
               </div>
               <p className="mt-3 px-1 text-sm font-medium leading-relaxed text-ink-soft">{p.desc}</p>
+              {['PadUp Creations', 'B&D Renovations'].includes(p.client) && (
+                <a href={p.client === 'PadUp Creations' ? '/work/padup-creations/' : '/work/b-d-renovations/'} className="mt-4 px-1 text-sm font-bold text-blue underline underline-offset-4">Read the case study</a>
+              )}
             </article>
           ))}
         </div>

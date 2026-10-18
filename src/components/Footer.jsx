@@ -64,6 +64,8 @@ export default function Footer() {
         <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-6">
           <p className="text-xs font-semibold text-ink-soft">© 2026 {site.name} — Built with React</p>
           <div className="flex items-center gap-6">
+            <a href="/about/" className="text-xs font-bold uppercase text-ink-soft hover:text-blue">About</a>
+            <a href="/work/" className="text-xs font-bold uppercase text-ink-soft hover:text-blue">Case studies</a>
             <a href="/privacy.html" className="text-xs font-bold uppercase tracking-[0.1em] text-ink-soft hover:text-ink">Privacy</a>
             <a href="#home" className="text-xs font-bold uppercase tracking-[0.1em] text-ink-soft hover:text-ink">Back to top ↑</a>
           </div>

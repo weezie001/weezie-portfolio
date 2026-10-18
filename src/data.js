@@ -412,6 +412,7 @@ export const clients = [
 export const testimonials = []
 
 export const socials = [
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/enang-wisdom-344636237/' },
   { label: 'GitHub', href: 'https://github.com/weezie001' },
   { label: 'CV / Résumé', href: site.cv },
   { label: 'Email', href: `mailto:${site.email}` },

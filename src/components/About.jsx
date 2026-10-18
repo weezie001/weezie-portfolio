@@ -26,6 +26,7 @@ export default function About() {
           >
             Work With Me
           </a>
+          <p className="mt-5"><a href="/about/" className="text-sm text-white underline underline-offset-4">More about Enang Weezie</a></p>
         </div>
 
         {/* RIGHT */}
