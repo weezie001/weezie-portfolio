@@ -143,6 +143,8 @@ export default function AdminCRM({ onNavigate }) {
   const [savingKeys, setSavingKeys] = useState(false)
   const [keysFeedback, setKeysFeedback] = useState('')
   const [pkSaved, setPkSaved] = useState(false)
+  const [copiedWebhook, setCopiedWebhook] = useState(false)
+  const [copiedCallback, setCopiedCallback] = useState(false)
 
   // Live Anti-Spam Deliverability Checkers
   const mailSpamCheck = useMemo(() => analyzeSpamRisk(subject, mailBody), [subject, mailBody])
@@ -2282,6 +2284,73 @@ export default function AdminCRM({ onNavigate }) {
                   )}
                 </div>
               </form>
+
+              {/* Paystack Webhook & Callback Configuration */}
+              <div className="mt-6 rounded-2xl bg-blue/10 border border-blue/20 p-4">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs font-bold uppercase tracking-wider text-blue">
+                    ⚡ Paystack Webhook &amp; Callback URLs
+                  </p>
+                  <span className="text-[10px] font-bold text-blue bg-blue/15 px-2 py-0.5 rounded-full">
+                    Copy to Paystack
+                  </span>
+                </div>
+                <p className="mt-1 text-[11px] text-ink-soft leading-relaxed">
+                  Paste these URLs into your <strong>Paystack Dashboard &rarr; Settings &rarr; Preferences / Developer &rarr; API Keys &amp; Webhooks</strong> so digital orders &amp; receipts are automatically fulfilled:
+                </p>
+
+                <div className="mt-3 space-y-2.5">
+                  <div className="rounded-xl bg-paper p-3 neu-inset">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">
+                        Live / Test Webhook URL
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText?.('https://weezie.site/api/paystack')
+                          setCopiedWebhook(true)
+                          setTimeout(() => setCopiedWebhook(false), 2000)
+                        }}
+                        className="rounded-full bg-blue px-2.5 py-1 text-[10px] font-bold text-white hover:opacity-90 transition-opacity"
+                      >
+                        {copiedWebhook ? '✓ Copied!' : '📋 Copy Webhook'}
+                      </button>
+                    </div>
+                    <code className="mt-1.5 block select-all font-mono text-xs font-bold text-ink break-all">
+                      https://weezie.site/api/paystack
+                    </code>
+                    <p className="mt-1 text-[10px] text-ink-soft">
+                      Paystack sends a background confirmation when payment completes. Automatically delivers receipt, order, and download link to customer email.
+                    </p>
+                  </div>
+
+                  <div className="rounded-xl bg-paper p-3 neu-inset">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">
+                        Callback URL
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText?.('https://weezie.site/store')
+                          setCopiedCallback(true)
+                          setTimeout(() => setCopiedCallback(false), 2000)
+                        }}
+                        className="rounded-full bg-blue px-2.5 py-1 text-[10px] font-bold text-white hover:opacity-90 transition-opacity"
+                      >
+                        {copiedCallback ? '✓ Copied!' : '📋 Copy Callback'}
+                      </button>
+                    </div>
+                    <code className="mt-1.5 block select-all font-mono text-xs font-bold text-ink break-all">
+                      https://weezie.site/store
+                    </code>
+                    <p className="mt-1 text-[10px] text-ink-soft">
+                      Where customer browsers return after completing checkout.
+                    </p>
+                  </div>
+                </div>
+              </div>
 
               {/* Official Paystack Test Cards Cheatsheet */}
               <div className="mt-6 rounded-2xl bg-amber-500/10 border border-amber-500/20 p-4">

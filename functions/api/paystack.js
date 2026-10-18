@@ -5,24 +5,80 @@ export async function onRequestOptions() {
   return new Response(null, { headers: corsHeaders })
 }
 
+export async function onRequestGet() {
+  return json({
+    ok: true,
+    service: 'Weezie Paystack Gateway & Webhook Listener',
+    status: 'active',
+    webhookUrl: 'https://weezie.site/api/paystack',
+    callbackUrl: 'https://weezie.site/store',
+  })
+}
+
 export async function onRequestPost({ request, env }) {
   try {
-    const body = await request.json()
-    const reference = String(body.reference || `WZ-${Date.now()}`).trim()
-    const buyerName = String(body.name || 'Customer').trim()
-    const buyerEmail = String(body.email || '').trim().toLowerCase()
-    const itemType = String(body.item_type || 'product').trim() // 'product' | 'ai_unlock'
-    const itemId = String(body.item_id || '').trim()
-    const itemTitle = String(body.item_title || 'Digital Product').trim()
-    const currency = String(body.currency || 'NGN').trim()
-    const amount = Number(body.amount || 0)
-    const aiRunId = body.ai_run_id ? Number(body.ai_run_id) : null
+    const body = await request.json().catch(() => ({}))
+
+    const isWebhook = body?.event === 'charge.success' && Boolean(body?.data)
+    const txData = isWebhook ? body.data : null
+
+    const customFields = isWebhook
+      ? (txData.metadata?.custom_fields || [])
+      : (body.metadata?.custom_fields || [])
+
+    const reference = String(
+      (isWebhook ? txData.reference : body.reference) || `WZ-${Date.now()}`
+    ).trim()
+
+    const buyerName = String(
+      (isWebhook
+        ? customFields.find((f) => f.variable_name === 'buyer_name')?.value || txData.customer?.first_name || 'Customer'
+        : body.name) || 'Customer'
+    ).trim()
+
+    const buyerEmail = String(
+      (isWebhook ? txData.customer?.email : body.email) || ''
+    ).trim().toLowerCase()
+
+    const itemType = String(
+      (isWebhook
+        ? (customFields.find((f) => f.variable_name === 'ai_tool')?.value ? 'ai_unlock' : 'product')
+        : body.item_type) || 'product'
+    ).trim()
+
+    const itemId = String(
+      (isWebhook
+        ? customFields.find((f) => f.variable_name === 'product_slug')?.value || 'digital-product'
+        : body.item_id) || ''
+    ).trim()
+
+    const itemTitle = String(
+      (isWebhook
+        ? (itemType === 'ai_unlock' ? 'Full Deep-Dive AI Pack' : 'Digital Product')
+        : body.item_title) || 'Digital Product'
+    ).trim()
+
+    const currency = String(
+      (isWebhook ? txData.currency : body.currency) || 'NGN'
+    ).trim()
+
+    const amount = isWebhook ? Number(txData.amount || 0) / 100 : Number(body.amount || 0)
+    const aiRunId = isWebhook ? null : (body.ai_run_id ? Number(body.ai_run_id) : null)
 
     if (!buyerEmail || !buyerEmail.includes('@')) {
       return json({ ok: false, error: 'Buyer email is required.' }, 400)
     }
 
     const db = await ensureDb(env)
+
+    // If order already recorded, return success immediately
+    if (db) {
+      const existing = await db.prepare('SELECT id FROM orders WHERE reference = ?').bind(reference).first()
+      if (existing) {
+        return json({ ok: true, already_processed: true })
+      }
+    }
+
     let secretKey = (env?.PAYSTACK_SECRET_KEY || '').trim()
     if (!secretKey && db) {
       const row = await db.prepare("SELECT value FROM app_settings WHERE key = 'paystack_secret_key'").first()
@@ -131,6 +187,10 @@ export async function onRequestPost({ request, env }) {
         .run()
     }
 
+    const finalDownloadUrl = downloadUrl
+      ? (downloadUrl.startsWith('http') ? downloadUrl : `https://weezie.site${downloadUrl.startsWith('/') ? '' : '/'}${downloadUrl}`)
+      : 'https://weezie.site/store'
+
     // Email receipt & download/report to customer from hello@weezie.site
     const mailBody =
       itemType === 'ai_unlock'
@@ -159,7 +219,7 @@ Thank you for your purchase on weezie.site!
 📦 Product: ${itemTitle}
 🧾 Reference: ${reference}
 💳 Amount: ${currency === 'NGN' ? '₦' : '$'}${amount.toLocaleString('en-US')}
-🔗 Download Link: https://weezie.site${downloadUrl}
+🔗 Download Link: ${finalDownloadUrl}
 
 Need help customizing this template for your brand or connecting your backend? Reply directly to this email and I'll take care of you.
 
