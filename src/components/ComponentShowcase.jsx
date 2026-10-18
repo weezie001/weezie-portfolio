@@ -5,6 +5,13 @@ import OtpVerificationInput from './ui/OtpVerificationInput.jsx'
 import FeatureComparisonMatrix from './ui/FeatureComparisonMatrix.jsx'
 import SplitAuthCard from './ui/SplitAuthCard.jsx'
 
+// Import complete raw source code so buyers can copy the full implementation directly
+import bentoRaw from './ui/BentoFeatures.jsx?raw'
+import pricingRaw from './ui/UsagePricingSlider.jsx?raw'
+import otpRaw from './ui/OtpVerificationInput.jsx?raw'
+import matrixRaw from './ui/FeatureComparisonMatrix.jsx?raw'
+import authRaw from './ui/SplitAuthCard.jsx?raw'
+
 /**
  * ComponentShowcase — Interactive Viewer & 1-Click Code Exporter
  * Lets users test live interactive components, view clean copy-paste JSX code,
@@ -17,6 +24,8 @@ const COMPONENTS = [
     category: 'VibePrompts · Features',
     description: 'Dynamic asymmetric tiles with cursor-following spotlight glow, gradient borders, and reactive micro-visuals.',
     component: BentoFeatures,
+    fileName: 'BentoFeatures.jsx',
+    source: bentoRaw,
     code: `import BentoFeatures from '@/components/ui/BentoFeatures'
 
 export default function Example() {
@@ -36,6 +45,8 @@ export default function Example() {
     category: 'VibePrompts · Pricing',
     description: 'Real-time interactive seat and tracked-event calculator with annual billing discount toggle.',
     component: UsagePricingSlider,
+    fileName: 'UsagePricingSlider.jsx',
+    source: pricingRaw,
     code: `import UsagePricingSlider from '@/components/ui/UsagePricingSlider'
 
 export default function Example() {
@@ -56,6 +67,8 @@ export default function Example() {
     category: 'VibePrompts · Auth & Security',
     description: 'Auto-advancing 6-digit security code input with paste detection, backspace navigation, and resend cooldown.',
     component: OtpVerificationInput,
+    fileName: 'OtpVerificationInput.jsx',
+    source: otpRaw,
     code: `import OtpVerificationInput from '@/components/ui/OtpVerificationInput'
 
 export default function Example() {
@@ -75,6 +88,8 @@ export default function Example() {
     category: 'VibePrompts · Pricing & Features',
     description: 'Multi-tier side-by-side feature comparison table with sticky headers, highlight badges, and category groupings.',
     component: FeatureComparisonMatrix,
+    fileName: 'FeatureComparisonMatrix.jsx',
+    source: matrixRaw,
     code: `import FeatureComparisonMatrix from '@/components/ui/FeatureComparisonMatrix'
 
 export default function Example() {
@@ -92,6 +107,8 @@ export default function Example() {
     category: 'VibePrompts · Auth & Conversion',
     description: 'High-converting authentication panel with social OAuth, email magic link flow, and brand testimonial panel.',
     component: SplitAuthCard,
+    fileName: 'SplitAuthCard.jsx',
+    source: authRaw,
     code: `import SplitAuthCard from '@/components/ui/SplitAuthCard'
 
 export default function Example() {
@@ -111,14 +128,16 @@ export default function Example() {
 export default function ComponentShowcase({ onNavigate }) {
   const [activeTab, setActiveTab] = useState(COMPONENTS[0].id)
   const [viewMode, setViewMode] = useState('preview') // 'preview' | 'code'
+  const [codeTab, setCodeTab] = useState('source') // 'source' | 'usage'
   const [copied, setCopied] = useState(false)
 
   const activeComp = COMPONENTS.find((c) => c.id === activeTab) || COMPONENTS[0]
   const ActiveComponent = activeComp.component
 
   async function handleCopyCode() {
+    const textToCopy = codeTab === 'source' ? activeComp.source : activeComp.code
     try {
-      await navigator.clipboard.writeText(activeComp.code)
+      await navigator.clipboard.writeText(textToCopy)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
@@ -247,10 +266,39 @@ export default function ComponentShowcase({ onNavigate }) {
               <ActiveComponent />
             </div>
           ) : (
-            <div className="relative p-6 font-mono text-xs leading-relaxed text-zinc-300">
-              <pre className="overflow-x-auto rounded-2xl bg-black/60 p-6">
-                <code>{activeComp.code}</code>
-              </pre>
+            <div>
+              {/* Code sub-toolbar */}
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-zinc-900/60 px-6 py-3.5">
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCodeTab('source')}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      codeTab === 'source' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    📄 Component Source ({activeComp.fileName})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCodeTab('usage')}
+                    className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
+                      codeTab === 'usage' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:text-white'
+                    }`}
+                  >
+                    🚀 Usage Example
+                  </button>
+                </div>
+                <div className="flex items-center gap-2 text-xs text-zinc-500">
+                  <span>File path: <code className="rounded bg-white/5 px-2 py-0.5 text-blue-400">src/components/ui/{activeComp.fileName}</code></span>
+                </div>
+              </div>
+
+              <div className="relative p-6 font-mono text-xs leading-relaxed text-zinc-300">
+                <pre className="max-h-[600px] overflow-x-auto overflow-y-auto rounded-2xl bg-black/60 p-6 leading-relaxed">
+                  <code>{codeTab === 'source' ? activeComp.source : activeComp.code}</code>
+                </pre>
+              </div>
             </div>
           )}
         </div>
