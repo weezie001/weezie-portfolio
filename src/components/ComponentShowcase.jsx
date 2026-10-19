@@ -642,7 +642,6 @@ export default function ComponentShowcase({ onNavigate }) {
           setPaymentModal((prev) => ({ ...prev, isOpen: false }))
           setBuyingProduct(UI_PACK_PRODUCT)
         }}
-        onSwitchState={(nextStatus) => setPaymentModal((prev) => ({ ...prev, status: nextStatus }))}
       />
 
       <Footer onNavigate={onNavigate} />

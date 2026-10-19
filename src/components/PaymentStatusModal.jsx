@@ -5,21 +5,19 @@ import { site } from '../data.js'
 
 /**
  * PaymentStatusModal — Weezie Studio
- * Branded transactional modal handling all 3 payment states:
- * 1. Confirmed (Celebration character + Order receipt + Instant Download)
- * 2. Pending / Verifying (Contemplating character + Live verification mesh)
+ * Branded transactional modal handling strictly ONE payment state per action:
+ * 1. Confirmed (Celebration character + Order receipt + Instant Download + Free Bonus Pack)
+ * 2. Pending / Verifying (Contemplating character + Live verification stepper)
  * 3. Failed / Incomplete (Empathy character + Reason explanation + Direct Transfer alternative)
  *
- * Infused with official Weezie brand assets (3D cut-out characters, crown/star doodles,
- * neu-morphic paper styling, and luxury gradients).
+ * Designed with crisp borders, zero glow effects, and official Weezie character assets.
  */
 export default function PaymentStatusModal({
   isOpen = false,
-  status = 'confirmed', // 'confirmed' | 'pending' | 'failed'
+  status = 'confirmed', // strictly 'confirmed' | 'pending' | 'failed'
   order = {},
   onClose = () => {},
   onRetry = () => {},
-  onSwitchState = null, // optional preview switcher
 }) {
   const [copiedRef, setCopiedRef] = useState(false)
   const [copiedBank, setCopiedBank] = useState(false)
@@ -29,12 +27,19 @@ export default function PaymentStatusModal({
 
   const reference = order.reference || `WZ-${Date.now().toString().slice(-8)}`
   const itemTitle = order.itemTitle || order.item_title || 'Digital Product'
-  const amount = order.amount ? (typeof order.amount === 'number' ? order.amount.toLocaleString('en-US') : order.amount) : '35,000'
+  const amount = order.amount
+    ? typeof order.amount === 'number'
+      ? order.amount.toLocaleString('en-US')
+      : order.amount
+    : '35,000'
   const currency = order.currency || 'NGN'
   const formattedPrice = currency === 'NGN' ? `₦${amount}` : `$${amount}`
   const buyerEmail = order.email || order.buyer_email || 'your-email@domain.com'
   const downloadUrl = order.downloadUrl || order.download_url || '/downloads/weezie-ui-components.zip'
-  const errorReason = order.errorReason || order.error || 'Transaction was cancelled or declined by your issuing bank before authorization.'
+  const errorReason =
+    order.errorReason ||
+    order.error ||
+    'Transaction was cancelled or declined by your issuing bank before authorization.'
 
   async function copyReference() {
     try {
@@ -63,43 +68,22 @@ export default function PaymentStatusModal({
       aria-modal="true"
       aria-label="Payment Status"
     >
-      {/* Blurred Backdrop */}
+      {/* Dark Backdrop Overlay — Solid, Clean, Zero Halo */}
       <div
-        className="fixed inset-0 bg-ink/75 backdrop-blur-md transition-opacity"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm transition-opacity"
         onClick={status === 'pending' ? undefined : onClose}
       />
 
-      {/* Main Branded Modal Card */}
-      <div className="relative z-10 my-auto w-full max-w-lg overflow-hidden rounded-[36px] bg-paper p-6 text-ink neu shadow-2xl sm:p-8">
+      {/* Main Branded Modal Card — Crisp Border, Sharp Shadow, Absolutely ZERO Glow */}
+      <div className="relative z-10 my-auto w-full max-w-lg overflow-hidden rounded-[28px] bg-paper p-6 text-ink border border-line shadow-2xl sm:p-8">
         
-        {/* Optional Interactive State Switcher for Instant Testing */}
-        {onSwitchState && (
-          <div className="mb-4 flex items-center justify-between border-b border-line pb-3 text-[10px] font-bold uppercase tracking-wider text-ink-soft">
-            <span>Brand Assets Preview</span>
-            <div className="flex gap-1.5">
-              {['confirmed', 'pending', 'failed'].map((st) => (
-                <button
-                  key={st}
-                  type="button"
-                  onClick={() => onSwitchState(st)}
-                  className={`rounded-full px-2.5 py-0.5 transition-all ${
-                    status === st ? 'bg-ink text-white shadow-sm' : 'bg-paper neu-sm text-ink-soft hover:text-ink'
-                  }`}
-                >
-                  {st}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Close Button (disabled while pending) */}
+        {/* Close Button (Hidden while pending verification) */}
         {status !== 'pending' && (
           <button
             type="button"
             onClick={onClose}
             aria-label="Close modal"
-            className="neu-hover absolute right-6 top-6 z-20 flex h-9 w-9 items-center justify-center rounded-full bg-paper text-sm font-bold text-ink neu-sm"
+            className="absolute right-5 top-5 z-20 flex h-9 w-9 items-center justify-center rounded-full border border-line bg-paper text-sm font-bold text-ink hover:bg-paper-2 transition active:scale-95"
           >
             ✕
           </button>
@@ -110,10 +94,8 @@ export default function PaymentStatusModal({
         {/* ============================================================== */}
         {status === 'confirmed' && (
           <div className="flex flex-col items-center text-center">
-            {/* Top Brand Asset: 3D Celebration Character Scene (no glow blur) */}
+            {/* Top Character Scene */}
             <div className="relative mb-3 flex h-36 w-full items-center justify-center overflow-hidden">
-              
-              {/* Brand doodle marks */}
               <div className="absolute left-10 top-2 h-7 w-7 text-amber-500 animate-bounce">
                 <Doodle name="crown" />
               </div>
@@ -124,15 +106,14 @@ export default function PaymentStatusModal({
                 <Doodle name="ring" />
               </div>
 
-              {/* 3D Cut-out Character */}
               <img
                 src="/characters/showing.png"
                 alt="Weezie Celebrating Order Confirmation"
-                className="relative z-10 h-36 object-contain drop-shadow-xl transition-transform hover:scale-105"
+                className="relative z-10 h-36 object-contain drop-shadow-md"
               />
             </div>
 
-            {/* Brand Logo & Pill */}
+            {/* Brand Logo & Confirmation Tag */}
             <div className="flex items-center gap-2">
               <span className="display text-base font-bold tracking-tight text-ink">
                 {site.logo.replace('.', '')}<span className="text-blue">.</span>
@@ -142,17 +123,17 @@ export default function PaymentStatusModal({
               </span>
             </div>
 
-            {/* Title & Subtitle */}
+            {/* Title & Delivery Notification */}
             <h3 className="display mt-2 text-2xl text-ink sm:text-3xl">
               You&rsquo;re all set! Files are ready.
             </h3>
             <p className="mt-1.5 text-xs text-ink-soft">
-              A copy of your license key and download link was also dispatched to{' '}
+              A copy of your license key and download link was dispatched to{' '}
               <strong className="text-ink">{buyerEmail}</strong>.
             </p>
 
-            {/* Receipt Summary Card */}
-            <div className="mt-5 w-full rounded-2xl bg-paper p-4 text-left neu-inset">
+            {/* Receipt Summary Box */}
+            <div className="mt-5 w-full rounded-2xl bg-paper-2/70 p-4 text-left border border-line shadow-sm">
               <div className="flex items-center justify-between border-b border-line pb-2.5">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Item Purchased</p>
@@ -172,24 +153,24 @@ export default function PaymentStatusModal({
                 <button
                   type="button"
                   onClick={copyReference}
-                  className="rounded-full bg-paper px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-blue neu-sm hover:text-ink transition-all active:scale-95"
+                  className="rounded-full border border-line bg-paper px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-blue hover:text-ink hover:border-ink transition-all active:scale-95"
                 >
                   {copiedRef ? '✓ Copied' : 'Copy Ref'}
                 </button>
               </div>
             </div>
 
-            {/* Free Bonus Weezie UI Component Bundle Callout */}
-            <div className="mt-4 w-full rounded-2xl bg-paper p-3.5 text-left neu-inset border border-blue/20">
+            {/* Free Bonus Weezie UI Component Bundle Card */}
+            <div className="mt-3.5 w-full rounded-2xl border border-blue/30 bg-blue/5 p-3.5 text-left shadow-sm">
               <div className="flex items-start gap-2.5">
-                <span className="text-lg">🎁</span>
+                <span className="text-xl">🎁</span>
                 <div className="flex-1">
                   <div className="flex items-center gap-1.5">
                     <p className="text-[11px] font-bold text-ink">Free Bonus: Weezie UI 35 Components Pack</p>
-                    <span className="rounded-full bg-blue/15 px-2 py-0.2 text-[9px] font-bold text-blue uppercase">Free</span>
+                    <span className="rounded-full bg-blue/15 px-2 py-0.5 text-[9px] font-bold text-blue uppercase">Free</span>
                   </div>
                   <p className="mt-0.5 text-[10px] text-ink-soft leading-relaxed">
-                    As a special buyer bonus, the complete 35 React & Tailwind component pack ($29 value) has been unlocked for free and also sent to your email.
+                    As a special buyer bonus, the complete 35 React &amp; Tailwind component pack ($29 value) has been unlocked for free and also sent to your email.
                   </p>
                   <a
                     href="/downloads/weezie-ui-components.zip"
@@ -208,7 +189,7 @@ export default function PaymentStatusModal({
               <a
                 href={downloadUrl}
                 download
-                className="btn-gradient flex w-full items-center justify-center gap-2 rounded-full py-4 text-xs font-bold uppercase tracking-[0.14em] shadow-md transition-transform hover:scale-102"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-blue py-3.5 text-xs font-bold uppercase tracking-[0.14em] text-white shadow-md hover:bg-blue-deep transition active:scale-98"
               >
                 <span>Download Purchased Assets (.zip)</span>
                 <span>↓</span>
@@ -217,13 +198,13 @@ export default function PaymentStatusModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="neu-hover rounded-full bg-paper py-3 text-xs font-bold uppercase tracking-[0.1em] text-ink-soft neu-sm hover:text-ink"
+                className="rounded-full border border-line bg-paper py-3 text-xs font-bold uppercase tracking-[0.1em] text-ink-soft hover:text-ink hover:border-ink transition"
               >
                 Return to Store
               </button>
             </div>
 
-            {/* Support guarantee footnote */}
+            {/* Footnote */}
             <p className="mt-4 text-center text-[10px] text-ink-soft">
               Protected by Weezie Studio Direct Handover Guarantee. Need help? Message{' '}
               <a href="mailto:hello@weezie.site" className="font-bold text-blue hover:underline">
@@ -238,14 +219,12 @@ export default function PaymentStatusModal({
         {/* ============================================================== */}
         {status === 'pending' && (
           <div className="flex flex-col items-center text-center">
-            {/* Top Brand Asset: Character Scene (clean, no glow blur) */}
+            {/* Top Character Scene */}
             <div className="relative mb-3 flex h-36 w-full items-center justify-center overflow-hidden">
-              {/* Subtle orbital ring */}
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="h-28 w-28 rounded-full border border-blue/20" />
               </div>
 
-              {/* 3D Character */}
               <img
                 src="/characters/about.png"
                 alt="Weezie Verifying Transaction"
@@ -253,7 +232,7 @@ export default function PaymentStatusModal({
               />
             </div>
 
-            {/* Brand Logo & Pill */}
+            {/* Brand Logo & Status Tag */}
             <div className="flex items-center gap-2">
               <span className="display text-base font-bold tracking-tight text-ink">
                 {site.logo.replace('.', '')}<span className="text-blue">.</span>
@@ -272,8 +251,8 @@ export default function PaymentStatusModal({
               Validating signature with Paystack and securing your digital license.
             </p>
 
-            {/* Animated Verification Stepper */}
-            <div className="mt-5 w-full space-y-2 rounded-2xl bg-paper p-4 text-left neu-inset">
+            {/* Stepper Box */}
+            <div className="mt-5 w-full space-y-2 rounded-2xl bg-paper-2/70 p-4 text-left border border-line shadow-sm">
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 font-medium text-ink">
                   <span className="flex h-4 w-4 items-center justify-center rounded-full bg-emerald-500 text-[10px] font-bold text-white">
@@ -287,7 +266,7 @@ export default function PaymentStatusModal({
               <div className="flex items-center justify-between text-xs">
                 <span className="flex items-center gap-2 font-medium text-ink">
                   <span className="h-4 w-4 rounded-full border-2 border-blue border-t-transparent animate-spin" />
-                  Cloudflare D1 State Lock
+                  Cloudflare Verification Lock
                 </span>
                 <span className="font-mono text-[10px] text-blue font-bold">Verifying…</span>
               </div>
@@ -303,8 +282,8 @@ export default function PaymentStatusModal({
               </div>
             </div>
 
-            {/* Important reassurance banner */}
-            <div className="mt-5 rounded-2xl border border-blue/20 bg-blue/5 p-3 text-center">
+            {/* Reassurance Box */}
+            <div className="mt-5 w-full rounded-2xl border border-blue/20 bg-blue/5 p-3 text-center">
               <p className="text-[11px] font-semibold text-blue">
                 🔒 Please keep this tab open — you will be unlocked automatically.
               </p>
@@ -320,10 +299,8 @@ export default function PaymentStatusModal({
         {/* ============================================================== */}
         {status === 'failed' && (
           <div className="flex flex-col items-center text-center">
-            {/* Top Brand Asset: Character Scene (clean, no glow blur) */}
+            {/* Top Character Scene */}
             <div className="relative mb-3 flex h-36 w-full items-center justify-center overflow-hidden">
-
-              {/* Brand doodle marks */}
               <div className="absolute left-10 top-3 h-6 w-6 text-red-500">
                 <Doodle name="arc" />
               </div>
@@ -331,15 +308,14 @@ export default function PaymentStatusModal({
                 <Doodle name="x" />
               </div>
 
-              {/* 3D Character */}
               <img
                 src="/characters/partnership.png"
                 alt="Weezie Supportive Handover"
-                className="relative z-10 h-36 object-contain drop-shadow-xl"
+                className="relative z-10 h-36 object-contain drop-shadow-md"
               />
             </div>
 
-            {/* Brand Logo & Pill */}
+            {/* Brand Logo & Tag */}
             <div className="flex items-center gap-2">
               <span className="display text-base font-bold tracking-tight text-ink">
                 {site.logo.replace('.', '')}<span className="text-blue">.</span>
@@ -362,25 +338,25 @@ export default function PaymentStatusModal({
               <div className="flex items-start gap-2.5">
                 <span className="text-sm">⚠️</span>
                 <div>
-                  <p className="text-xs font-bold text-red-700">Notice from Payment Gateway</p>
+                  <p className="text-xs font-bold text-red-700">Notice from Gateway</p>
                   <p className="mt-0.5 text-[11px] leading-relaxed text-red-600/90">{errorReason}</p>
                 </div>
               </div>
             </div>
 
-            {/* Alternative: Direct Bank Transfer Option (Toggleable) */}
+            {/* Alternative: Direct Bank Transfer Option */}
             <div className="mt-4 w-full">
               <button
                 type="button"
                 onClick={() => setShowBankDetails(!showBankDetails)}
-                className="flex w-full items-center justify-between rounded-xl bg-paper p-3 text-xs font-bold text-ink neu-sm transition hover:text-blue"
+                className="flex w-full items-center justify-between rounded-xl border border-line bg-paper p-3 text-xs font-bold text-ink hover:border-blue transition"
               >
                 <span>🏦 Prefer Direct Bank Transfer (Nigeria / Instant)?</span>
                 <span>{showBankDetails ? '▲ Hide' : '▼ View Details'}</span>
               </button>
 
               {showBankDetails && (
-                <div className="mt-2.5 rounded-2xl bg-paper p-4 text-left neu-inset">
+                <div className="mt-2.5 rounded-2xl bg-paper-2/70 p-4 text-left border border-line shadow-sm">
                   <div className="flex items-center justify-between border-b border-line pb-2">
                     <div>
                       <p className="text-[10px] font-bold uppercase text-ink-soft">Bank Name</p>
@@ -400,7 +376,7 @@ export default function PaymentStatusModal({
                     <button
                       type="button"
                       onClick={copyAccountNumber}
-                      className="rounded-full bg-paper px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-ink neu-sm hover:text-blue"
+                      className="rounded-full border border-line bg-paper px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-ink hover:border-blue hover:text-blue transition"
                     >
                       {copiedBank ? '✓ Copied' : 'Copy'}
                     </button>
@@ -417,7 +393,7 @@ export default function PaymentStatusModal({
               <button
                 type="button"
                 onClick={onRetry}
-                className="btn-gradient flex w-full items-center justify-center gap-2 rounded-full py-4 text-xs font-bold uppercase tracking-[0.14em] shadow-lg transition-transform hover:scale-102"
+                className="flex w-full items-center justify-center gap-2 rounded-full bg-blue py-3.5 text-xs font-bold uppercase tracking-[0.14em] text-white shadow-md hover:bg-blue-deep transition active:scale-98"
               >
                 <span>Try Again with Paystack</span>
                 <span>→</span>
@@ -428,7 +404,7 @@ export default function PaymentStatusModal({
                   href={`https://wa.me/2348000000000?text=${encodeURIComponent(`Hi Enang, my payment failed for ${itemTitle} (Ref: ${reference}). Could you assist?`)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="neu-hover flex-1 rounded-full bg-paper py-3 text-center text-xs font-bold uppercase tracking-[0.1em] text-green-700 neu-sm"
+                  className="flex-1 rounded-full border border-emerald-500/30 bg-emerald-500/10 py-3 text-center text-xs font-bold uppercase tracking-[0.1em] text-emerald-800 hover:bg-emerald-500/20 transition"
                 >
                   WhatsApp Help 💬
                 </a>
@@ -436,7 +412,7 @@ export default function PaymentStatusModal({
                 <button
                   type="button"
                   onClick={onClose}
-                  className="neu-hover flex-1 rounded-full bg-paper py-3 text-xs font-bold uppercase tracking-[0.1em] text-ink-soft neu-sm hover:text-ink"
+                  className="flex-1 rounded-full border border-line bg-paper py-3 text-xs font-bold uppercase tracking-[0.1em] text-ink-soft hover:text-ink hover:border-ink transition"
                 >
                   Close
                 </button>
