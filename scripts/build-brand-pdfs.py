@@ -51,7 +51,7 @@ def start(num,label):
  text('BRAND GUIDELINES / FICTIONAL SAMPLE',45,33,7,'Body',MUTED);text(f'{num:02d}',530,33,8,'Body',PRIMARY)
 def heading(kicker,a,d):text(kicker,45,735,8,'Body',PRIMARY);text(a,45,673,38,'Display',PRIMARY);text(d,45,628,38,'Italic',PRIMARY)
 def column(title,body,x,y,width=232):text(title,x,y,11,'Bold',PRIMARY);return para(body,x,y-15,width,10.5,MUTED)
-def photo(x,y,w,h):c.drawImage(str(ROOT/'06-assets/photography/north-workshop.png'),x,y,w,h,preserveAspectRatio=True,anchor='c',mask='auto')
+def photo(x,y,w,h):c.drawImage(str(ROOT/'06-assets/photography/north-workshop.jpg'),x,y,w,h,preserveAspectRatio=True,anchor='c',mask='auto')
 
 start(1,'A CONSIDERED IDENTITY')
 text('Brand guidelines',45,724,12,'Body',MUTED);text('Atelier North',45,648,56,'Display',PRIMARY);text(b['tagline'],45,607,17,'Body',PRIMARY)
@@ -122,10 +122,11 @@ proof.set_metadata({'title':'Atelier North / Stationery proofs','author':'Enang 
 proof.save(OUT/'atelier-north-stationery-proofs.pdf',garbage=4,deflate=True)
 
 thumbs=ROOT/'sample/previews';thumbs.mkdir(exist_ok=True)
-for p in (ROOT/'sample/ready-to-use').glob('*.svg'):raster_svg(p,440).save(str(thumbs/(p.stem+'.png')))
+for p in (ROOT/'sample/ready-to-use').glob('*.svg'):
+ pix=raster_svg(p,320);im=Image.open(io.BytesIO(pix.tobytes('png'))).convert('RGB');im.thumbnail((320,420));im.save(thumbs/(p.stem+'.png'),optimize=True)
 for filename in ['atelier-north-brand-guidelines.pdf','atelier-north-stationery-proofs.pdf']:
  doc=fitz.open(OUT/filename)
  for i,page in enumerate(doc):
   page.get_pixmap(matrix=fitz.Matrix(.9,.9),alpha=False).save(str(TMP/f'{Path(filename).stem}-{i+1}.png'))
  print(filename,len(doc),'pages')
-print('Rendered both PDFs and 12 application previews for visual review.')
+print('Rendered both PDFs and all application previews for visual review.')

@@ -13,8 +13,10 @@ function copyBrandKit() {
   const dest = resolve(root, 'public/kits/brand-delivery-kit')
   return {
     name: 'copy-brand-kit',
-    buildStart() {
+    async buildStart() {
       if (!existsSync(src)) return
+      // Rebuild image cards and versioned editor assets before every release.
+      await import('./scripts/build-brand-gallery.mjs')
       rmSync(dest, { recursive: true, force: true })
       cpSync(src, dest, { recursive: true })
     },

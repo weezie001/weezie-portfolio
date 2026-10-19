@@ -1,6 +1,6 @@
 # Brand kit v2 imagery
 
-The built-in OpenAI image-generation tool produced the original sample photograph saved at `kits/brand-delivery-kit/06-assets/photography/north-workshop.png`. It is included in the fictional Atelier North example and embedded in relevant application SVGs. The editor accepts a client's replacement image locally.
+The built-in OpenAI image-generation tool produced the original sample photograph, initially saved at `kits/brand-delivery-kit/06-assets/photography/north-workshop.png`. In Volume 03 the original PNG was preserved at `docs/design/brand-kit-mockups/north-workshop-original.png`; the kit uses an optimized full-dimension JPEG at `kits/brand-delivery-kit/06-assets/photography/north-workshop.jpg`. It is included in the fictional Atelier North example and embedded in relevant application SVGs. The editor accepts a client's replacement image locally.
 
 ## Final prompt
 

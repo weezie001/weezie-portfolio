@@ -1,0 +1,12 @@
+{
+  "qualification_criteria": {
+    "project_type": ["Custom Website", "E-Commerce / Store", "Fintech / Web App", "AI Chatbot / Automation", "Design System"],
+    "budget_tiers": [
+      { "tier": "Low / DIY", "range": "Under $450", "action": "Offer digital store templates or freebie pack" },
+      { "tier": "Standard Build", "range": "$450 - $1,200", "action": "Qualify for 1-2 week custom build" },
+      { "tier": "Premium / Full App", "range": "$1,200 - $3,500+", "action": "High priority: Flag for same-day founder call" }
+    ],
+    "timeline_urgency": ["Immediate (< 7 days)", "2-4 weeks", "Next month / Flexible"],
+    "contact_fields_required": ["name", "email_or_phone", "company_or_social"]
+  }
+}

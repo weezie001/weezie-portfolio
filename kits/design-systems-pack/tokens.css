@@ -1,0 +1,12 @@
+/* Weezie Studio Signature Tokens */
+:root {
+  --color-paper: #F3F1EC;
+  --color-ink: #111215;
+  --shadow-neu-sm: 4px 4px 10px rgba(0,0,0,0.06), -4px -4px 10px rgba(255,255,255,0.85);
+  --shadow-neu-inset: inset 2px 2px 5px rgba(0,0,0,0.06), inset -2px -2px 5px rgba(255,255,255,0.7);
+}
+.dark {
+  --color-paper: #0E0F12;
+  --color-ink: #F0F2F5;
+  --shadow-neu-sm: 4px 4px 12px rgba(0,0,0,0.6), -3px -3px 8px rgba(255,255,255,0.03);
+}

@@ -4,9 +4,10 @@ import { site } from '../data.js'
 const links = [
   { label: 'About', href: '/about' },
   { label: 'Work', href: '/work' },
+  { label: 'Templates', href: '/templates' },
+  { label: 'Components', href: '/components' },
   { label: 'AI Lab', href: '/ai-lab' },
   { label: 'Store', href: '/store' },
-  { label: 'Components', href: '/components' },
 ]
 
 export default function Navbar({ onNavigate, currentPath = '/' }) {

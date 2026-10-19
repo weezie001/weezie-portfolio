@@ -106,5 +106,221 @@
     "h": 630,
     "size": "1200 × 630",
     "file": "website-share-image"
+  },
+  {
+    "id": "ad-square",
+    "name": "Campaign / square",
+    "category": "Ads",
+    "w": 1080,
+    "h": 1080,
+    "size": "1080 × 1080 px",
+    "file": "ad-square"
+  },
+  {
+    "id": "ad-portrait",
+    "name": "Campaign / portrait",
+    "category": "Ads",
+    "w": 1080,
+    "h": 1350,
+    "size": "1080 × 1350 px",
+    "file": "ad-portrait"
+  },
+  {
+    "id": "ad-story",
+    "name": "Campaign / story",
+    "category": "Ads",
+    "w": 1080,
+    "h": 1920,
+    "size": "1080 × 1920 px",
+    "file": "ad-story"
+  },
+  {
+    "id": "ad-landscape",
+    "name": "Campaign / landscape",
+    "category": "Ads",
+    "w": 1200,
+    "h": 628,
+    "size": "1200 × 628 px",
+    "file": "ad-landscape"
+  },
+  {
+    "id": "ad-display",
+    "name": "Display / rectangle",
+    "category": "Ads",
+    "w": 300,
+    "h": 250,
+    "size": "300 × 250 px",
+    "file": "ad-display"
+  },
+  {
+    "id": "ad-leaderboard",
+    "name": "Display / leaderboard",
+    "category": "Ads",
+    "w": 728,
+    "h": 90,
+    "size": "728 × 90 px",
+    "file": "ad-leaderboard"
+  },
+  {
+    "id": "billboard-wide",
+    "name": "Billboard / wide",
+    "category": "Outdoor",
+    "w": 3000,
+    "h": 1000,
+    "size": "3:1 artwork ratio",
+    "file": "billboard-wide"
+  },
+  {
+    "id": "billboard-standard",
+    "name": "Billboard / standard",
+    "category": "Outdoor",
+    "w": 2400,
+    "h": 1200,
+    "size": "2:1 artwork ratio",
+    "file": "billboard-standard"
+  },
+  {
+    "id": "bus-shelter",
+    "name": "Bus shelter poster",
+    "category": "Outdoor",
+    "w": 1200,
+    "h": 1800,
+    "size": "2:3 artwork ratio",
+    "file": "bus-shelter"
+  },
+  {
+    "id": "rollup",
+    "name": "Roll-up display",
+    "category": "Outdoor",
+    "w": 850,
+    "h": 2000,
+    "size": "850:2000 artwork ratio",
+    "file": "rollup"
+  },
+  {
+    "id": "product-label",
+    "name": "Product label",
+    "category": "Packaging",
+    "w": 600,
+    "h": 900,
+    "size": "60 × 90 mm concept",
+    "file": "product-label"
+  },
+  {
+    "id": "hangtag",
+    "name": "Hang tag",
+    "category": "Packaging",
+    "w": 600,
+    "h": 1000,
+    "size": "60 × 100 mm concept",
+    "file": "hangtag"
+  },
+  {
+    "id": "box-sleeve",
+    "name": "Box sleeve",
+    "category": "Packaging",
+    "w": 1600,
+    "h": 700,
+    "size": "Flat artwork / supplier sizes",
+    "file": "box-sleeve"
+  },
+  {
+    "id": "tote-print",
+    "name": "Tote / print artwork",
+    "category": "Merchandise",
+    "w": 1000,
+    "h": 1100,
+    "size": "Flat print artwork",
+    "file": "tote-print"
+  },
+  {
+    "id": "tee-print",
+    "name": "T-shirt / chest artwork",
+    "category": "Merchandise",
+    "w": 1000,
+    "h": 1000,
+    "size": "Flat print artwork",
+    "file": "tee-print"
+  },
+  {
+    "id": "storefront-sign",
+    "name": "Storefront sign",
+    "category": "Signage",
+    "w": 2400,
+    "h": 800,
+    "size": "3:1 artwork ratio",
+    "file": "storefront-sign"
+  },
+  {
+    "id": "wayfinding",
+    "name": "Wayfinding sign",
+    "category": "Signage",
+    "w": 1200,
+    "h": 1600,
+    "size": "3:4 artwork ratio",
+    "file": "wayfinding"
+  },
+  {
+    "id": "envelope",
+    "name": "DL envelope / front",
+    "category": "Stationery",
+    "w": 2200,
+    "h": 1100,
+    "size": "220 × 110 mm",
+    "file": "envelope"
+  },
+  {
+    "id": "compliments",
+    "name": "With compliments",
+    "category": "Stationery",
+    "w": 2100,
+    "h": 990,
+    "size": "210 × 99 mm",
+    "file": "compliments"
+  },
+  {
+    "id": "folder",
+    "name": "Presentation folder / cover",
+    "category": "Stationery",
+    "w": 2300,
+    "h": 3200,
+    "size": "230 × 320 mm cover concept",
+    "file": "folder"
+  },
+  {
+    "id": "proposal-cover",
+    "name": "Proposal / cover",
+    "category": "Proposals",
+    "w": 794,
+    "h": 1123,
+    "size": "A4",
+    "file": "proposal-cover"
+  },
+  {
+    "id": "proposal-inner",
+    "name": "Proposal / scope",
+    "category": "Proposals",
+    "w": 794,
+    "h": 1123,
+    "size": "A4",
+    "file": "proposal-inner"
+  },
+  {
+    "id": "id-badge",
+    "name": "Team ID / front",
+    "category": "People",
+    "w": 856,
+    "h": 540,
+    "size": "85.6 × 54 mm concept",
+    "file": "id-badge"
+  },
+  {
+    "id": "campaign-board",
+    "name": "Campaign / overview",
+    "category": "Presentations",
+    "w": 1600,
+    "h": 900,
+    "size": "16:9",
+    "file": "campaign-board"
   }
 ]

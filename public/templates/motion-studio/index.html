@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KINETIC // Digital Architecture & Motion-First Brand Studio</title>
+<meta name="description" content="A motion-driven design studio engineering high-converting digital flagships and interactive brand identities.">
+<style>
+  :root {
+    --bg: #0A0B0E;
+    --card: #12141A;
+    --border: rgba(255, 255, 255, 0.08);
+    --ink: #FFFFFF;
+    --ink-muted: #8E94A0;
+    --accent: #0066FF;
+    --accent-glow: rgba(0, 102, 255, 0.25);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    line-height: 1.5;
+  }
+  
+  /* Noise overlay */
+  .noise {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image: radial-gradient(rgba(255,255,255,0.03) 1px, transparent 0);
+    background-size: 24px 24px;
+    z-index: 1;
+  }
+
+  /* Sticky Navigation */
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 40px;
+    background: rgba(10, 11, 14, 0.7);
+    backdrop-filter: blur(16px);
+    border-bottom: 1px solid var(--border);
+  }
+  .logo {
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    font-size: 15px;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+  .nav-actions { display: flex; align-items: center; gap: 24px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; }
+  .btn-cta {
+    background: #fff;
+    color: #000;
+    padding: 10px 22px;
+    border-radius: 100px;
+    text-decoration: none;
+    font-weight: 700;
+    font-size: 12px;
+    transition: transform 0.2s, background 0.2s;
+  }
+  .btn-cta:hover { transform: scale(1.04); background: #f0f0f0; }
+
+  /* Hero Section */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 120px 40px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+  .eyebrow {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    font-weight: 700;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eyebrow::after { content: ""; height: 1px; width: 60px; background: var(--accent); opacity: 0.4; }
+  
+  .headline {
+    font-size: clamp(48px, 8vw, 110px);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+    text-transform: uppercase;
+    max-width: 1200px;
+  }
+  .headline span {
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(255, 255, 255, 0.4);
+    transition: color 0.3s;
+  }
+  .headline span:hover { color: #fff; -webkit-text-stroke: 1px #fff; }
+
+  .hero-bottom {
+    margin-top: 60px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    padding-top: 40px;
+    border-top: 1px solid var(--border);
+  }
+  .hero-desc {
+    max-width: 500px;
+    font-size: 17px;
+    color: var(--ink-muted);
+    line-height: 1.6;
+  }
+  .hero-stats {
+    display: flex;
+    gap: 48px;
+  }
+  .stat-num { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; }
+  .stat-label { font-size: 11px; text-transform: uppercase; color: var(--ink-muted); letter-spacing: 0.1em; }
+
+  /* Kinetic Scroll Indicator */
+  .scroll-pill {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--ink-muted);
+    animation: bounce 2s infinite;
+  }
+  @keyframes bounce {
+    0%, 100% { transform: translate(-50%, 0); }
+    50% { transform: translate(-50%, 8px); }
+  }
+
+  /* Pinned Work Section */
+  .section-work {
+    padding: 120px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+  .section-title {
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    color: var(--ink-muted);
+    margin-bottom: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+    gap: 32px;
+  }
+  .project-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 24px;
+    overflow: hidden;
+    transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s;
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+  }
+  .project-card:hover {
+    transform: translateY(-8px);
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  .project-media {
+    height: 320px;
+    background: #191c24;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .project-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .project-card:hover .project-media img {
+    transform: scale(1.05);
+  }
+  .project-info {
+    padding: 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .project-tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .project-name {
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  .project-summary {
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+
+  /* Sticky Narrative Block */
+  .narrative-strip {
+    background: #0E1015;
+    padding: 140px 40px;
+    border-y: 1px solid var(--border);
+    margin: 80px 0;
+  }
+  .narrative-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    font-size: clamp(28px, 4vw, 54px);
+    font-weight: 700;
+    line-height: 1.25;
+    letter-spacing: -0.03em;
+  }
+  .narrative-inner em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  /* Interactive Footer */
+  footer {
+    padding: 100px 40px 60px;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 40px;
+    border-top: 1px solid var(--border);
+  }
+  .footer-big {
+    font-size: clamp(40px, 7vw, 96px);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+  }
+  .footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    font-size: 12px;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+  }
+
+  @media (max-width: 768px) {
+    header { padding: 18px 24px; }
+    .hero { padding: 100px 24px 40px; }
+    .hero-stats { gap: 24px; }
+    .section-work { padding: 80px 24px; }
+    .narrative-strip { padding: 80px 24px; }
+    footer { padding: 60px 24px 40px; }
+  }
+</style>
+</head>
+<body>
+<div class="noise"></div>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+    <span>KINETIC STUDIO</span>
+  </div>
+  <div class="nav-actions">
+    <a href="#work" style="color:inherit; text-decoration:none;">Work</a>
+    <a href="#services" style="color:inherit; text-decoration:none;">Approach</a>
+    <a href="#contact" class="btn-cta">Start A Project</a>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="eyebrow">Digital Flagship Architects</div>
+  <h1 class="headline">
+    We craft websites that <span>move markets</span> and command attention.
+  </h1>
+  <div class="hero-bottom">
+    <p class="hero-desc">
+      A motion-first agency collaborating with ambitious brands worldwide. We blend razor-sharp typography, real-time interactivity, and instant conversion logic.
+    </p>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">4.2x</div>
+        <div class="stat-label">Avg Conversion Lift</div>
+      </div>
+      <div>
+        <div class="stat-num">14 Days</div>
+        <div class="stat-label">Rapid Production</div>
+      </div>
+      <div>
+        <div class="stat-num">100%</div>
+        <div class="stat-label">Custom React Stack</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll-pill">↓ Scroll To Discover</div>
+</section>
+
+<section id="work" class="section-work">
+  <div class="section-title">
+    <span>Selected Client Engagements</span>
+    <span>[ 2026 Index ]</span>
+  </div>
+
+  <div class="project-grid">
+    <article class="project-card">
+      <div class="project-media">
+        <img src="/images/auth-scene.png" alt="SaaS Infrastructure" loading="lazy" />
+      </div>
+      <div class="project-info">
+        <span class="project-tag">Fintech / Web App</span>
+        <h3 class="project-name">Vanguard Wealth OS</h3>
+        <p class="project-summary">Multi-currency titanium wallet interface and live analytics dashboard.</p>
+      </div>
+    </article>
+
+    <article class="project-card">
+      <div class="project-media">
+        <img src="/images/minimal-card-mockup.png" alt="Architecture Showcase" loading="lazy" />
+      </div>
+      <div class="project-info">
+        <span class="project-tag">Architecture / Editorial</span>
+        <h3 class="project-name">Atelier Travertine</h3>
+        <p class="project-summary">Monolithic spatial portfolio with interactive specification drawers.</p>
+      </div>
+    </article>
+
+    <article class="project-card">
+      <div class="project-media">
+        <img src="/images/mobile-app-mockup.png" alt="Mobile App" loading="lazy" />
+      </div>
+      <div class="project-info">
+        <span class="project-tag">Consumer App</span>
+        <h3 class="project-name">Nova Horizon iOS</h3>
+        <p class="project-summary">Next-generation soundscape sequencer with viral waitlist mechanics.</p>
+      </div>
+    </article>
+  </div>
+</section>
+
+<div class="narrative-strip">
+  <div class="narrative-inner">
+    "Great websites are not static digital brochures. They are <em>living brand environments</em> that persuade, delight, and close deals while you sleep."
+  </div>
+</div>
+
+<footer id="contact">
+  <div class="footer-big">
+    Let&rsquo;s build your next flagship.
+  </div>
+  <div class="footer-bottom">
+    <span>© 2026 Kinetic Studio · All Rights Reserved</span>
+    <span>hello@weezie.site</span>
+    <span>Ready In 14 Days</span>
+  </div>
+</footer>
+
+</body>
+</html>

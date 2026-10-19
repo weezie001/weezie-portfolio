@@ -1,0 +1,43 @@
+{
+  "schemaVersion": 1,
+  "version": 1,
+  "id": "bs-ochre-editorial-deck-semantic-fixture",
+  "title": "Editable style fixture",
+  "palette": {
+    "theme": "#d74921",
+    "tint": "#f4ecd9",
+    "paper": "#f4ecd9",
+    "ink": "#171612"
+  },
+  "typography": {},
+  "contentLocale": "en",
+  "contentDirection": "ltr",
+  "slides": [
+    {
+      "id": "fixture-page",
+      "notes": "This is a schema fixture, not a finished presentation example.",
+      "root": {
+        "id": "fixture-root",
+        "type": "stack",
+        "gap": 24,
+        "children": [
+          {
+            "id": "fixture-label",
+            "type": "label",
+            "text": "STYLE FIXTURE"
+          },
+          {
+            "id": "fixture-heading",
+            "type": "heading",
+            "text": "An independently editable heading"
+          },
+          {
+            "id": "fixture-body",
+            "type": "text",
+            "text": "Create a user project from the style rules and replace this fixture with approved content."
+          }
+        ]
+      }
+    }
+  ]
+}

@@ -14,5 +14,8 @@
   "accent": "#c9a227",
   "display": "Georgia",
   "body": "Arial",
-  "heading": "Your story starts here."
+  "heading": "Your story starts here.",
+  "cta": "Your call to action",
+  "campaign": "Your campaign",
+  "offer": "Your supporting message"
 }

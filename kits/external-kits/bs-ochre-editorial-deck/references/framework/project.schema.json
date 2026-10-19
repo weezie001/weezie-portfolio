@@ -1,0 +1,708 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:editable-deck:project-schema:1",
+  "title": "Editable presentation project",
+  "description": "Stable version-1 project contract. Existing version:1 projects remain valid without schemaVersion, locale, title, or typography fields. IDs must additionally be unique across the project; column weights must match their children count.",
+  "type": "object",
+  "required": [
+    "id",
+    "palette",
+    "slides"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "const": 1
+    },
+    "schemaVersion": {
+      "const": 1
+    },
+    "title": {
+      "type": "string"
+    },
+    "palette": {
+      "$ref": "#/$defs/palette"
+    },
+    "slides": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 100,
+      "items": {
+        "$ref": "#/$defs/slide"
+      }
+    },
+    "contentLocale": {
+      "$ref": "#/$defs/locale"
+    },
+    "contentDirection": {
+      "$ref": "#/$defs/direction"
+    },
+    "typography": {
+      "$ref": "#/$defs/typography"
+    },
+    "illustrations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^data:image/(png|jpeg|webp|gif|svg\\+xml)[;,]"
+      }
+    },
+    "contentCSS": {
+      "type": "string",
+      "maxLength": 2000000,
+      "description": "Imported presentation-only CSS. Every selector is scoped to .slide[data-imported]; no imports, external URLs or scripts."
+    },
+    "imported": {
+      "type": "boolean"
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "locale": {
+      "enum": [
+        "en",
+        "zh",
+        "zh-tw",
+        "ja",
+        "ko",
+        "es",
+        "pt-br",
+        "de",
+        "fr",
+        "ar",
+        "ru",
+        "it",
+        "hi",
+        "id",
+        "tr",
+        "vi",
+        "th",
+        "nl",
+        "pl",
+        "he"
+      ]
+    },
+    "direction": {
+      "enum": [
+        "auto",
+        "ltr",
+        "rtl"
+      ]
+    },
+    "palette": {
+      "type": "object",
+      "required": [
+        "theme",
+        "tint",
+        "paper",
+        "ink"
+      ],
+      "properties": {
+        "theme": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "tint": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "paper": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "ink": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "name": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "typography": {
+      "type": "object",
+      "properties": {
+        "headingFont": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^[^;{}<>]*$"
+        },
+        "bodyFont": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 120,
+          "pattern": "^[^;{}<>]*$"
+        }
+      },
+      "patternProperties": {
+        "^x-": {
+          "type": "string",
+          "maxLength": 120,
+          "pattern": "^[^;{}<>]*$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "style": {
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "background": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "borderColor": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "fontSize": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 600
+        },
+        "padding": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "radius": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "italic": {
+          "type": "boolean"
+        },
+        "underline": {
+          "type": "boolean"
+        },
+        "align": {
+          "enum": [
+            "left",
+            "center",
+            "right"
+          ]
+        },
+        "css": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^(--[a-zA-Z0-9-]+|[a-z][a-z-]*)$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[^{}<>]*$"
+          }
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    },
+    "node": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "stack",
+            "columns",
+            "column",
+            "smart",
+            "item",
+            "heading",
+            "subheading",
+            "text",
+            "label",
+            "number",
+            "callout",
+            "code",
+            "group",
+            "image",
+            "rule",
+            "table",
+            "tablerow",
+            "cell"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "children": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "$ref": "#/$defs/node"
+          }
+        },
+        "style": {
+          "$ref": "#/$defs/style"
+        },
+        "locale": {
+          "$ref": "#/$defs/locale"
+        },
+        "direction": {
+          "$ref": "#/$defs/direction"
+        },
+        "gap": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 200
+        },
+        "weights": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "exclusiveMinimum": 0
+          }
+        },
+        "layout": {
+          "enum": [
+            "solid",
+            "outline",
+            "side",
+            "topline",
+            "steps",
+            "timeline",
+            "plain",
+            "quote"
+          ]
+        },
+        "cols": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "height": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 720
+        },
+        "fit": {
+          "enum": [
+            "cover",
+            "contain"
+          ]
+        },
+        "src": {
+          "type": "string",
+          "pattern": "^data:image/(png|jpeg|webp|gif|svg\\+xml)[;,]"
+        },
+        "alt": {
+          "type": "string"
+        },
+        "listStyle": {
+          "enum": [
+            "bullets",
+            "numbered",
+            "todo"
+          ]
+        },
+        "tag": {
+          "enum": [
+            "div",
+            "section",
+            "main",
+            "article",
+            "header",
+            "footer",
+            "figure",
+            "figcaption",
+            "p",
+            "h1",
+            "h2",
+            "h3",
+            "h4",
+            "h5",
+            "h6",
+            "span",
+            "strong",
+            "em",
+            "small",
+            "ul",
+            "ol",
+            "li",
+            "table",
+            "thead",
+            "tbody",
+            "tr",
+            "td",
+            "th",
+            "blockquote",
+            "pre",
+            "code",
+            "aside",
+            "b",
+            "i",
+            "u",
+            "s",
+            "mark",
+            "sub",
+            "sup",
+            "kbd",
+            "dl",
+            "dt",
+            "dd",
+            "img"
+          ]
+        },
+        "classNames": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^content-[a-zA-Z0-9_-]+$"
+          }
+        },
+        "attributes": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^data-[a-z][a-z0-9-]*$"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "html": {
+          "type": "string",
+          "description": "Sanitized inline formatting only; plain text remains canonical for export."
+        },
+        "svg": {
+          "type": "string",
+          "description": "Sanitized original SVG illustration; preserve source media without regenerating."
+        },
+        "imported": {
+          "type": "boolean"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "stack",
+                  "columns",
+                  "column",
+                  "smart",
+                  "item",
+                  "group",
+                  "table",
+                  "tablerow"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "children"
+            ],
+            "not": {
+              "required": [
+                "text"
+              ]
+            }
+          },
+          "else": {
+            "not": {
+              "required": [
+                "children"
+              ]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "heading",
+                  "subheading",
+                  "text",
+                  "label",
+                  "number",
+                  "callout",
+                  "code",
+                  "cell"
+                ]
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "text"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "image"
+              }
+            }
+          },
+          "then": {
+            "anyOf": [
+              {
+                "required": [
+                  "src"
+                ]
+              },
+              {
+                "required": [
+                  "svg"
+                ]
+              }
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "columns"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "children": {
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/node"
+                    },
+                    {
+                      "properties": {
+                        "type": {
+                          "const": "column"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "smart"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "children": {
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/node"
+                    },
+                    {
+                      "properties": {
+                        "type": {
+                          "const": "item"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "table"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "children": {
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/node"
+                    },
+                    {
+                      "properties": {
+                        "type": {
+                          "const": "tablerow"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "tablerow"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "children": {
+                "items": {
+                  "allOf": [
+                    {
+                      "$ref": "#/$defs/node"
+                    },
+                    {
+                      "properties": {
+                        "type": {
+                          "const": "cell"
+                        }
+                      }
+                    }
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "enum": [
+                  "image",
+                  "rule"
+                ]
+              }
+            }
+          },
+          "then": {
+            "not": {
+              "required": [
+                "text"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "slide": {
+      "type": "object",
+      "required": [
+        "id",
+        "root"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "root": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/node"
+            },
+            {
+              "properties": {
+                "type": {
+                  "const": "stack"
+                }
+              }
+            }
+          ]
+        },
+        "notes": {
+          "type": "string"
+        },
+        "palette": {
+          "$ref": "#/$defs/palette"
+        },
+        "background": {
+          "type": "string",
+          "pattern": "^#[a-fA-F0-9]{6}$"
+        },
+        "typography": {
+          "$ref": "#/$defs/typography"
+        },
+        "locale": {
+          "$ref": "#/$defs/locale"
+        },
+        "direction": {
+          "$ref": "#/$defs/direction"
+        },
+        "classNames": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^content-[a-zA-Z0-9_-]+$"
+          }
+        },
+        "style": {
+          "$ref": "#/$defs/style"
+        },
+        "attributes": {
+          "type": "object",
+          "propertyNames": {
+            "pattern": "^data-[a-z][a-z0-9-]*$"
+          },
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "imported": {
+          "type": "boolean"
+        },
+        "title": {
+          "type": "string"
+        },
+        "contentHeight": {
+          "type": "number",
+          "minimum": 720,
+          "maximum": 20000
+        },
+        "growToFit": {
+          "type": "boolean"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  }
+}

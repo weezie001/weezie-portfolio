@@ -233,6 +233,15 @@ export function StoreModal({ product, currency, onClose, onPaymentStatus }) {
                 >
                   Download Pack (.zip) ↓
                 </a>
+                {product.slug !== 'weezie-ui-components-bundle' && (
+                  <a
+                    href="/downloads/weezie-ui-components.zip"
+                    download
+                    className="neu-hover rounded-full bg-paper px-6 py-3.5 text-xs font-bold uppercase tracking-[0.12em] text-blue neu-sm"
+                  >
+                    🎁 Download Bonus UI Pack (.zip) ↓
+                  </a>
+                )}
                 {product.preview_url && (
                   <a
                     href={product.preview_url}
@@ -294,6 +303,20 @@ export function StoreModal({ product, currency, onClose, onPaymentStatus }) {
                   />
                 </div>
               </div>
+
+              {!isFreebie && (
+                <div className="rounded-xl bg-blue/5 border border-blue/20 p-3 text-left">
+                  <div className="flex items-start gap-2">
+                    <span className="text-base">🎁</span>
+                    <div>
+                      <p className="text-[11px] font-bold text-ink">Free Bonus With Every Purchase:</p>
+                      <p className="mt-0.5 text-[10px] text-ink-soft leading-relaxed">
+                        You automatically get the complete <strong>Weezie UI Bundle (35 React & Tailwind Components, $29 value)</strong> free with your order, sent directly to your email and download screen.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {errMsg && <p className="text-xs font-bold text-red-600">{errMsg}</p>}
 
@@ -579,12 +602,7 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
                       <span className="rounded-full bg-paper/95 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-ink backdrop-blur-sm">
                         {item.category}
                       </span>
-                      {item.slug === 'weezie-brand-delivery-kit' && (
-                        <span className="rounded-full bg-amber-400 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-ink shadow-sm animate-pulse">
-                          ✦ Interactive 3D
-                        </span>
-                      )}
-                      {item.badge && item.slug !== 'weezie-brand-delivery-kit' && (
+                      {item.badge && (
                         <span className="rounded-full bg-blue px-3 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-white">
                           {item.badge}
                         </span>
@@ -605,15 +623,7 @@ export default function StoreSection({ fullPage = false, onNavigate }) {
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {item.slug === 'weezie-brand-delivery-kit' ? (
-                      <button
-                        type="button"
-                        onClick={() => setShowBrandKitInteractive(true)}
-                        className="neu-hover rounded-full bg-paper px-3.5 py-2.5 text-xs font-bold text-amber-700 hover:text-ink neu-sm"
-                      >
-                        ✦ 3D Demo ↗
-                      </button>
-                    ) : item.preview_url ? (
+                    {item.preview_url ? (
                       <a
                         href={item.preview_url}
                         onClick={(e) => {

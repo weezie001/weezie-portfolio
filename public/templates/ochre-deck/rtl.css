@@ -1,0 +1,333 @@
+/* Append after the editor stylesheet. UI and slide content have independent directions. */
+
+/* Keep measured paper coordinates physical; only the slide article carries content direction. */
+.canvas,
+.card-frame,
+.thumb-sheet,
+.thumb-slide,
+.slide-paper,
+.print-sheet,
+.export-host {
+  direction: ltr;
+}
+.slide[dir="ltr"] { direction: ltr; }
+.slide[dir="rtl"] { direction: rtl; }
+.thumb-slide,
+.slide-paper > .slide,
+.export-host .print-sheet > .slide {
+  transform-origin: top left;
+}
+.slide-paper > .slide,
+.export-host .print-sheet > .slide {
+  left: 0;
+  right: auto;
+}
+
+/* Logical UI anchors retain the original LTR layout and mirror in RTL. */
+.document-title {
+  border-left: 0;
+  border-inline-start: 1px solid var(--line);
+  padding-left: 0;
+  padding-inline-start: 16px;
+}
+.divider {
+  border-left: 0;
+  border-inline-start: 1px solid var(--line);
+}
+.popover,
+.language-menu {
+  left: auto;
+  right: auto;
+  inset-inline-end: 0;
+  max-inline-size: calc(100vw - 24px);
+  text-align: start;
+}
+.popover button {
+  gap: 12px;
+  align-items: flex-start;
+  min-width: 0;
+  line-height: 1.4;
+  text-align: start;
+  white-space: normal;
+}
+.popover button small {
+  max-inline-size: 65%;
+  text-align: end;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.language-heading {
+  min-width: 0;
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+#locale-select {
+  min-width: 0;
+  max-width: 100%;
+  text-align: start;
+}
+.slide-thumb,
+.tree-row {
+  text-align: start;
+}
+.tree-row span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.thumb-caption span:last-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  unicode-bidi: plaintext;
+}
+.card-between .icon-button:first-child {
+  border-radius: 0;
+  border-start-start-radius: 7px;
+  border-end-start-radius: 7px;
+}
+.card-between .icon-button:last-child {
+  border-left: 1px solid var(--line);
+  border-inline-start: 0;
+  border-radius: 0;
+  border-start-end-radius: 7px;
+  border-end-end-radius: 7px;
+}
+html[dir="rtl"] .rail {
+  left: auto;
+  right: 0;
+  border-right: 0;
+  border-left: 1px solid var(--line);
+}
+html[dir="rtl"] .workspace {
+  margin-left: 86px;
+  margin-right: 208px;
+}
+html[dir="rtl"] .notes-open .workspace {
+  margin-left: 430px;
+  margin-right: 208px;
+}
+html[dir="rtl"] .inspector,
+html[dir="rtl"] .notes-open .inspector {
+  right: auto;
+  left: 0;
+}
+html[dir="rtl"] .panel-tabs {
+  right: auto;
+  left: 14px;
+}
+html[dir="rtl"] .panel-body,
+html[dir="rtl"] .notes-panel {
+  right: auto;
+  left: 70px;
+}
+html[dir="rtl"] .workspace-bar,
+html[dir="rtl"] .card-between,
+html[dir="rtl"] .floating,
+html[dir="rtl"] .color-popover,
+html[dir="rtl"] .popover,
+html[dir="rtl"] .language-menu,
+html[dir="rtl"] #tool-tooltip {
+  direction: rtl;
+}
+html[dir="rtl"] .card-note {
+  right: auto;
+  left: 12px;
+}
+html[dir="rtl"] .mini-layout.side i,
+html[dir="rtl"] .mini-layout.timeline i {
+  border-left: 0;
+  border-right: 3px solid #a3a3a3;
+}
+html[dir="rtl"] .mini-layout.quote i {
+  border-radius: 10px 0 10px 10px;
+}
+
+/* Semantic history/navigation icons mirror; physical text alignment and vertical arrows do not. */
+html[dir="rtl"] [data-act="undo"] > .icon,
+html[dir="rtl"] [data-act="redo"] > .icon,
+html[dir="rtl"] #notes-panel [data-act="prev"] > .icon,
+html[dir="rtl"] #notes-panel [data-act="next"] > .icon,
+#present-nav[dir="rtl"] [data-act="prev"] > .icon,
+#present-nav[dir="rtl"] [data-act="next"] > .icon {
+  transform: scaleX(-1);
+}
+#present-nav[dir="ltr"] { direction: ltr; }
+#present-nav[dir="rtl"] { direction: rtl; }
+
+/* Use the node's content direction for borders, handles and grid reading order. */
+.node:not([data-imported-node]).callout {
+  border-left: 0;
+  border-inline-start: 4px solid var(--theme);
+}
+.node:not([data-imported-node]).smart[data-layout="side"] > .item {
+  border-left: 0;
+  border-inline-start: 4px solid var(--theme);
+}
+.node:not([data-imported-node]).smart[data-layout="timeline"] > .item {
+  border-left: 0;
+  border-inline-start: 3px solid var(--theme);
+}
+.node:not([data-imported-node]).cell {
+  border-right: 0;
+  border-inline-end: 1px solid #dfe4e1;
+}
+.node:not([data-imported-node]).cell:last-child { border-inline-end: 0; }
+.slide[dir="rtl"] .node:not([data-imported-node]).smart[data-layout="quote"] > .item {
+  border-radius: 22px 0 22px 22px;
+}
+.drag-handle:not(.layout-grip) {
+  left: auto;
+  right: auto;
+  inset-inline-start: -23px;
+}
+.inline-add {
+  left: auto;
+  right: auto;
+  inset-inline-end: -17px;
+}
+.column-resizer {
+  left: auto;
+  right: auto;
+  inset-inline-end: auto;
+}
+.column-resizer:dir(rtl) { transform: translateX(50%); }
+.column-resizer:dir(ltr) { transform: translateX(-50%); }
+/* Resizer percentages are supplied as inset-inline-start by the editor. */
+.column-resizer::after {
+  left: 8px;
+  right: auto;
+}
+.slide[dir="rtl"] .node:not([data-imported-node]).heading,
+.slide[dir="rtl"] .node:not([data-imported-node]).subheading,
+.slide[dir="rtl"] .node:not([data-imported-node]).label,
+.slide[dir="rtl"] .node:not([data-imported-node]).number,
+html[dir="rtl"] .brand,
+html[dir="rtl"] .dock-aa,
+html[dir="rtl"] .heading-glyph,
+html[dir="rtl"] .library-header-icon,
+html[dir="rtl"] .section-title {
+  letter-spacing: normal;
+}
+.slide[dir="rtl"] .node:not([data-imported-node])[contenteditable] {
+  text-align: start;
+}
+/* Inline user-selected left/center/right alignment continues to override the default. */
+
+/* Preserve code, technical values and counters as isolated LTR sequences. */
+.node:not([data-imported-node]).code,
+.code-glyph,
+.heading-glyph,
+.text-glyph,
+.number-glyph,
+.node:not([data-imported-node]).number,
+input[type="number"],
+input[type="range"],
+#color-hex,
+[data-prop="ratio"],
+.tool-size,
+.panel-counter,
+#notes-page-count,
+#present-count,
+.thumb-caption span:first-child,
+.ltr,
+[data-bidi="ltr"] {
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+.node:not([data-imported-node]).code { text-align: left; }
+.node:not([data-imported-node]).number { unicode-bidi: isolate; }
+#notes,
+.notes-card-title { unicode-bidi: plaintext; }
+
+/* Translations may take more room than the original compact Chinese labels. */
+.library-title,
+.library-title h3,
+.panel-heading h3,
+.notes-heading h3,
+.library-section h4 {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.library-label,
+.library-card small,
+.library-body .tile {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: center;
+}
+.library-label { line-height: 1.35; }
+.library-card small { line-height: 1.45; }
+.library-upload { white-space: normal; }
+.floating {
+  max-width: calc(100vw - 24px);
+  flex-wrap: wrap;
+  overflow: visible;
+}
+.tool-group {
+  min-width: 0;
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+.tool-type {
+  max-inline-size: 12rem;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+}
+#tool-tooltip {
+  max-width: min(320px, calc(100vw - 16px));
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-align: start;
+}
+.notes-heading h3 { line-height: 1.35; }
+.notes-heading .icon-button,
+.library-header .icon-button,
+.panel-heading .icon-button { flex-shrink: 0; }
+
+@media (max-width: 1100px) and (min-width: 801px) {
+  html[dir="rtl"] .workspace {
+    margin-left: 78px;
+    margin-right: 155px;
+  }
+  html[dir="rtl"] .notes-open .workspace {
+    margin-left: 415px;
+    margin-right: 155px;
+  }
+}
+@media (max-width: 800px) {
+  html[dir="rtl"] .workspace,
+  html[dir="rtl"] .notes-open .workspace {
+    margin-left: 0;
+    margin-right: 110px;
+  }
+  html[dir="rtl"] .inspector,
+  html[dir="rtl"] .notes-open .inspector {
+    right: auto;
+    left: 12px;
+    border: 0;
+  }
+  html[dir="rtl"] .panel-tabs {
+    left: auto;
+    right: auto;
+  }
+  html[dir="rtl"] .panel-body,
+  html[dir="rtl"] .notes-panel {
+    left: 0;
+    right: auto;
+  }
+  .library-card small { white-space: normal; }
+}
+/* Presentation and print keep the complete physical canvas, regardless of UI direction. */
+html[dir="rtl"] body.presentation .workspace,
+html[dir="rtl"] body.presentation.notes-open .workspace {
+  margin: 0;
+  padding: 0;
+}
+@media print {
+  .print-sheet,
+  .export-host { direction: ltr; }
+  .export-host .slide[dir="rtl"] { direction: rtl; }
+  .export-host .slide[dir="ltr"] { direction: ltr; }
+}

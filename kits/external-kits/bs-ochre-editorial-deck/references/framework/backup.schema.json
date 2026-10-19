@@ -1,0 +1,69 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:editable-deck:backup-schema:1",
+  "title": "Editable presentation backup",
+  "description": "Current backups wrap editor configuration and project state. Legacy raw version-1 project JSON remains accepted. Register project.schema.json and config.schema.json by their $id values when validating this schema.",
+  "oneOf": [
+    {
+      "$ref": "urn:editable-deck:project-schema:1"
+    },
+    {
+      "type": "object",
+      "required": [
+        "schemaVersion",
+        "editor",
+        "project"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "const": 1
+        },
+        "editor": {
+          "allOf": [
+            {
+              "$ref": "urn:editable-deck:config-schema:1"
+            },
+            {
+              "required": [
+                "uiLocale"
+              ],
+              "properties": {
+                "uiLocale": {
+                  "enum": [
+                    "en",
+                    "zh",
+                    "zh-tw",
+                    "ja",
+                    "ko",
+                    "es",
+                    "pt-br",
+                    "de",
+                    "fr",
+                    "ar",
+                    "ru",
+                    "it",
+                    "hi",
+                    "id",
+                    "tr",
+                    "vi",
+                    "th",
+                    "nl",
+                    "pl",
+                    "he"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "project": {
+          "$ref": "urn:editable-deck:project-schema:1"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  ]
+}

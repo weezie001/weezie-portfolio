@@ -110,9 +110,8 @@ export default function PaymentStatusModal({
         {/* ============================================================== */}
         {status === 'confirmed' && (
           <div className="flex flex-col items-center text-center">
-            {/* Top Brand Asset: 3D Celebration Character Scene */}
+            {/* Top Brand Asset: 3D Celebration Character Scene (no glow blur) */}
             <div className="relative mb-3 flex h-36 w-full items-center justify-center overflow-hidden">
-              <div className="pointer-events-none absolute h-32 w-32 rounded-full bg-emerald-400/20 blur-2xl" />
               
               {/* Brand doodle marks */}
               <div className="absolute left-10 top-2 h-7 w-7 text-amber-500 animate-bounce">
@@ -180,14 +179,38 @@ export default function PaymentStatusModal({
               </div>
             </div>
 
+            {/* Free Bonus Weezie UI Component Bundle Callout */}
+            <div className="mt-4 w-full rounded-2xl bg-paper p-3.5 text-left neu-inset border border-blue/20">
+              <div className="flex items-start gap-2.5">
+                <span className="text-lg">🎁</span>
+                <div className="flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[11px] font-bold text-ink">Free Bonus: Weezie UI 35 Components Pack</p>
+                    <span className="rounded-full bg-blue/15 px-2 py-0.2 text-[9px] font-bold text-blue uppercase">Free</span>
+                  </div>
+                  <p className="mt-0.5 text-[10px] text-ink-soft leading-relaxed">
+                    As a special buyer bonus, the complete 35 React & Tailwind component pack ($29 value) has been unlocked for free and also sent to your email.
+                  </p>
+                  <a
+                    href="/downloads/weezie-ui-components.zip"
+                    download
+                    className="mt-2 inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider text-blue hover:underline"
+                  >
+                    <span>Download Bonus Components (.zip)</span>
+                    <span>↓</span>
+                  </a>
+                </div>
+              </div>
+            </div>
+
             {/* Action Buttons */}
-            <div className="mt-6 flex w-full flex-col gap-2.5">
+            <div className="mt-5 flex w-full flex-col gap-2.5">
               <a
                 href={downloadUrl}
                 download
-                className="btn-gradient flex w-full items-center justify-center gap-2 rounded-full py-4 text-xs font-bold uppercase tracking-[0.14em] shadow-lg transition-transform hover:scale-102"
+                className="btn-gradient flex w-full items-center justify-center gap-2 rounded-full py-4 text-xs font-bold uppercase tracking-[0.14em] shadow-md transition-transform hover:scale-102"
               >
-                <span>Download Assets (.zip)</span>
+                <span>Download Purchased Assets (.zip)</span>
                 <span>↓</span>
               </a>
 
@@ -215,20 +238,18 @@ export default function PaymentStatusModal({
         {/* ============================================================== */}
         {status === 'pending' && (
           <div className="flex flex-col items-center text-center">
-            {/* Top Brand Asset: 3D Contemplating Character Scene */}
+            {/* Top Brand Asset: Character Scene (clean, no glow blur) */}
             <div className="relative mb-3 flex h-36 w-full items-center justify-center overflow-hidden">
-              <div className="pointer-events-none absolute h-32 w-32 rounded-full bg-blue/20 blur-2xl" />
-
-              {/* Pulsing orbital rings */}
+              {/* Subtle orbital ring */}
               <div className="absolute inset-0 flex items-center justify-center">
-                <div className="h-28 w-28 rounded-full border border-blue/20 animate-ping" />
+                <div className="h-28 w-28 rounded-full border border-blue/20" />
               </div>
 
               {/* 3D Character */}
               <img
                 src="/characters/about.png"
                 alt="Weezie Verifying Transaction"
-                className="relative z-10 h-36 object-contain drop-shadow-xl"
+                className="relative z-10 h-36 object-contain drop-shadow-md"
               />
             </div>
 
@@ -299,9 +320,8 @@ export default function PaymentStatusModal({
         {/* ============================================================== */}
         {status === 'failed' && (
           <div className="flex flex-col items-center text-center">
-            {/* Top Brand Asset: 3D Supportive Character Scene */}
+            {/* Top Brand Asset: Character Scene (clean, no glow blur) */}
             <div className="relative mb-3 flex h-36 w-full items-center justify-center overflow-hidden">
-              <div className="pointer-events-none absolute h-32 w-32 rounded-full bg-amber-400/20 blur-2xl" />
 
               {/* Brand doodle marks */}
               <div className="absolute left-10 top-3 h-6 w-6 text-red-500">

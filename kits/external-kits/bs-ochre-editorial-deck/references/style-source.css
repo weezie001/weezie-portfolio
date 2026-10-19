@@ -1,0 +1,129 @@
+/* Read-only original presentation style vocabulary. Convert to scoped model contentCSS; never load as editor UI. */
+
+  :root{
+    /* ============ theme tokens ============
+       A specific PPT skill overrides these three (and only these three
+       need to change to reskin the whole deck). Lock them to a small,
+       curated set of presets in that skill's own references/themes.md —
+       never let a caller pass an arbitrary hex value straight through. */
+    --ink:#141414;
+    --paper:#fafaf8;
+    --accent:#2b5fff;
+
+    /* ============ type tokens ============
+       System stacks by default so the engine has zero network
+       dependency. A specific skill may swap in webfonts here. */
+    --font-display:-apple-system,"SF Pro Display","Helvetica Neue",Arial,sans-serif;
+    --font-body:-apple-system,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+    --font-mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:100%;height:100%;overflow:hidden;background:var(--ink)}
+  body{font-family:var(--font-body);color:var(--ink);-webkit-font-smoothing:antialiased}
+
+  /* ============ deck + slides: horizontal paging, one slide = one 16:9 screen ============
+     This is the load-bearing structural choice of the whole engine: slides
+     are pages you move BETWEEN (translateX on #deck), not sections you
+     scroll THROUGH. That's what makes the result read as "a PPT" instead
+     of "a long webpage." Do not change #deck/.slide to a vertical stack. */
+  #deck{position:fixed;inset:0;display:flex;height:100vh;width:max-content;transition:transform .6s cubic-bezier(.65,0,.35,1);will-change:transform}
+  .slide{width:100vw;height:100vh;flex:0 0 100vw;position:relative;overflow:hidden;background:var(--paper);color:var(--ink);display:flex;flex-direction:column;padding:6vh 6vw}
+  .slide.dark{background:var(--ink);color:var(--paper)}
+
+  .chrome{display:flex;justify-content:space-between;gap:2em;font-family:var(--font-mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;opacity:.55;flex:0 0 auto}
+  .content{flex:1;display:flex;flex-direction:column;justify-content:center;min-height:0}
+  .foot{margin-top:auto;display:flex;justify-content:space-between;align-items:flex-end;gap:2em;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;opacity:.5;flex:0 0 auto}
+
+  /* ============ chrome: progress dots, page counter, arrows, overview/notes toggles ============
+     Keep these consistent across every deck built on this engine — they
+     are the "this behaves like a real presentation tool" signal. */
+  #nav{position:fixed;left:0;right:0;bottom:3vh;display:flex;justify-content:center;gap:8px;z-index:20;pointer-events:none}
+  #nav button{width:6px;height:6px;border-radius:50%;border:none;background:currentColor;opacity:.28;cursor:pointer;padding:0;color:var(--ink);pointer-events:auto;transition:opacity .2s,width .2s}
+  #nav button.active{opacity:1;width:18px;border-radius:3px}
+  body.on-dark #nav button{color:var(--paper)}
+
+  #page-counter{position:fixed;left:6vw;bottom:3vh;font-family:var(--font-mono);font-size:11px;letter-spacing:.1em;opacity:.5;z-index:20;color:var(--ink)}
+  body.on-dark #page-counter{color:var(--paper)}
+
+  #controls{position:fixed;right:6vw;bottom:3vh;z-index:20;display:flex;gap:12px;align-items:center;font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;opacity:.55;color:var(--ink)}
+  body.on-dark #controls{color:var(--paper)}
+  #controls button{all:unset;cursor:pointer}
+
+  .arrow-btn{position:fixed;top:50%;transform:translateY(-50%);width:42px;height:42px;border-radius:50%;border:1px solid currentColor;opacity:.3;display:flex;align-items:center;justify-content:center;cursor:pointer;background:transparent;color:var(--ink);z-index:20;transition:opacity .2s}
+  body.on-dark .arrow-btn{color:var(--paper)}
+  .arrow-btn:hover{opacity:.85}
+  #prev-btn{left:3vw}
+  #next-btn{right:3vw}
+
+  /* ============ ESC overview: live-styled thumbnails, not a static list ============ */
+  #overview{position:fixed;inset:0;background:rgba(10,10,10,.94);z-index:50;display:none;padding:6vh 6vw;overflow-y:auto}
+  #overview.open{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:22px;align-content:start}
+  .ov-card{aspect-ratio:16/9;background:var(--paper);border-radius:4px;overflow:hidden;position:relative;cursor:pointer;border:2px solid transparent}
+  .ov-card.current{border-color:var(--accent)}
+  .ov-clone{width:1600px;height:900px;transform-origin:top left;pointer-events:none;position:absolute;top:0;left:0}
+  .ov-label{position:absolute;left:8px;bottom:6px;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:#111;background:rgba(255,255,255,.8);padding:2px 6px;border-radius:2px;z-index:2}
+
+  /* ============ speaker notes panel: lightweight by design ============
+     This is deliberately NOT the full audience-sync / rehearsal / laser
+     pointer presenter mode some decks implement — that's a large,
+     separate feature a specific skill can add on top if it genuinely
+     needs it (see references/architecture.md). This panel exists so the
+     SPEAKER_NOTES contract has somewhere to render. */
+  #notes-panel{position:fixed;top:0;right:0;bottom:0;width:340px;max-width:86vw;background:#111214;color:#f4f4f2;z-index:40;transform:translateX(100%);transition:transform .3s ease;padding:5vh 24px;overflow-y:auto;font-family:var(--font-body)}
+  #notes-panel.open{transform:translateX(0)}
+  #notes-panel h3{font-size:15px;font-weight:600;margin-bottom:2px}
+  #notes-panel .notes-section{font-size:10px;text-transform:uppercase;letter-spacing:.14em;opacity:.5;margin-top:22px;margin-bottom:10px}
+  #notes-panel ul{padding-left:1.1em;display:flex;flex-direction:column;gap:9px;font-size:13.5px;line-height:1.55}
+  #notes-panel .notes-empty{opacity:.5;font-size:13px;margin-top:22px}
+
+  /* ============ stage and live page list ============
+     #deck-stage holds the deck so the studio can scale it; slides marked
+     [hidden] (inactive layout variants, deleted slides) leave the page list, and
+     [data-skip] slides leave it too unless the studio is showing them. */
+  #deck-stage{position:fixed;inset:0;overflow:hidden}
+  #deck > .slide[hidden]{display:none!important}
+  body:not(.deck-show-skipped) #deck > .slide[data-skip]{display:none!important}
+  #deck-transition-layer{position:absolute;inset:0;z-index:30;pointer-events:none;overflow:hidden}
+  #deck-transition-layer[hidden]{display:none}
+  #deck-transition-layer i{position:absolute;top:0;bottom:0;background:var(--wipe,#111);transform-origin:50% 0}
+  /* ============ end stage and live page list ============ */
+
+  @media print{
+    body{overflow:visible}
+    #deck{position:static;transform:none!important;width:auto;display:block}
+    .slide{width:1920px;height:1080px;page-break-after:always}
+    #nav,#controls,#page-counter,.arrow-btn,#overview,#notes-panel,#deck-transition-layer{display:none!important}
+    #deck-stage{position:static!important;overflow:visible!important;transform:none!important}
+    #deck > .slide[data-skip]{display:none!important}
+  }
+
+:root{--ink:#171612;--paper:#f4ecd9;--accent:#d74921;--font-display:Impact,Haettenschweiler,"Arial Narrow",sans-serif;--font-body:"Helvetica Neue",Arial,sans-serif}
+.slide{padding:0;container-type:size;background:#f4ecd9;color:#171612}.canvas{position:absolute;inset:0}.canvas img{display:block;width:100%;height:100%;object-fit:cover}.canvas h1,.canvas h2,.canvas h3{font-weight:400;letter-spacing:-.045em;line-height:.99}.canvas h2,.canvas h3{font-family:"Bodoni 72","Iowan Old Style",Georgia,serif}.canvas h2{font-size:4.5cqw}.canvas h3{font-size:2cqw}.canvas p{font-size:.97cqw;line-height:1.43}.canvas em{color:#d74921;font-style:italic}.canvas svg{width:1.3cqw;height:1.3cqw}.topline{position:absolute;top:2.4cqw;left:5cqw;right:5cqw;display:flex;justify-content:space-between;align-items:center;z-index:4;font-size:.62cqw;text-transform:uppercase;letter-spacing:.03em}.topline b{font-family:Impact,sans-serif;font-size:1.45cqw;font-weight:400}.kicker{font-size:.63cqw;line-height:1.3;font-weight:650;letter-spacing:.035em;text-transform:uppercase;color:#bd4122}.footnote{position:absolute;left:5cqw;right:5cqw;bottom:4cqw;font-size:.56cqw;opacity:.63}.button{display:inline-flex;align-items:center;justify-content:space-between;gap:2.5cqw;padding:.8cqw 1.3cqw;border-radius:2cqw;background:#efb52b;font-size:.7cqw;font-weight:600}.underline{width:22cqw;height:.65cqw;margin-top:.8cqw;display:block;overflow:visible}.underline path{stroke:#d74921;stroke-width:3;fill:none;stroke-linecap:round}.rule{height:1px;background:currentColor;opacity:.35}.s1 .portrait{position:absolute;left:43cqw;right:2cqw;top:5.4cqw;bottom:3.8cqw;mix-blend-mode:multiply}.s1 .portrait img{object-fit:contain;object-position:center bottom}.s1 .cover-copy{position:absolute;left:6cqw;top:12cqw;width:47cqw}.s1 h1{font-size:9.4cqw;line-height:.92;letter-spacing:-.045em;margin-top:.8cqw;font-weight:400}.s1 .cover-copy p{width:24cqw;margin:2cqw 0 1.6cqw}.stamp{position:absolute;border:1px dashed #d74921;border-radius:50%;width:9cqw;height:9cqw;color:#d74921;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.65cqw;line-height:1.4;letter-spacing:.12em;transform:rotate(-14deg)}.s1 .stamp{left:40cqw;top:33cqw}.s1 .footnote{right:auto}
+.s2 .studio{position:absolute;left:0;top:8cqw;width:48cqw;height:40cqw;overflow:hidden}.s2 .studio:before{content:"";position:absolute;left:0;top:0;width:2.5cqw;height:20cqw;background:#d74921;z-index:1}.s2 .intro{position:absolute;left:54cqw;top:12cqw;right:7cqw}.s2 h2{margin:1.6cqw 0 2cqw;font-size:4.15cqw}.s2 .intro p{max-width:28cqw}.s2 .round-note{position:absolute;right:6cqw;bottom:9cqw;width:10cqw;height:10cqw;border-radius:47% 51% 44% 50%;background:#efb52b;display:flex;align-items:center;justify-content:center;text-align:center;font-size:.76cqw;font-weight:650;transform:rotate(9deg)}.s2 .signature{font:italic 2.1cqw "Bodoni 72",Georgia,serif;margin-top:3cqw}.s2 .footnote{left:54cqw}
+.s3 .evidence{position:absolute;left:5cqw;right:5cqw;top:18cqw;height:28cqw}.s3 .heading{position:absolute;left:6cqw;right:7cqw;top:8cqw;display:flex;justify-content:space-between;align-items:end}.s3 h2{font-size:4cqw}.s3 .heading p{width:26cqw}.s3 .label-strip{position:absolute;left:5cqw;right:5cqw;top:46cqw;background:#efb52b;display:flex;justify-content:space-between;padding:1.1cqw 1.5cqw;font-size:.7cqw}
+.slide.ink{background:#151714;color:#f4ecd9}.ink .kicker{color:#efb52b}.s4 .heading{position:absolute;left:6cqw;top:10cqw;width:23cqw}.s4 h2{margin-top:1.4cqw;font-size:4.1cqw}.s4 .heading p{font-size:.88cqw;margin-top:2cqw;color:#cec9bc}.service-grid{position:absolute;left:34cqw;right:6cqw;top:12cqw;bottom:10cqw;display:grid;grid-template-columns:repeat(4,1fr)}.service-grid article{border-left:1px solid #f4ecd944;padding:0 1.4cqw;display:flex;flex-direction:column;align-items:start}.service-grid svg{width:3.8cqw;height:3.8cqw;color:#efb52b;margin-bottom:4cqw}.service-grid h3{font-size:2cqw;line-height:1.05;min-height:4.7cqw}.service-grid p{font-size:.82cqw;line-height:1.5;color:#c8c5bb;margin-top:1.1cqw}.service-grid .index{margin-top:auto;font-size:.7cqw;color:#d8b768}.s4 .underline path{stroke:#efb52b}
+.s5 .heading,.s9 .heading{position:absolute;left:5cqw;top:11cqw;width:22cqw}.s5 h2,.s9 h2{font-size:4.5cqw;margin-top:1.5cqw}.s5 .heading p,.s9 .heading p{margin:2cqw 0;width:19cqw;font-size:.9cqw}.project-grid{position:absolute;left:30cqw;right:5cqw;top:11cqw;display:grid;grid-template-columns:repeat(3,1fr);gap:1.4cqw}.project-grid .art{height:26cqw}.project-grid .caption{border-bottom:1px solid #17161244;padding:1.1cqw 0 1.4cqw}.project-grid h3{font:600 .88cqw "Helvetica Neue",Arial,sans-serif;text-transform:uppercase;letter-spacing:-.025em;line-height:1.3;display:flex;justify-content:space-between;gap:1cqw}.project-grid p{font-size:.7cqw;margin-top:.5cqw}.project-grid .caption svg{width:.9cqw;height:.9cqw}
+.s6 .detail{position:absolute;left:0;top:7cqw;width:58cqw;height:42cqw}.s6 .detail img{object-position:47% center}.s6 .story{position:absolute;left:64cqw;right:6cqw;top:10cqw}.s6 h2{font-size:4.4cqw;margin-top:1.6cqw}.s6 .story p{margin:2cqw 0}.s6 .observation{font:1.4cqw/1.22 "Bodoni 72",Georgia,serif;border-top:1px solid #17161255;padding-top:1.4cqw;margin-top:3cqw}.s6 .footnote{left:64cqw}
+.s7 .heading{position:absolute;left:6cqw;top:8cqw}.s7 h2{font-size:4cqw;margin-top:1.2cqw}.s7 .material{position:absolute;left:6cqw;top:21cqw;width:49cqw;height:27.5cqw}.s7 .process{position:absolute;left:61cqw;right:6cqw;top:13cqw}.process article{padding:1.5cqw 0 2cqw;border-top:1px solid #17161255;display:grid;grid-template-columns:3cqw 1fr;gap:1.2cqw}.process .number{font-family:Impact,sans-serif;font-size:2.5cqw;color:#d74921}.process h3{font-size:2.1cqw}.process p{font-size:.84cqw;margin-top:.6cqw}
+.slide.rust{background:#d74921;color:#f4ecd9}.rust .kicker{color:#f2b936}.s8 .paint{position:absolute;inset:0}.s8 .statement{position:absolute;left:12cqw;right:12cqw;top:11cqw}.s8 blockquote{font:5.1cqw/1.06 "Bodoni 72",Georgia,serif;letter-spacing:-.04em;margin-top:2cqw;max-width:24ch}.s8 .statement p{width:35cqw;margin-top:3cqw;font-size:1cqw}.s8 .statement .rule{margin-top:2cqw;width:20cqw}.s8 .footnote{bottom:4cqw}
+.s9 .project-grid{top:12cqw}.s9 .project-grid .art{height:20cqw}.s9 .project-grid h3{font:2cqw/1.08 "Bodoni 72",Georgia,serif;text-transform:none;letter-spacing:-.04em;display:block;min-height:4.5cqw}.s9 .project-grid .kicker{font-size:.55cqw;display:block;margin:1cqw 0 .5cqw}.s9 .project-grid p{font-size:.77cqw;line-height:1.4}.s9 .project-grid .caption{padding-top:0;border:0}
+.s10 .heading{position:absolute;left:6cqw;top:9cqw;width:29cqw}.s10 h2{font-size:4.4cqw;margin:1.4cqw 0 2cqw}.s10 .heading p{width:25cqw}.s10 .maker-grid{position:absolute;left:40cqw;right:6cqw;top:9cqw;display:grid;grid-template-columns:1fr 1fr;gap:2cqw}.maker-grid .art{height:31cqw}.maker-grid h3{font-size:2cqw;margin-top:1cqw}.maker-grid p{font-size:.78cqw;margin-top:.55cqw}.s10 .stamp{left:9cqw;top:37cqw}
+.s11 .heading{position:absolute;left:6cqw;top:9cqw}.s11 h2{font-size:4.2cqw;margin-top:1.2cqw}.s11 .binding{position:absolute;left:58cqw;right:5cqw;top:11cqw;height:29cqw}.s11 .edition-plan{position:absolute;left:6cqw;top:25cqw;width:44cqw}.edition-plan article{padding:1.3cqw 0;border-top:1px solid #17161244;display:grid;grid-template-columns:6cqw 1fr;gap:1cqw}.edition-plan h3{font-size:1.8cqw}.edition-plan p{font-size:.78cqw;margin-top:.4cqw}.edition-plan .kicker{padding-top:.2cqw}.s11 .small-note{position:absolute;left:58cqw;right:5cqw;top:42cqw;font-size:.86cqw;border-top:1px solid #17161255;padding-top:1.3cqw}
+.slide.mustard{background:#efb52b}.s12 .closing-art{position:absolute;inset:0 0 11cqw 0}.s12 .close-copy{position:absolute;left:6cqw;top:11cqw;width:58cqw}.s12 h2{font-size:6.5cqw;margin-top:1.5cqw;max-width:12ch}.s12 .close-copy p{width:30cqw;margin:1.8cqw 0}.s12 .button{background:#151714;color:#f4ecd9}.s12 .footer-band{position:absolute;left:0;right:0;bottom:0;height:11cqw;background:#151714;color:#f4ecd9;padding:2.2cqw 6cqw;display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:4cqw;align-items:start}.s12 .footer-band b{font:2cqw Impact,sans-serif;font-weight:400}.s12 .footer-band p{font-size:.65cqw;max-width:23cqw;margin-top:.8cqw;color:#c9c7be}.s12 .footer-band .kicker{color:#efb52b}.s12 .footnote{display:none}
+body.capture #prev-btn,body.capture #next-btn,body.capture #nav,body.capture #page-counter,body.capture #controls{opacity:.18}body.capture #nav:hover,body.capture #controls:hover{opacity:1}
+.canvas h1{font-family:Impact,Haettenschweiler,"Arial Narrow",sans-serif}
+.canvas .underline{width:22cqw;height:.65cqw}
+.s1 .portrait{mix-blend-mode:normal;overflow:hidden}
+.s1 .portrait img{object-fit:cover;object-position:50% 62%}
+body.capture #deck{transition:none}.arrow-btn{width:28px;height:28px}.arrow-btn svg{width:14px;height:14px}#prev-btn{left:1.3vw}#next-btn{right:1.3vw}
+#page-counter,#controls{font-size:10px}#overview.open{grid-template-columns:repeat(4,minmax(0,1fr))}.ov-clone{container-type:size}
+@media print{@page{size:16in 9in;margin:0}.slide{width:1600px!important;height:900px!important}.slide:last-child{break-after:auto}}
+.s2 .intro .underline{margin-bottom:1.5cqw}
+.s4 .service-grid{bottom:16cqw}.s4 .service-grid .index{padding-top:2cqw}
+.s4 .service-outcome{position:absolute;left:34cqw;right:6cqw;bottom:8cqw;border-top:1px solid #f4ecd944;padding-top:1.4cqw;font:2.2cqw Impact,sans-serif;letter-spacing:.005em;color:#efb52b}
+.s1 .portrait img{object-fit:contain;object-position:center bottom}
+.slide.mustard{color:#171612}.s9 .project-grid h3{letter-spacing:-.025em;max-width:15ch;line-height:1.12}
+
+/* ============ deck studio: slide properties (see #deck-studio-config) ============ */
+.slide.oe-no-footnote .footnote{display:none!important}
+/* ============ end slide properties ============ */

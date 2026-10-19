@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:editable-deck:config-schema:1",
+  "title": "Editable presentation editor configuration",
+  "type": "object",
+  "required": [
+    "schemaVersion"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "const": 1
+    },
+    "uiLocale": {
+      "enum": [
+        "auto",
+        "en",
+        "zh",
+        "zh-tw",
+        "ja",
+        "ko",
+        "es",
+        "pt-br",
+        "de",
+        "fr",
+        "ar",
+        "ru",
+        "it",
+        "hi",
+        "id",
+        "tr",
+        "vi",
+        "th",
+        "nl",
+        "pl",
+        "he"
+      ]
+    },
+    "conversationLocale": {
+      "enum": [
+        "auto",
+        "en",
+        "zh",
+        "zh-tw",
+        "ja",
+        "ko",
+        "es",
+        "pt-br",
+        "de",
+        "fr",
+        "ar",
+        "ru",
+        "it",
+        "hi",
+        "id",
+        "tr",
+        "vi",
+        "th",
+        "nl",
+        "pl",
+        "he"
+      ]
+    },
+    "contentLocale": {
+      "enum": [
+        "auto",
+        "en",
+        "zh",
+        "zh-tw",
+        "ja",
+        "ko",
+        "es",
+        "pt-br",
+        "de",
+        "fr",
+        "ar",
+        "ru",
+        "it",
+        "hi",
+        "id",
+        "tr",
+        "vi",
+        "th",
+        "nl",
+        "pl",
+        "he"
+      ]
+    },
+    "contentDirection": {
+      "enum": [
+        "auto",
+        "ltr",
+        "rtl"
+      ]
+    },
+    "filename": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 150
+    },
+    "startMode": {
+      "enum": [
+        "view",
+        "edit"
+      ],
+      "description": "Mode used when the file is opened; ?mode=view|edit|present overrides it."
+    },
+    "storagePrefix": {
+      "type": "string",
+      "minLength": 1
+    },
+    "document": {
+      "type": "object",
+      "properties": {
+        "author": {
+          "type": "string"
+        },
+        "company": {
+          "type": "string"
+        }
+      },
+      "patternProperties": {
+        "^x-": {}
+      },
+      "additionalProperties": false
+    }
+  },
+  "patternProperties": {
+    "^x-": {}
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,302 @@
+{
+  "version": 1,
+  "skill": "bs-ochre-editorial-deck",
+  "pictures": [
+    {
+      "id": "woman-curly-hair-ochre-collage",
+      "kind": "portrait",
+      "description": "Woman with short curly hair in a paint-stained dark shirt looks sideways, collaged over ochre brush blocks and a drawn red vase outline on cream.",
+      "goodFor": [
+        "cover",
+        "team",
+        "quote"
+      ],
+      "reuse": "any-topic",
+      "width": 1448,
+      "height": 1086,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 87356,
+      "sha256": "c8b0f69ba673300e236fc31306aca90de86b5f96733a7e68dd227d7bb6e4f551",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/woman-curly-hair-ochre-collage-c8b0f69ba673.webp"
+    },
+    {
+      "id": "woman-sketching-ceramics-studio",
+      "kind": "scene",
+      "description": "Woman with a blonde bun sketches a bowl shape in a notebook at a wooden table surrounded by unglazed pots, tools and a black desk lamp.",
+      "goodFor": [
+        "process",
+        "overview",
+        "team"
+      ],
+      "reuse": "topic-specific",
+      "topic": "ceramics studio",
+      "width": 1448,
+      "height": 1086,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 104756,
+      "sha256": "54aa7b9658d18f74553ad60bfb1b127457f674df3d0c354a471aab54c1ed4f7e",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/woman-sketching-ceramics-studio-54aa7b9658d1.webp"
+    },
+    {
+      "id": "clay-pot-pigment-flatlay",
+      "kind": "scene",
+      "description": "Overhead flat lay of a terracotta pot, ochre pigment powder, clay shards, pencils, torn papers and a black and white photo of hands shaping clay.",
+      "goodFor": [
+        "overview",
+        "background",
+        "chart-side"
+      ],
+      "reuse": "topic-specific",
+      "topic": "pottery and craft materials",
+      "width": 1672,
+      "height": 941,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 179448,
+      "sha256": "b6a73ec581ef505f57090fcd0102468d52cb02d0a1d85d21d99905224200a1d0",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/clay-pot-pigment-flatlay-b6a73ec581ef.webp"
+    },
+    {
+      "id": "three-ochre-glazed-cups",
+      "kind": "scene",
+      "description": "Three handmade ochre glazed cups on a linen cloth against a terracotta wall with a diagonal band of sunlight.",
+      "goodFor": [
+        "chart-side",
+        "section",
+        "solution"
+      ],
+      "reuse": "topic-specific",
+      "topic": "handmade ceramics",
+      "width": 1254,
+      "height": 1254,
+      "orientation": "square",
+      "transparent": false,
+      "bytes": 105230,
+      "sha256": "a7d933d76e548c08e92e0e3745d68a4f90091f33a875ddf968dc3d1e90df2ec3",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/three-ochre-glazed-cups-a7d933d76e54.webp"
+    },
+    {
+      "id": "block-print-book-red-circle",
+      "kind": "scene",
+      "description": "Open book showing a black block print with a red circle, beside a carved dark wooden block and a brush on beige paper.",
+      "goodFor": [
+        "chart-side",
+        "quote",
+        "section"
+      ],
+      "reuse": "topic-specific",
+      "topic": "printmaking",
+      "width": 1254,
+      "height": 1254,
+      "orientation": "square",
+      "transparent": false,
+      "bytes": 110660,
+      "sha256": "89c50e46a231133fa688856d3441804c80ce07d2a8314c4783436f1a76dc2e37",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/block-print-book-red-circle-89c50e46a231.webp"
+    },
+    {
+      "id": "woven-oak-stool-ochre-wall",
+      "kind": "scene",
+      "description": "Light oak stool with a woven cord seat and a dark pebble beside it, lit by warm sun against an ochre backdrop.",
+      "goodFor": [
+        "chart-side",
+        "solution",
+        "section"
+      ],
+      "reuse": "topic-specific",
+      "topic": "furniture design",
+      "width": 1254,
+      "height": 1254,
+      "orientation": "square",
+      "transparent": false,
+      "bytes": 98414,
+      "sha256": "8923f0f96dda0fa5d4710041b3571a6456fcca4e1ab482c6875add76cae78aed",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/woven-oak-stool-ochre-wall-8923f0f96dda.webp"
+    },
+    {
+      "id": "hands-throwing-clay-bowl",
+      "kind": "scene",
+      "description": "Close-up of clay-covered hands shaping a bowl on a spinning potter's wheel, an ochre garment softly blurred behind.",
+      "goodFor": [
+        "process",
+        "section",
+        "chart-side"
+      ],
+      "reuse": "topic-specific",
+      "topic": "pottery making",
+      "width": 1448,
+      "height": 1086,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 88102,
+      "sha256": "6e2aec8f14da7b00ea9c36ec995cd6d165c36f8f5e23425f4f8aa3856049e888",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/hands-throwing-clay-bowl-6e2aec8f14da.webp"
+    },
+    {
+      "id": "material-swatches-pencil-strokes",
+      "kind": "scene",
+      "description": "Flat lay of ochre linen, charred wood, terracotta tiles, amber glass and tied raw linen above three colored pencil strokes on cream paper.",
+      "goodFor": [
+        "overview",
+        "background",
+        "chart-side"
+      ],
+      "reuse": "any-topic",
+      "width": 1672,
+      "height": 941,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 199650,
+      "sha256": "e133dc641c440d8e96a8b8d0ac91513d37a269d8e4e90199dd5f9d21e6e40fa7",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/material-swatches-pencil-strokes-e133dc641c44.webp"
+    },
+    {
+      "id": "red-paint-texture-gold-line",
+      "kind": "decorative",
+      "description": "Textured vermilion painted surface with a thin gold wavy line at the lower left and a cream brushstroke in the lower right corner.",
+      "goodFor": [
+        "background",
+        "section",
+        "quote"
+      ],
+      "reuse": "any-topic",
+      "width": 1672,
+      "height": 941,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 121274,
+      "sha256": "91ad52de4f4e5106feb2459d1bfc24756e9ad1d9b2491e6575c1e369c403bb49",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/red-paint-texture-gold-line-91ad52de4f4e.webp"
+    },
+    {
+      "id": "ochre-booklet-black-asterisk",
+      "kind": "scene",
+      "description": "Ochre paper booklet with a bold black block-printed asterisk lies on deckle-edged cream paper next to a short black pencil.",
+      "goodFor": [
+        "chart-side",
+        "section",
+        "quote"
+      ],
+      "reuse": "any-topic",
+      "width": 1448,
+      "height": 1086,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 163234,
+      "sha256": "021fd14066e1c942d39874e37f09fedc0b42fd29c79b84166658ebfeee6d491b",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/ochre-booklet-black-asterisk-021fd14066e1.webp"
+    },
+    {
+      "id": "black-brushstroke-red-dot-paper",
+      "kind": "decorative",
+      "description": "Close-up of torn cream paper with a broad diagonal black brushstroke and a solid red circle, an ochre edge at the right.",
+      "goodFor": [
+        "background",
+        "section",
+        "quote"
+      ],
+      "reuse": "any-topic",
+      "width": 1448,
+      "height": 1086,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 238688,
+      "sha256": "c03d204b4c02b80d9088bfee01ccda287016b6c886e9422902fe9b54ab6b938f",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/black-brushstroke-red-dot-paper-c03d204b4c02.webp"
+    },
+    {
+      "id": "sketchbook-handle-bowl-drawings",
+      "kind": "scene",
+      "description": "Spiral sketchbook with pencil drawings of cup handles and bowl profiles on a rust-toned surface, a pencil and lump of clay nearby.",
+      "goodFor": [
+        "process",
+        "chart-side",
+        "solution"
+      ],
+      "reuse": "topic-specific",
+      "topic": "product design sketching",
+      "width": 1448,
+      "height": 1086,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 215874,
+      "sha256": "a41976c02fbbffde7415b5dea395ffe5933403163a363cd3ed1eceba39b10a9f",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/sketchbook-handle-bowl-drawings-a41976c02fbb.webp"
+    },
+    {
+      "id": "woodcarver-apron-workshop",
+      "kind": "portrait",
+      "description": "Man in a dark apron holds a carved wooden cup in a warm ochre workshop with chisels, bowls and timber offcuts.",
+      "goodFor": [
+        "team",
+        "quote"
+      ],
+      "reuse": "topic-specific",
+      "topic": "woodworking",
+      "width": 1122,
+      "height": 1402,
+      "orientation": "portrait",
+      "transparent": false,
+      "bytes": 108718,
+      "sha256": "d6a0a9235d6e625afd0f2ef83905b12adf2efa139b13b77bcd7a34c3ee68a04a",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/woodcarver-apron-workshop-d6a0a9235d6e.webp"
+    },
+    {
+      "id": "printmaker-apron-press-studio",
+      "kind": "portrait",
+      "description": "Woman in a rust apron leans on a worktable beside a printing press, bold black shape prints laid out and pinned on the walls.",
+      "goodFor": [
+        "team",
+        "quote",
+        "section"
+      ],
+      "reuse": "topic-specific",
+      "topic": "printmaking studio",
+      "width": 1122,
+      "height": 1402,
+      "orientation": "portrait",
+      "transparent": false,
+      "bytes": 114234,
+      "sha256": "244f860b4f57caaf52a0683fc30d14d9e0858136d8ba2e30dc487af6eed1b5f3",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/printmaker-apron-press-studio-244f860b4f57.webp"
+    },
+    {
+      "id": "blank-booklets-thread-bone-folder",
+      "kind": "scene",
+      "description": "Stack of blank cream folded booklets, an ochre cover, a coil of black thread, a bone folder and a red paper edge in warm light.",
+      "goodFor": [
+        "chart-side",
+        "overview",
+        "closing"
+      ],
+      "reuse": "any-topic",
+      "width": 1448,
+      "height": 1086,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 146056,
+      "sha256": "b88bf6320f83fc3e32c28defc6c6d13efe8b09c726d69c0db19cbf0f8b8843ea",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/blank-booklets-thread-bone-folder-b88bf6320f83.webp"
+    },
+    {
+      "id": "drawn-hand-bowl-orange-burst",
+      "kind": "illustration",
+      "description": "Ink drawing of a hand raising a small bowl against an orange brush burst on the right of a flat ochre background with open space left.",
+      "goodFor": [
+        "closing",
+        "cover",
+        "section"
+      ],
+      "reuse": "any-topic",
+      "width": 1672,
+      "height": 941,
+      "orientation": "landscape",
+      "transparent": false,
+      "bytes": 79182,
+      "sha256": "9705da7b54af1ec89ccfe7610c59eef91a1423601aa916b134a98738ee82e38c",
+      "url": "https://media.skillry.dev/skill-image-library/bs-ochre-editorial-deck/drawn-hand-bowl-orange-burst-9705da7b54af.webp"
+    }
+  ]
+}

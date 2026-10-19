@@ -23,6 +23,7 @@ import AboutPage from './components/AboutPage.jsx'
 import WorkPage from './components/WorkPage.jsx'
 import CaseStudyDetail from './components/CaseStudyDetail.jsx'
 const ComponentShowcase = lazy(() => import('./components/ComponentShowcase.jsx'))
+const LandingPageShowcase = lazy(() => import('./components/LandingPageShowcase.jsx'))
 import { CASE_STUDIES } from './data/caseStudiesData.js'
 import { useReveal } from './hooks/useReveal.js'
 
@@ -34,6 +35,7 @@ export default function App() {
     const isAdmin = path.startsWith('/admin') || path.startsWith('/crm') || path.startsWith('/dashboard')
     const isStore = path.startsWith('/store')
     const isComponents = path.startsWith('/components')
+    const isTemplates = path.startsWith('/templates')
     const isAILab = path.startsWith('/ai-lab')
     const isAbout = path.startsWith('/about')
     const isWork = path.startsWith('/work')
@@ -61,6 +63,10 @@ export default function App() {
       pageTitle = 'Copy-Paste React & Tailwind UI Components | Weezie UI'
       pageDesc = 'Explore 35 original React and Tailwind UI components across navigation, forms, pricing, design systems and motion. Full source, examples and a runnable starter included.'
       pageCanonical = 'https://weezie.site/components/'
+    } else if (isTemplates) {
+      pageTitle = '10 High-End Landing Page Templates Suite | Weezie Studio'
+      pageDesc = 'Explore 10 production-ready website templates with kinetic motion scroll, luxury branding, and responsive mobile architecture.'
+      pageCanonical = 'https://weezie.site/templates/'
     } else if (isAbout) {
       pageTitle = 'About Enang Weezie — Web Designer & Product Engineer'
       pageDesc = 'Learn about Enang Weezie, design philosophy, technical stack, experience timeline, and approach to building high-converting digital products.'
@@ -174,6 +180,15 @@ export default function App() {
   // Dedicated /components interactive UI showcase & copy-paste library
   if (path.startsWith('/components')) {
     return <Suspense fallback={<p role="status" className="p-10">Loading the component library...</p>}><ComponentShowcase onNavigate={navigate} /></Suspense>
+  }
+
+  // Dedicated /templates landing page templates showcase
+  if (path.startsWith('/templates')) {
+    return (
+      <Suspense fallback={<p role="status" className="p-10">Loading templates showcase...</p>}>
+        <LandingPageShowcase onNavigate={navigate} />
+      </Suspense>
+    )
   }
 
   // Dedicated /about page

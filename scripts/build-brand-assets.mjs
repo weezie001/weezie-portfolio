@@ -5,7 +5,7 @@ import {brandBookHtml} from '../kits/brand-delivery-kit/brand-book.js'
 import {build} from 'esbuild'
 
 const root='kits/brand-delivery-kit'
-const photo='data:image/png;base64,'+(await readFile(join(root,'06-assets/photography/north-workshop.png'))).toString('base64')
+const photo='data:image/jpeg;base64,'+(await readFile(join(root,'06-assets/photography/north-workshop.jpg'))).toString('base64')
 for(const [folder,brand,blank] of [['sample/ready-to-use',sampleBrand,false],['editable-templates',blankBrand,true]]) {
  await mkdir(join(root,folder),{recursive:true})
  for(const template of templates)await writeFile(join(root,folder,template.file+'.svg'),templateSvg(template.id,brand,{photo,blank}))
@@ -23,4 +23,5 @@ await writeFile(join(root,'editable-templates/brand-book.html'),brandBookHtml(bl
 await build({entryPoints:[join(root,'editor.js')],outfile:join(root,'editor.bundle.js'),bundle:true,format:'iife',platform:'browser',minify:true})
 const aliases=[['north_logo_horizontal_color_on-light.svg','horizontal','color'],['north_logo_horizontal_white_on-dark.svg','horizontal','reverse'],['north_mark_color_on-clear.svg','mark','color']]
 for(const [file,orientation,variant] of aliases)await writeFile(join(root,'06-assets/logos/svg',file),logoSvg(orientation,variant,sampleBrand))
-console.log('Built 12 sample SVG applications, 12 editable starting templates, 12 logo variants and email signatures.')
+console.log(`Built ${templates.length} sample SVG applications, ${templates.length} editable starting templates, 12 logo variants and email signatures.`)
+await import('./build-brand-gallery.mjs')

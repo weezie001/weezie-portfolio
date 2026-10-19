@@ -1,5 +1,5 @@
 import {normalizeBrand,sampleBrand,esc,logoSvg} from './brand-engine.js'
-export function brandBookHtml(input=sampleBrand,{photo='../06-assets/photography/north-workshop.png'}={}) {
+export function brandBookHtml(input=sampleBrand,{photo='../06-assets/photography/north-workshop.jpg'}={}) {
  const b=normalizeBrand(input)
  const page=(number,label,content)=>`<section class="page"><header><span>${esc(b.name)}</span><span>${label}</span></header>${content}<footer><span>BRAND GUIDELINES / WORKING EDITION</span><span>${String(number).padStart(2,'0')}</span></footer></section>`
  const logo=logoSvg('horizontal','color',b)

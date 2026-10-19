@@ -221,6 +221,10 @@ Thank you for your purchase on weezie.site!
 💳 Amount: ${currency === 'NGN' ? '₦' : '$'}${amount.toLocaleString('en-US')}
 🔗 Download Link: ${finalDownloadUrl}
 
+🎁 FREE BONUS INCLUDED:
+As an extra thank-you, you also get our full Weezie UI Bundle (35 React & Tailwind Components) completely free!
+🔗 Bonus Component Pack: https://weezie.site/downloads/weezie-ui-components.zip
+
 Need help customizing this template for your brand or connecting your backend? Reply directly to this email and I'll take care of you.
 
 Best,

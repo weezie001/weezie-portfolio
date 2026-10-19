@@ -1,3 +1,4 @@
+import {extraTemplates,extraSvgBody} from './campaign-templates.js'
 // Original editable vector applications. All artwork is generated from one brand object.
 export const sampleBrand = {
   name:'Atelier North', descriptor:'Objects for considered living', tagline:'Made slowly. Kept for years.',
@@ -5,8 +6,9 @@ export const sampleBrand = {
   phone:'+1 202 555 0146', location:'By appointment / Working worldwide',
   primary:'#3d5a45', paper:'#e7e3d6', ink:'#0e1114', accent:'#c9a227',
   display:'Georgia', body:'Arial', heading:'A quieter kind of everyday.',
+  cta:'Explore the collection', campaign:'The considered collection', offer:'Small batches. Lasting pieces.',
 }
-export const blankBrand = {...sampleBrand,name:'Your Studio',descriptor:'What your business does',tagline:'Your short brand promise.',person:'Your Name',role:'Your Role',email:'hello@yourstudio.example',website:'yourstudio.example',phone:'Your phone number',location:'Your contact details',heading:'Your story starts here.'}
+export const blankBrand = {...sampleBrand,name:'Your Studio',descriptor:'What your business does',tagline:'Your short brand promise.',person:'Your Name',role:'Your Role',email:'hello@yourstudio.example',website:'yourstudio.example',phone:'Your phone number',location:'Your contact details',heading:'Your story starts here.',cta:'Your call to action',campaign:'Your campaign',offer:'Your supporting message'}
 export const templates = [
   {id:'card-front',name:'Business card / front',category:'Stationery',w:850,h:550,size:'85 × 55 mm',file:'business-card-front'},
   {id:'card-back',name:'Business card / back',category:'Stationery',w:850,h:550,size:'85 × 55 mm',file:'business-card-back'},
@@ -20,6 +22,7 @@ export const templates = [
   {id:'slide-cover',name:'Presentation / cover',category:'Presentations',w:1600,h:900,size:'16:9',file:'presentation-cover'},
   {id:'slide-content',name:'Presentation / content',category:'Presentations',w:1600,h:900,size:'16:9',file:'presentation-content'},
   {id:'og',name:'Website / share image',category:'Digital',w:1200,h:630,size:'1200 × 630',file:'website-share-image'},
+  ...extraTemplates,
 ]
 export const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]))
 export function normalizeBrand(data={}) {
@@ -80,6 +83,7 @@ export function templateSvg(id,input=sampleBrand,{photo='',blank=false}={}) {
     body+=rule(805,70,w-140)+label(b.website.toUpperCase(),70,850)
   }
   if(id==='og')body+=image(660,0,540,h)+mark(55,50,62,b.primary)+text(b.name,55,282,Math.min(67,550/(b.name.length*.58)),b.primary,true)+text('Objects for',55,365,66,b.primary,true)+text('considered living.',55,442,66,b.primary,true)+label(b.website.toUpperCase(),55,560)
+  body=extraSvgBody(t,b,{photo,blank})??body
   return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" role="img"><title>${esc(b.name)} / ${esc(t.name)}</title>${body}</svg>`
 }
 export function signatureHtml(input=sampleBrand,{markUrl='../../../06-assets/logos/png/north_mark_color_512.png'}={}) {
