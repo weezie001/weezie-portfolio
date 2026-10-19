@@ -1,4 +1,5 @@
-import { useState } from 'react'
+"use client";
+import { useState, useMemo } from 'react'
 import Navbar from './Navbar.jsx'
 import Footer from './Footer.jsx'
 import ProjectBrief from './ProjectBrief.jsx'
@@ -6,51 +7,290 @@ import catalog from '../data/componentCatalog.json'
 
 const modules = import.meta.glob('./ui/*.jsx', { eager: true })
 const sources = import.meta.glob('./ui/*.jsx', { eager: true, query: '?raw', import: 'default' })
-const COMPONENTS = catalog.map(item => ({ ...item,
-  component: modules[`./ui/${item.fileName}`].default,
-  source: sources[`./ui/${item.fileName}`],
+
+const COMPONENTS = catalog.map(item => ({
+  ...item,
+  component: modules[`./ui/${item.fileName}`]?.default,
+  source: sources[`./ui/${item.fileName}`] || '',
   code: `"use client";\nimport ${item.id} from './components/${item.id}'\n\nexport default function Example() {\n  return <${item.id} />\n}\n`,
 }))
-const categories = [...new Set(catalog.map(item => item.category))]
-const references = [...new Set(catalog.map(item => item.reference))]
 
-export default function ComponentShowcase({ onNavigate }) {
-  const [category, setCategory] = useState('All')
-  const [reference, setReference] = useState('All')
-  const [search, setSearch] = useState('')
+const CATEGORIES = [...new Set(catalog.map(item => item.category))]
+const REFERENCES = [...new Set(catalog.map(item => item.reference))]
+
+/**
+ * ComponentFeedCard — Renders a single component live in the feed,
+ * with its name, description, tags, copy button, and code drawer directly UNDER it.
+ */
+function ComponentFeedCard({ item, globalTheme }) {
+  const [device, setDevice] = useState('desktop') // 'desktop' | 'mobile'
+  const [showCode, setShowCode] = useState(false)
+  const [codeTab, setCodeTab] = useState('source') // 'source' | 'usage'
+  const [copied, setCopied] = useState(false)
   const [previewKey, setPreviewKey] = useState(0)
   const [previewClosed, setPreviewClosed] = useState(false)
   const [previewFeedback, setPreviewFeedback] = useState('')
-  const [activeTab, setActiveTab] = useState(COMPONENTS[0].id)
-  const [viewMode, setViewMode] = useState('preview') // 'preview' | 'code'
-  const [codeTab, setCodeTab] = useState('source') // 'source' | 'usage'
-  const [theme, setTheme] = useState('dark') // 'dark' | 'light'
-  const [device, setDevice] = useState('desktop') // 'desktop' | 'mobile'
-  const [copied, setCopied] = useState(false)
 
-  const filtered = COMPONENTS.filter(c => (category === 'All' || c.category === category) && (reference === 'All' || c.reference === reference) && `${c.name} ${c.description}`.toLowerCase().includes(search.toLowerCase()))
-  const activeComp = filtered.find(c => c.id === activeTab) || filtered[0] || COMPONENTS[0]
-  const ActiveComponent = activeComp.component
+  const Component = item.component
 
-  async function handleCopyCode() {
-    const textToCopy = codeTab === 'source' ? activeComp.source : activeComp.code
+  async function handleCopy() {
+    const textToCopy = codeTab === 'source' ? item.source : item.code
     try {
       await navigator.clipboard.writeText(textToCopy)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
       setCopied(false)
-      setPreviewFeedback('Clipboard unavailable. Open Code to select and copy the source.')
     }
   }
+
+  function handleReset() {
+    setPreviewKey(k => k + 1)
+    setPreviewClosed(false)
+    setPreviewFeedback('')
+  }
+
+  return (
+    <article
+      id={`comp-${item.id}`}
+      className="overflow-hidden rounded-[30px] bg-paper border border-line neu shadow-sm transition-all duration-300 hover:shadow-md"
+    >
+      {/* 1. Live Interactive Component Canvas (Top) */}
+      <div className="relative border-b border-line bg-zinc-950 p-2 sm:p-5">
+        
+        {/* Canvas Device Container */}
+        <div
+          className={`transition-all duration-300 mx-auto ${
+            device === 'mobile'
+              ? 'max-w-[390px] rounded-[40px] border-[8px] border-zinc-900 shadow-2xl overflow-hidden'
+              : 'w-full rounded-2xl overflow-hidden'
+          }`}
+        >
+          {/* Mobile frame top bar */}
+          {device === 'mobile' && (
+            <div className="relative flex h-7 items-center justify-center bg-zinc-950 px-6">
+              <div className="h-3.5 w-20 rounded-full bg-black" />
+            </div>
+          )}
+
+          {/* Component Canvas */}
+          <div
+            className={`min-h-[220px] overflow-x-hidden p-4 sm:p-7 transition-colors duration-300 flex flex-col justify-center ${
+              globalTheme === 'light'
+                ? 'component-light-canvas'
+                : 'bg-zinc-950 text-white'
+            }`}
+          >
+            {Component && !previewClosed ? (
+              <Component
+                key={`${item.id}-${previewKey}`}
+                theme={globalTheme}
+                onClose={() => setPreviewClosed(true)}
+                onSubmit={(val) => setPreviewFeedback(`Submitted: ${typeof val === 'object' ? JSON.stringify(val) : val}`)}
+                onSelect={(val) => setPreviewFeedback(`Selected: ${typeof val === 'object' ? JSON.stringify(val) : val}`)}
+                onApply={(val) => setPreviewFeedback(`Applied: ${typeof val === 'object' ? JSON.stringify(val) : val}`)}
+                onComplete={() => setPreviewFeedback('Interaction complete.')}
+              />
+            ) : (
+              <div className="flex flex-col items-center justify-center py-10 text-center">
+                <p className="text-xs text-zinc-400">Preview closed.</p>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="mt-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold text-white hover:bg-white/20 transition"
+                >
+                  Reset Preview ↺
+                </button>
+              </div>
+            )}
+
+            {/* Micro Interaction Toast / Status Bar */}
+            {previewFeedback && (
+              <div className="mt-4 flex items-center justify-between border-t border-white/10 pt-3 text-[11px] text-zinc-400">
+                <span className="font-mono text-emerald-400">✓ {previewFeedback}</span>
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="text-zinc-500 hover:text-white underline text-[10px]"
+                >
+                  Reset
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Mobile frame bottom bar */}
+          {device === 'mobile' && (
+            <div className="flex h-5 items-center justify-center bg-zinc-950">
+              <div className="h-1 w-24 rounded-full bg-white/30" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* 2. Component Details & Controls Directly UNDER the Component */}
+      <div className="bg-paper p-5 sm:p-6">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          
+          {/* Left: Name, Description, Category & File Path */}
+          <div className="space-y-1.5 max-w-xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-blue/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-blue">
+                {item.category}
+              </span>
+              <span className="rounded-full bg-paper px-2.5 py-0.5 font-mono text-[10px] font-bold text-ink-soft neu-sm">
+                Ref: {item.reference}
+              </span>
+              <span className="font-mono text-[10px] text-ink-soft opacity-75">
+                {item.fileName}
+              </span>
+            </div>
+
+            {/* NAME UNDER THE COMPONENT */}
+            <h3 className="display text-xl font-bold text-ink sm:text-2xl">
+              {item.name}
+            </h3>
+
+            <p className="text-xs font-medium leading-relaxed text-ink-soft">
+              {item.description}
+            </p>
+          </div>
+
+          {/* Right: Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2 self-start lg:self-center">
+            
+            {/* Responsive device preview toggle */}
+            <div className="inline-flex rounded-full bg-paper p-1 neu-inset">
+              <button
+                type="button"
+                onClick={() => setDevice('desktop')}
+                className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition ${
+                  device === 'desktop' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+                }`}
+                title="Desktop View"
+              >
+                🖥️
+              </button>
+              <button
+                type="button"
+                onClick={() => setDevice('mobile')}
+                className={`rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider transition ${
+                  device === 'mobile' ? 'bg-ink text-white shadow-sm' : 'text-ink-soft hover:text-ink'
+                }`}
+                title="Mobile 390px View"
+              >
+                📱
+              </button>
+            </div>
+
+            {/* View / Hide Code Button */}
+            <button
+              type="button"
+              onClick={() => setShowCode(!showCode)}
+              className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider transition neu-hover ${
+                showCode ? 'bg-ink text-white' : 'bg-paper text-ink neu-sm hover:text-blue'
+              }`}
+            >
+              {showCode ? '✕ Close Code' : '💻 Code'}
+            </button>
+
+            {/* Copy Source Code Button */}
+            <button
+              type="button"
+              onClick={handleCopy}
+              className="btn-gradient inline-flex items-center gap-1.5 rounded-full px-5 py-2 text-xs font-bold uppercase tracking-wider shadow-sm transition hover:scale-102"
+            >
+              <span>{copied ? '✓ Copied!' : '📋 Copy Code'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* 3. Expandable Inline Code Drawer */}
+        {showCode && (
+          <div className="mt-5 overflow-hidden rounded-2xl border border-line/50 bg-zinc-950 shadow-inner">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-zinc-900/90 px-5 py-2.5">
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setCodeTab('source')}
+                  className={`rounded-md px-3 py-1 text-[11px] font-bold transition ${
+                    codeTab === 'source' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Component Source ({item.fileName})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCodeTab('usage')}
+                  className={`rounded-md px-3 py-1 text-[11px] font-bold transition ${
+                    codeTab === 'usage' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-400 hover:text-white'
+                  }`}
+                >
+                  Usage Snippet
+                </button>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleCopy}
+                className="font-mono text-[11px] text-blue-400 hover:text-blue-300 font-bold"
+              >
+                {copied ? '✓ Copied to clipboard' : 'Copy file contents ⎘'}
+              </button>
+            </div>
+
+            <div className="p-4 font-mono text-xs leading-relaxed text-zinc-300">
+              <pre className="max-h-[460px] overflow-auto rounded-xl bg-black/60 p-4">
+                <code>{codeTab === 'source' ? item.source : item.code}</code>
+              </pre>
+            </div>
+          </div>
+        )}
+      </div>
+    </article>
+  )
+}
+
+export default function ComponentShowcase({ onNavigate }) {
+  const [selectedCategory, setSelectedCategory] = useState('All')
+  const [selectedReference, setSelectedReference] = useState('All')
+  const [search, setSearch] = useState('')
+  const [globalTheme, setGlobalTheme] = useState('dark') // 'dark' | 'light'
+
+  // Category counts
+  const categoryCounts = useMemo(() => {
+    const counts = { All: catalog.length }
+    catalog.forEach((item) => {
+      counts[item.category] = (counts[item.category] || 0) + 1
+    })
+    return counts
+  }, [])
+
+  // Filtered components stream
+  const filtered = useMemo(() => {
+    return COMPONENTS.filter((c) => {
+      const matchCat = selectedCategory === 'All' || c.category === selectedCategory
+      const matchRef = selectedReference === 'All' || c.reference === selectedReference
+      const q = search.trim().toLowerCase()
+      const matchSearch =
+        !q ||
+        c.name.toLowerCase().includes(q) ||
+        c.id.toLowerCase().includes(q) ||
+        c.description.toLowerCase().includes(q) ||
+        c.category.toLowerCase().includes(q) ||
+        c.reference.toLowerCase().includes(q)
+      return matchCat && matchRef && matchSearch
+    })
+  }, [selectedCategory, selectedReference, search])
 
   return (
     <div className="min-h-screen bg-paper text-ink selection:bg-blue selection:text-white">
       <Navbar onNavigate={onNavigate} currentPath="/components" />
 
-      <main className="mx-auto max-w-7xl px-6 pt-24 pb-16 md:px-10 md:pt-28">
-        {/* Breadcrumb / Top Bar */}
-        <div className="mb-6 flex items-center justify-between">
+      <main className="mx-auto max-w-7xl px-4 pt-24 pb-20 sm:px-6 md:px-10 md:pt-28">
+        
+        {/* Top Breadcrumb & Pack Stats */}
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <a
             href="/"
             onClick={(e) => {
@@ -63,21 +303,26 @@ export default function ComponentShowcase({ onNavigate }) {
           >
             ← Back to Portfolio
           </a>
-          <span className="rounded-full bg-blue/10 px-3.5 py-1 text-xs font-bold text-blue">
-            {COMPONENTS.length} React Blocks + Source
-          </span>
+
+          <div className="flex items-center gap-2.5">
+            <span className="rounded-full bg-blue/10 px-3.5 py-1 text-xs font-bold text-blue">
+              {COMPONENTS.length} Production React Blocks
+            </span>
+            <span className="hidden sm:inline-block rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-bold text-emerald-700">
+              Tailwind CSS v4 &amp; React 19
+            </span>
+          </div>
         </div>
 
         {/* Hero Section */}
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue">// Weezie UI · Design &amp; Systems Lab</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue">// Weezie UI · Component Library</p>
             <h1 className="display mt-2 text-4xl text-ink md:text-6xl">
               COPY-PASTE <span className="text-gradient">REACT BLOCKS</span>
             </h1>
             <p className="mt-3 max-w-2xl text-base font-medium text-ink-soft">
-              Original Tailwind CSS v4 &amp; React 19 interfaces, organized by what you need to build.
-              Live interactive previews with light/dark themes, responsive mobile/desktop toggles, and 1-click clipboard export.
+              Every component is rendered live below with its name, tags, and source code. Browse by category on the left sidebar without having to click one at a time.
             </p>
           </div>
 
@@ -90,245 +335,299 @@ export default function ComponentShowcase({ onNavigate }) {
                   onNavigate('/store')
                 }
               }}
-              className="btn-gradient inline-flex items-center gap-2 rounded-full px-6 py-3 text-xs font-bold uppercase tracking-[0.12em]"
+              className="btn-gradient inline-flex items-center gap-2 rounded-full px-6 py-3.5 text-xs font-bold uppercase tracking-[0.12em] shadow-lg"
             >
-              <span>Get 35-Component Pack ($29)</span>
+              <span>Download 35-Component Pack ($29 / ₦35k)</span>
               <span>→</span>
             </a>
           </div>
         </div>
 
-        {/* Visual Hero Banner with 3D UI Render */}
-        <div className="relative mt-8 overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6 md:p-10 shadow-2xl">
+        {/* Visual Hero Banner */}
+        <div className="relative mt-8 overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6 md:p-8 shadow-2xl">
           <img
             src="/images/ui-showcase-hero.png"
             alt="Weezie UI 3D Component Suite"
-            className="absolute inset-0 h-full w-full object-cover opacity-30"
+            className="absolute inset-0 h-full w-full object-cover opacity-25"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-zinc-950 via-zinc-950/85 to-transparent" />
+
+          <div className="relative z-10 flex flex-col justify-between gap-4 md:flex-row md:items-center">
+            <div className="max-w-xl">
+              <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-blue-400">
+                <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
+                Live Component Stream
+              </span>
+              <h2 className="display mt-2 text-xl font-bold text-white sm:text-2xl">
+                Tactile UI Engineered for Conversion.
+              </h2>
+              <p className="mt-1 text-xs text-zinc-300">
+                Scroll the live feed to inspect all components. Use the category sidebar to filter instantly.
+              </p>
+            </div>
+
+            {/* Global Theme Toggle */}
+            <div className="flex items-center gap-2 self-start rounded-full bg-white/10 p-1.5 backdrop-blur-md md:self-auto">
+              <span className="px-2 text-[10px] font-bold uppercase tracking-wider text-zinc-400">Canvas Theme:</span>
+              <button
+                type="button"
+                onClick={() => setGlobalTheme('dark')}
+                className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+                  globalTheme === 'dark' ? 'bg-white text-zinc-950 shadow' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                🌙 Dark
+              </button>
+              <button
+                type="button"
+                onClick={() => setGlobalTheme('light')}
+                className={`rounded-full px-3 py-1 text-xs font-bold transition ${
+                  globalTheme === 'light' ? 'bg-white text-zinc-950 shadow' : 'text-zinc-400 hover:text-white'
+                }`}
+              >
+                ☀️ Light
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* ============================================================== */}
+        {/* TWO-COLUMN LAYOUT: Left Category Sidebar + Right Feed           */}
+        {/* ============================================================== */}
+        <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-start">
           
-          <div className="relative z-10 max-w-xl">
-            <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-blue-400">
-              <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
-              Flagship Design System
-            </span>
-            <h2 className="display mt-3 text-2xl font-bold text-white sm:text-3xl">
-              High-Velocity UI for Founders Who Build.
-            </h2>
-            <p className="mt-2 text-xs leading-relaxed text-zinc-300 sm:text-sm">
-              Tactile micro-interactions, dark glassmorphism, responsive spring states, and zero runtime dependencies. Every block is crafted to convert and ship.
-            </p>
-          </div>
-        </div>
+          {/* ============================================================ */}
+          {/* LEFT SIDEBAR: CATEGORIES SELECTION & SEARCH                  */}
+          {/* ============================================================ */}
+          <aside className="w-full lg:w-72 lg:shrink-0 lg:sticky lg:top-24 space-y-6">
+            
+            {/* Quick Search Box */}
+            <div className="rounded-2xl bg-paper p-4 neu-sm">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-ink-soft mb-2">
+                Quick Search
+              </label>
+              <div className="relative">
+                <input
+                  type="search"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Search cards, bento, auth…"
+                  className="w-full rounded-xl bg-paper px-3.5 py-2.5 text-xs font-medium text-ink outline-none neu-inset focus:ring-2 focus:ring-blue/50"
+                />
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => setSearch('')}
+                    className="absolute right-2.5 top-2.5 text-xs text-ink-soft hover:text-ink"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
 
-        <section aria-label="Find components" className="mt-8 grid gap-4 rounded-2xl border border-line p-5 md:grid-cols-3">
-          <label className="text-xs font-bold">Search components<input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Try pricing, cards, motion..." className="mt-2 w-full rounded-xl border border-line bg-paper p-3 text-sm" /></label>
-          <label className="text-xs font-bold">Category<select value={category} onChange={e=>setCategory(e.target.value)} className="mt-2 w-full rounded-xl border border-line bg-paper p-3 text-sm"><option>All</option>{categories.map(c=><option key={c}>{c}</option>)}</select></label>
-          <label className="text-xs font-bold">Reference collection<select value={reference} onChange={e=>setReference(e.target.value)} className="mt-2 w-full rounded-xl border border-line bg-paper p-3 text-sm"><option>All</option>{references.map(r=><option key={r}>{r}</option>)}</select></label>
-          <p className="text-xs text-ink-soft md:col-span-3" role="status">{filtered.length} of {COMPONENTS.length} components. Original implementations inspired by the references, with no affiliation. Demo data and backend integrations are clearly separated.</p>
-        </section>
-        {/* Component Selector Tabs */}
-        <div className="mt-8 flex flex-wrap gap-2.5 pb-2">
-          {filtered.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => {
-                setActiveTab(item.id)
-                setPreviewClosed(false)
-                setPreviewFeedback('')
-                setViewMode('preview')
-              }}
-              className={`rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.1em] transition ${
-                activeComp.id === item.id
-                  ? 'btn-gradient text-white shadow-md'
-                  : 'bg-paper text-ink-soft neu-sm hover:text-ink'
-              }`}
-            >
-              {item.name}
-            </button>
-          ))}
-        </div>
+            {/* Categories Selection List on the Left Side */}
+            <div className="rounded-3xl bg-paper p-5 neu">
+              <div className="flex items-center justify-between border-b border-line pb-3">
+                <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-ink">
+                  Categories
+                </h3>
+                <span className="font-mono text-[10px] text-ink-soft font-bold">
+                  {COMPONENTS.length} total
+                </span>
+              </div>
 
-        {!filtered.length && <p className="mt-6 rounded-xl border border-line p-5">No components match. <button className="underline" onClick={()=>{setSearch('');setCategory('All');setReference('All')}}>Clear filters</button></p>}
-        <div hidden={!filtered.length}>
-        {/* Active Component Details & View Mode Toggle */}
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-paper p-5 neu-sm">
-          <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-blue">
-              {activeComp.category} / {activeComp.reference}
-            </span>
-            <h2 className="display mt-0.5 text-2xl text-ink">{activeComp.name}</h2>
-            <p className="mt-1 text-xs font-medium text-ink-soft">{activeComp.description}</p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Viewport device switcher */}
-            {viewMode === 'preview' && (
-              <div className="inline-flex rounded-full bg-paper p-1 neu-inset">
+              <nav className="mt-3 flex flex-col gap-1 max-h-[420px] overflow-y-auto pr-1">
+                {/* 'All' Category Option */}
                 <button
                   type="button"
-                  onClick={() => setDevice('desktop')}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.08em] transition ${
-                    device === 'desktop' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
+                  onClick={() => setSelectedCategory('All')}
+                  className={`flex items-center justify-between rounded-xl px-3.5 py-2.5 text-xs font-bold transition-all text-left ${
+                    selectedCategory === 'All'
+                      ? 'bg-ink text-white shadow-sm'
+                      : 'text-ink-soft hover:bg-paper neu-hover hover:text-ink'
                   }`}
-                  title="Desktop View"
                 >
-                  🖥️ Desktop
+                  <span>All Components</span>
+                  <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full ${
+                    selectedCategory === 'All' ? 'bg-white/20 text-white' : 'bg-paper neu-inset text-ink-soft'
+                  }`}>
+                    {COMPONENTS.length}
+                  </span>
                 </button>
+
+                {/* Individual Categories */}
+                {CATEGORIES.map((cat) => {
+                  const isSelected = selectedCategory === cat
+                  const count = categoryCounts[cat] || 0
+                  return (
+                    <button
+                      key={cat}
+                      type="button"
+                      onClick={() => setSelectedCategory(cat)}
+                      className={`flex items-center justify-between rounded-xl px-3.5 py-2 text-xs font-bold transition-all text-left ${
+                        isSelected
+                          ? 'bg-ink text-white shadow-sm'
+                          : 'text-ink-soft hover:bg-paper neu-hover hover:text-ink'
+                      }`}
+                    >
+                      <span className="truncate pr-2">{cat}</span>
+                      <span className={`font-mono text-[10px] px-2 py-0.5 rounded-full shrink-0 ${
+                        isSelected ? 'bg-white/20 text-white' : 'bg-paper neu-inset text-ink-soft'
+                      }`}>
+                        {count}
+                      </span>
+                    </button>
+                  )
+                })}
+              </nav>
+            </div>
+
+            {/* Reference Collection Filter */}
+            <div className="rounded-2xl bg-paper p-4 neu-sm">
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-ink-soft mb-2">
+                Reference Style
+              </label>
+              <select
+                value={selectedReference}
+                onChange={(e) => setSelectedReference(e.target.value)}
+                className="w-full rounded-xl bg-paper p-2.5 text-xs font-medium text-ink outline-none neu-inset"
+              >
+                <option value="All">All Collections ({COMPONENTS.length})</option>
+                {REFERENCES.map((ref) => (
+                  <option key={ref} value={ref}>
+                    {ref}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Sidebar Promo CTA */}
+            <div className="rounded-3xl bg-paper p-5 neu-inset text-center">
+              <span className="rounded-full bg-blue/15 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider text-blue">
+                Commercial License
+              </span>
+              <h4 className="display mt-2 text-lg font-bold text-ink">
+                Weezie UI Component Kit
+              </h4>
+              <p className="mt-1 text-[11px] text-ink-soft">
+                All 35 React files + Figma presets packaged in a single download.
+              </p>
+              <a
+                href="/store"
+                onClick={(e) => {
+                  if (onNavigate) {
+                    e.preventDefault()
+                    onNavigate('/store')
+                  }
+                }}
+                className="btn-gradient mt-4 block w-full rounded-full py-2.5 text-center text-xs font-bold uppercase tracking-wider shadow"
+              >
+                Get Full Pack ($29) →
+              </a>
+            </div>
+          </aside>
+
+          {/* ============================================================ */}
+          {/* RIGHT MAIN FEED: DISPLAY ALL COMPONENTS WITH NAMES UNDER     */}
+          {/* ============================================================ */}
+          <div className="w-full min-w-0 flex-1 space-y-8">
+            
+            {/* Feed Status Header */}
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+              <div>
+                <span className="font-mono text-xs font-bold uppercase tracking-wider text-blue">
+                  {selectedCategory === 'All' ? 'All Categories' : selectedCategory}
+                </span>
+                <h2 className="display text-2xl font-bold text-ink sm:text-3xl">
+                  {filtered.length} {filtered.length === 1 ? 'Component' : 'Components'} Available
+                </h2>
+              </div>
+
+              {(selectedCategory !== 'All' || selectedReference !== 'All' || search) && (
                 <button
                   type="button"
-                  onClick={() => setDevice('mobile')}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.08em] transition ${
-                    device === 'mobile' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
-                  }`}
-                  title="Mobile View (390px)"
+                  onClick={() => {
+                    setSelectedCategory('All')
+                    setSelectedReference('All')
+                    setSearch('')
+                  }}
+                  className="rounded-full bg-paper px-3.5 py-1.5 text-xs font-bold text-blue neu-sm hover:text-ink transition"
                 >
-                  📱 Mobile
+                  Reset All Filters ✕
+                </button>
+              )}
+            </div>
+
+            {/* Empty Search / Filter State */}
+            {filtered.length === 0 && (
+              <div className="rounded-3xl bg-paper p-12 text-center neu-inset">
+                <span className="text-3xl">🔍</span>
+                <h3 className="display mt-3 text-xl font-bold text-ink">No components found</h3>
+                <p className="mt-1 text-xs text-ink-soft">
+                  Try adjusting your search terms or select "All Components" on the left sidebar.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategory('All')
+                    setSelectedReference('All')
+                    setSearch('')
+                  }}
+                  className="btn-gradient mt-4 rounded-full px-6 py-2.5 text-xs font-bold uppercase tracking-wider"
+                >
+                  Show All 35 Components
                 </button>
               </div>
             )}
 
-            {/* Theme mode switcher */}
-            {viewMode === 'preview' && (
-              <div className="inline-flex rounded-full bg-paper p-1 neu-inset">
-                <button
-                  type="button"
-                  onClick={() => setTheme('dark')}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.08em] transition ${
-                    theme === 'dark' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
-                  }`}
-                  title="Dark Theme"
-                >
-                  🌙 Dark
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setTheme('light')}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-bold uppercase tracking-[0.08em] transition ${
-                    theme === 'light' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
-                  }`}
-                  title="Light Theme"
-                >
-                  ☀️ Light
-                </button>
+            {/* Continuous Stream of All Components with Names Underneath */}
+            <div className="space-y-10">
+              {filtered.map((item) => (
+                <ComponentFeedCard
+                  key={item.id}
+                  item={item}
+                  globalTheme={globalTheme}
+                />
+              ))}
+            </div>
+
+            {/* Bottom Feed Footer */}
+            {filtered.length > 0 && (
+              <div className="rounded-3xl bg-paper p-8 text-center neu-sm">
+                <h4 className="display text-2xl font-bold text-ink">You&rsquo;ve reached the end of the collection</h4>
+                <p className="mt-2 text-xs font-medium text-ink-soft max-w-md mx-auto">
+                  Need a custom React component or full design system for your SaaS product?
+                </p>
+                <div className="mt-5 flex flex-wrap justify-center gap-3">
+                  <a
+                    href="/store"
+                    onClick={(e) => {
+                      if (onNavigate) {
+                        e.preventDefault()
+                        onNavigate('/store')
+                      }
+                    }}
+                    className="btn-gradient rounded-full px-7 py-3 text-xs font-bold uppercase tracking-[0.12em]"
+                  >
+                    Buy 35-Component Pack ($29) →
+                  </a>
+                  <a
+                    href="#contact"
+                    onClick={(e) => {
+                      if (onNavigate) {
+                        e.preventDefault()
+                        onNavigate('/#contact')
+                      }
+                    }}
+                    className="neu-hover rounded-full bg-paper px-6 py-3 text-xs font-bold uppercase tracking-[0.1em] text-ink neu-sm"
+                  >
+                    Request Custom Block ↗
+                  </a>
+                </div>
               </div>
             )}
-
-            {/* View mode switcher */}
-            <div className="inline-flex rounded-full bg-paper p-1 neu-inset">
-              <button
-                type="button"
-                onClick={() => setViewMode('preview')}
-                className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.1em] transition ${
-                  viewMode === 'preview' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
-                }`}
-              >
-                👁️ Preview
-              </button>
-              <button
-                type="button"
-                onClick={() => setViewMode('code')}
-                className={`rounded-full px-4 py-1.5 text-xs font-bold uppercase tracking-[0.1em] transition ${
-                  viewMode === 'code' ? 'btn-gradient text-white shadow' : 'text-ink-soft hover:text-ink'
-                }`}
-              >
-                💻 Code
-              </button>
-            </div>
-
-            <button
-              type="button"
-              onClick={handleCopyCode}
-              className="btn-gradient inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-[0.12em]"
-            >
-              {copied ? '✅ Copied!' : '📋 Copy Code'}
-            </button>
           </div>
-        </div>
-
-        {/* Display Canvas */}
-        <div className="mt-6 overflow-hidden rounded-[28px] bg-paper p-3 neu md:p-6">
-          {viewMode === 'preview' ? (
-            <div
-              className={`transition-all duration-300 ${
-                device === 'mobile'
-                  ? 'mx-auto max-w-[390px] rounded-[44px] border-[10px] border-zinc-900 shadow-2xl overflow-hidden'
-                  : 'w-full rounded-2xl overflow-hidden border border-line/40'
-              }`}
-            >
-              {/* Mobile device frame top bar */}
-              {device === 'mobile' && (
-                <div className="relative flex h-8 items-center justify-center bg-zinc-950 px-6">
-                  <div className="h-4 w-24 rounded-full bg-black" />
-                </div>
-              )}
-
-              {/* Component Canvas with Light/Dark Theme */}
-              <div
-                className={`overflow-x-hidden p-4 sm:p-8 transition-colors duration-300 ${
-                  theme === 'light'
-                    ? 'component-light-canvas'
-                    : 'bg-zinc-950 text-white'
-                }`}
-              >
-                {!previewClosed && <ActiveComponent key={`${activeComp.id}-${previewKey}`} theme={theme}
-                  onClose={()=>setPreviewClosed(true)}
-                  onSubmit={value=>setPreviewFeedback(`Demo submitted: ${JSON.stringify(value)}`)}
-                  onSelect={value=>setPreviewFeedback(`Selected: ${JSON.stringify(value)}`)}
-                  onApply={value=>setPreviewFeedback(`Filters applied: ${JSON.stringify(value)}`)}
-                  onComplete={()=>setPreviewFeedback('Demo complete. Connect your own application action.')}
-                />}
-                <div className="mt-6 flex flex-wrap items-center gap-4 border-t border-white/15 pt-4 text-xs">
-                  <button className="rounded-full border border-current px-4 py-2" onClick={()=>{setPreviewKey(k=>k+1);setPreviewClosed(false);setPreviewFeedback('')}}>Reset demo</button>
-                  <span role="status">{previewClosed?'Preview closed. Reset to open it again.':previewFeedback}</span>
-                </div>
-              </div>
-
-              {/* Mobile device frame bottom indicator */}
-              {device === 'mobile' && (
-                <div className="flex h-5 items-center justify-center bg-zinc-950">
-                  <div className="h-1 w-28 rounded-full bg-white/30" />
-                </div>
-              )}
-            </div>
-          ) : (
-            <div className="overflow-hidden rounded-2xl border border-line/40 bg-zinc-950">
-              {/* Code sub-toolbar */}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-white/10 bg-zinc-900/80 px-6 py-3.5">
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setCodeTab('source')}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
-                      codeTab === 'source' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    📄 Component Source ({activeComp.fileName})
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCodeTab('usage')}
-                    className={`rounded-lg px-3 py-1.5 text-xs font-bold transition-colors ${
-                      codeTab === 'usage' ? 'bg-white text-zinc-950' : 'text-zinc-400 hover:text-white'
-                    }`}
-                  >
-                    🚀 Usage Example
-                  </button>
-                </div>
-                <div className="flex items-center gap-2 text-xs text-zinc-400">
-                  <span>File path: <code className="rounded bg-white/10 px-2 py-0.5 text-blue-400 font-mono">src/components/ui/{activeComp.fileName}</code></span>
-                </div>
-              </div>
-
-              <div className="relative p-4 font-mono text-xs leading-relaxed text-zinc-300 md:p-6">
-                <pre className="max-h-[600px] overflow-x-auto overflow-y-auto rounded-xl bg-black/60 p-4 md:p-6 leading-relaxed">
-                  <code>{codeTab === 'source' ? activeComp.source : activeComp.code}</code>
-                </pre>
-              </div>
-            </div>
-          )}
-        </div>
         </div>
       </main>
 

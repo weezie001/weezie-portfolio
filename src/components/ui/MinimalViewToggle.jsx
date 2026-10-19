@@ -20,14 +20,14 @@ export default function MinimalViewToggle({
   }
 
   return (
-    <div className={`inline-flex items-center gap-1 rounded-xl border border-white/10 bg-zinc-950 p-1 backdrop-blur-md ${className}`}>
+    <div className={`[font-family:Arial,Helvetica,sans-serif] inline-flex items-center gap-1 rounded-xl border border-[#e0e5d6] bg-[#f8f8f3] p-1 backdrop-blur-md ${className}`}>
       {/* 2-Column Grid Toggle */}
       <button
         type="button"
         onClick={() => handleSwitch('2col')}
         aria-label="2 columns view"
         className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${
-          view === '2col' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-white'
+          view === '2col' ? 'bg-[#252a20] text-white shadow-sm' : 'text-[#929d83] hover:text-[#272c22]'
         }`}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
@@ -42,7 +42,7 @@ export default function MinimalViewToggle({
         onClick={() => handleSwitch('3col')}
         aria-label="3 columns view"
         className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${
-          view === '3col' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-white'
+          view === '3col' ? 'bg-[#252a20] text-white shadow-sm' : 'text-[#929d83] hover:text-[#272c22]'
         }`}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">
@@ -58,7 +58,7 @@ export default function MinimalViewToggle({
         onClick={() => handleSwitch('list')}
         aria-label="List view"
         className={`flex h-7 w-7 items-center justify-center rounded-lg transition-colors ${
-          view === 'list' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-500 hover:text-white'
+          view === 'list' ? 'bg-[#252a20] text-white shadow-sm' : 'text-[#929d83] hover:text-[#272c22]'
         }`}
       >
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-3.5 w-3.5">

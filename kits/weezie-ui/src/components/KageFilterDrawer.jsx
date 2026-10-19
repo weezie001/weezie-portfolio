@@ -71,17 +71,17 @@ export default function KageFilterDrawer({
   }
 
   return (
-    <div className={`w-full max-w-md mx-auto rounded-3xl border border-white/10 bg-zinc-950/80 p-5 shadow-2xl backdrop-blur-2xl ${className}`}>
+    <div className={`[font-family:Arial,Helvetica,sans-serif] w-full max-w-md mx-auto rounded-[18px] border border-white/10 bg-[#171a20]/80 p-5 shadow-[0_12px_40px_-24px_#10182080] backdrop-blur-2xl ${className}`}>
       {/* Drawer Header */}
       <div className="flex items-center justify-between border-b border-white/10 pb-4">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-blue-600/10 border border-blue-500/20 text-blue-400">
+          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-[#617fbd]/10 border border-blue-500/20 text-[#aac2eb]">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4">
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
             </svg>
           </div>
           <div>
-            <h3 className="text-sm font-bold text-white">Filter Components</h3>
+            <h3 className="text-sm font-medium text-white">Filter Components</h3>
             <p className="text-[11px] text-zinc-400">Refine by framework & aesthetic</p>
           </div>
         </div>
@@ -107,7 +107,7 @@ export default function KageFilterDrawer({
               <button
                 type="button"
                 onClick={() => toggleSection(facet.id)}
-                className="flex w-full items-center justify-between text-xs font-bold text-zinc-200 hover:text-white"
+                className="flex w-full items-center justify-between text-xs font-medium text-zinc-200 hover:text-white"
               >
                 <span>{facet.title}</span>
                 <svg
@@ -136,7 +136,7 @@ export default function KageFilterDrawer({
                             type="checkbox"
                             checked={isChecked}
                             onChange={() => toggleTag(item.id)}
-                            className="h-4 w-4 rounded border-white/20 bg-zinc-900 text-blue-600 focus:ring-0 focus:ring-offset-0"
+                            className="h-4 w-4 rounded border-white/20 bg-[#1d222b] text-blue-600 focus:ring-0 focus:ring-offset-0"
                           />
                           <span className={`text-xs ${isChecked ? 'font-semibold text-white' : 'text-zinc-400'}`}>
                             {item.label}
@@ -165,7 +165,7 @@ export default function KageFilterDrawer({
         <button
           type="button"
           onClick={handleApply}
-          className="w-2/3 rounded-xl bg-blue-600 py-2.5 text-xs font-bold text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-colors active:scale-95"
+          className="w-2/3 rounded-xl bg-[#617fbd] py-2.5 text-xs font-medium text-white shadow-lg shadow-blue-600/30 hover:bg-blue-500 transition-colors active:scale-95"
         >
           Apply Filters ({selectedTags.length})
         </button>

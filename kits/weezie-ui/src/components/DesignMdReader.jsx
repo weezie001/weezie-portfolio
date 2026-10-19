@@ -11,6 +11,7 @@ export default function DesignMdReader({ className = '' }) {
   const [activeTab, setActiveTab] = useState('colors')
   const [viewMode, setViewMode] = useState('visual') // 'visual' | 'raw'
   const [copiedToken, setCopiedToken] = useState('')
+  const [search, setSearch] = useState('')
 
   const COLOR_TOKENS = [
     { name: 'Canvas Dark', hex: '#09090b', role: 'Default body background' },
@@ -62,29 +63,29 @@ ${TYPE_SCALE.map((t) => `- ${t.token}: ${t.size} / ${t.weight}`).join('\n')}
   }
 
   return (
-    <div className={`mx-auto w-full max-w-4xl overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6 text-white shadow-2xl sm:p-8 ${className}`}>
+    <div className={`mx-auto w-full max-w-4xl overflow-hidden rounded-[18px] border border-[#e0e5d6] bg-[#f8f8f3] p-6 text-[#272c22] shadow-[0_12px_40px_-24px_#35402540] sm:p-8 ${className}`}>
       {/* Header bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#e0e5d6] pb-5">
         <div>
-          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-blue-400">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-[#284cd8]">
             ● Living Design Spec
           </span>
-          <h2 className="mt-1 text-2xl font-bold tracking-tight text-white">
+          <h2 className="mt-1 text-2xl font-bold tracking-tight text-[#272c22]">
             Design System Explorer (DESIGN.md)
           </h2>
-          <p className="mt-1 text-xs text-zinc-400">
+          <p className="mt-1 text-xs text-[#88927a]">
             Production tokens, typography scales, and motion curves in one inspectable panel.
           </p>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Mode Toggle */}
-          <div className="flex rounded-full border border-white/10 bg-zinc-900 p-1">
+          <div className="flex rounded-full border border-[#e0e5d6] bg-[#fbfcf7] p-1">
             <button
               type="button"
               onClick={() => setViewMode('visual')}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
-                viewMode === 'visual' ? 'bg-white text-black shadow-md' : 'text-zinc-400 hover:text-white'
+                viewMode === 'visual' ? 'bg-[#252a20] text-white shadow-md' : 'text-[#88927a] hover:text-[#272c22]'
               }`}
             >
               Visual Spec
@@ -93,7 +94,7 @@ ${TYPE_SCALE.map((t) => `- ${t.token}: ${t.size} / ${t.weight}`).join('\n')}
               type="button"
               onClick={() => setViewMode('raw')}
               className={`rounded-full px-3 py-1 text-xs font-semibold transition-all ${
-                viewMode === 'raw' ? 'bg-white text-black shadow-md' : 'text-zinc-400 hover:text-white'
+                viewMode === 'raw' ? 'bg-[#252a20] text-white shadow-md' : 'text-[#88927a] hover:text-[#272c22]'
               }`}
             >
               Raw Markdown
@@ -103,7 +104,7 @@ ${TYPE_SCALE.map((t) => `- ${t.token}: ${t.size} / ${t.weight}`).join('\n')}
           <button
             type="button"
             onClick={downloadMarkdown}
-            className="rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-bold text-zinc-200 transition-all hover:bg-white/15 hover:text-white"
+            className="rounded-full border border-[#e0e5d6] bg-[#e9eee0] px-3.5 py-1.5 text-xs font-bold text-zinc-200 transition-all hover:bg-white/15 hover:text-[#272c22]"
           >
             Download .md ↓
           </button>
@@ -111,7 +112,7 @@ ${TYPE_SCALE.map((t) => `- ${t.token}: ${t.size} / ${t.weight}`).join('\n')}
       </div>
 
       {viewMode === 'raw' ? (
-        <div className="mt-6 rounded-2xl border border-white/10 bg-black/60 p-5 font-mono text-xs leading-relaxed text-zinc-300">
+        <div className="mt-6 rounded-xl border border-[#e0e5d6] bg-black/60 p-5 font-mono text-xs leading-relaxed text-[#727b65]">
           <pre className="overflow-x-auto whitespace-pre-wrap">
             {`# WEEZIE DESIGN SYSTEM SPEC (DESIGN.md)
 
@@ -142,8 +143,8 @@ ${TYPE_SCALE.map((t) => `- ${t.token}: ${t.size} / ${t.weight}`).join('\n')}
                 onClick={() => setActiveTab(tab.id)}
                 className={`flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-left text-xs font-bold transition-all ${
                   activeTab === tab.id
-                    ? 'border border-white/15 bg-white/10 text-white shadow-md'
-                    : 'text-zinc-400 hover:bg-white/5 hover:text-zinc-200'
+                    ? 'border border-[#e0e5d6] bg-[#e1e9d5] text-[#272c22] shadow-md'
+                    : 'text-[#88927a] hover:bg-[#e9eee0] hover:text-zinc-200'
                 }`}
               >
                 <span>{tab.icon}</span>
@@ -153,10 +154,10 @@ ${TYPE_SCALE.map((t) => `- ${t.token}: ${t.size} / ${t.weight}`).join('\n')}
           </div>
 
           {/* Right Visual Inspector Content */}
-          <div className="rounded-2xl border border-white/10 bg-black/40 p-5 md:col-span-9">
+          <div className="rounded-xl border border-[#e0e5d6] bg-[#e4ecd8] p-5 md:col-span-9">
             {activeTab === 'colors' && (
               <div className="space-y-3">
-                <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#88927a]">
                   Click any token to copy its hex value
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -165,19 +166,19 @@ ${TYPE_SCALE.map((t) => `- ${t.token}: ${t.size} / ${t.weight}`).join('\n')}
                       key={c.hex}
                       type="button"
                       onClick={() => copyToken(c.hex)}
-                      className="group flex items-center justify-between rounded-xl border border-white/10 bg-zinc-900/60 p-3 text-left transition-all hover:border-white/30 hover:bg-zinc-900"
+                      className="group flex items-center justify-between rounded-xl border border-[#e0e5d6] bg-[#fbfcf7]/60 p-3 text-left transition-all hover:border-[#cbd6b9] hover:bg-[#fbfcf7]"
                     >
                       <div className="flex items-center gap-3">
                         <span
-                          className="h-9 w-9 rounded-lg border border-white/20 shadow-md transition-transform group-hover:scale-105"
+                          className="h-9 w-9 rounded-lg border border-[#d8dfca] shadow-md transition-transform group-hover:scale-105"
                           style={{ background: c.hex }}
                         />
                         <div>
-                          <p className="text-xs font-bold text-white">{c.name}</p>
-                          <p className="text-[10px] text-zinc-400">{c.role}</p>
+                          <p className="text-xs font-bold text-[#272c22]">{c.name}</p>
+                          <p className="text-[10px] text-[#88927a]">{c.role}</p>
                         </div>
                       </div>
-                      <span className="font-mono text-[11px] text-zinc-400 group-hover:text-white">
+                      <span className="font-mono text-[11px] text-[#88927a] group-hover:text-[#272c22]">
                         {copiedToken === c.hex ? '✓ Copied' : c.hex}
                       </span>
                     </button>
@@ -188,21 +189,21 @@ ${TYPE_SCALE.map((t) => `- ${t.token}: ${t.size} / ${t.weight}`).join('\n')}
 
             {activeTab === 'typography' && (
               <div className="space-y-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#88927a]">
                   Modular Font Scale &amp; Contrast Spec
                 </p>
                 <div className="space-y-3">
                   {TYPE_SCALE.map((t) => (
                     <div
                       key={t.token}
-                      className="rounded-xl border border-white/10 bg-zinc-900/40 p-4"
+                      className="rounded-xl border border-[#e0e5d6] bg-[#fbfcf7]/40 p-4"
                     >
-                      <div className="flex items-center justify-between border-b border-white/5 pb-2 text-[10px] font-mono text-zinc-400">
-                        <span className="uppercase text-blue-400 font-bold">{t.token}</span>
+                      <div className="flex items-center justify-between border-b border-[#e5eadb] pb-2 text-[10px] font-mono text-[#88927a]">
+                        <span className="uppercase text-[#284cd8] font-bold">{t.token}</span>
                         <span>Size: {t.size} · Weight: {t.weight}</span>
                       </div>
                       <p
-                        className="mt-2 text-white truncate"
+                        className="mt-2 text-[#272c22] truncate"
                         style={{ fontSize: t.size, fontWeight: t.weight }}
                       >
                         {t.sample}
@@ -215,7 +216,7 @@ ${TYPE_SCALE.map((t) => `- ${t.token}: ${t.size} / ${t.weight}`).join('\n')}
 
             {activeTab === 'motion' && (
               <div className="space-y-4">
-                <p className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <p className="text-xs font-bold uppercase tracking-wider text-[#88927a]">
                   Tactile Spring &amp; Interpolation Presets
                 </p>
                 <div className="grid gap-3 sm:grid-cols-2">
@@ -227,14 +228,14 @@ ${TYPE_SCALE.map((t) => `- ${t.token}: ${t.size} / ${t.weight}`).join('\n')}
                   ].map((m) => (
                     <div
                       key={m.name}
-                      className="group rounded-xl border border-white/10 bg-zinc-900/60 p-4 transition-all hover:border-white/30"
+                      className="group rounded-xl border border-[#e0e5d6] bg-[#fbfcf7]/60 p-4 transition-all hover:border-[#cbd6b9]"
                     >
-                      <p className="text-xs font-bold text-white">{m.name}</p>
-                      <p className="font-mono text-[10px] text-zinc-400 mt-0.5">{m.curve}</p>
-                      <p className="text-[11px] text-zinc-300 mt-2">{m.desc}</p>
-                      <div className="mt-3 overflow-hidden rounded-full bg-white/10 h-1.5">
+                      <p className="text-xs font-bold text-[#272c22]">{m.name}</p>
+                      <p className="font-mono text-[10px] text-[#88927a] mt-0.5">{m.curve}</p>
+                      <p className="text-[11px] text-[#727b65] mt-2">{m.desc}</p>
+                      <div className="mt-3 overflow-hidden rounded-full bg-[#e1e9d5] h-1.5">
                         <div
-                          className="h-full w-1/3 rounded-full bg-blue-500 transition-all duration-700 group-hover:w-full"
+                          className="h-full w-1/3 rounded-full bg-[#284cd8] transition-all duration-700 group-hover:w-full"
                           style={{ transitionTimingFunction: m.curve }}
                         />
                       </div>

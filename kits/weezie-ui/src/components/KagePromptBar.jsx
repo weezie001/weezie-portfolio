@@ -39,10 +39,10 @@ export default function KagePromptBar({
   }
 
   return (
-    <div className={`w-full max-w-2xl mx-auto flex flex-col items-center gap-3 ${className}`}>
+    <div className={`[font-family:Arial,Helvetica,sans-serif] w-full max-w-2xl mx-auto flex flex-col items-center gap-3 ${className}`}>
       {/* Expanded Prompt Editor Card */}
       {isExpanded && (
-        <div className="w-full rounded-2xl border border-white/15 bg-zinc-900/90 p-4 shadow-2xl backdrop-blur-xl transition-all">
+        <div className="w-full rounded-2xl border border-white/15 bg-[#1d222b]/90 p-4 shadow-[0_12px_40px_-24px_#10182080] backdrop-blur-sm transition-all">
           <div className="flex items-center justify-between border-b border-white/10 pb-2">
             <span className="text-xs font-semibold text-zinc-300">Prompt Instructions</span>
             <div className="flex items-center gap-2">
@@ -66,7 +66,7 @@ export default function KagePromptBar({
       )}
 
       {/* Main Floating Pill Bar */}
-      <div className="relative flex w-full flex-wrap items-center justify-between gap-3 rounded-full border border-white/15 bg-zinc-950/80 p-2 shadow-xl backdrop-blur-2xl transition-all hover:border-white/25 sm:p-2.5">
+      <div className="relative flex w-full flex-wrap items-center justify-between gap-3 rounded-full border border-white/15 bg-[#171a20]/80 p-2 shadow-[0_12px_40px_-24px_#10182080] backdrop-blur-2xl transition-all hover:border-white/25 sm:p-2.5">
         {/* Left: Model Trigger & Tags */}
         <div className="flex items-center gap-2">
           <div className="relative">
@@ -84,8 +84,8 @@ export default function KagePromptBar({
 
             {/* Model dropdown */}
             {showModelPicker && (
-              <div className="absolute bottom-full left-0 mb-2 w-52 rounded-2xl border border-white/15 bg-zinc-900/95 p-1.5 shadow-2xl backdrop-blur-xl">
-                <div className="px-2 py-1 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Select Target Model</div>
+              <div className="absolute bottom-full left-0 mb-2 w-52 rounded-2xl border border-white/15 bg-[#1d222b]/95 p-1.5 shadow-[0_12px_40px_-24px_#10182080] backdrop-blur-sm">
+                <div className="px-2 py-1 text-[10px] font-medium uppercase tracking-wider text-zinc-500">Select Target Model</div>
                 {models.map((m) => (
                   <button
                     key={m.id}
@@ -96,7 +96,7 @@ export default function KagePromptBar({
                     }}
                     className={`flex w-full items-center justify-between rounded-xl px-2.5 py-1.5 text-xs transition-colors ${
                       selectedModel === m.id
-                        ? 'bg-blue-600/20 text-blue-300 font-semibold'
+                        ? 'bg-[#617fbd]/20 text-blue-300 font-semibold'
                         : 'text-zinc-300 hover:bg-white/5'
                     }`}
                   >
@@ -132,9 +132,9 @@ export default function KagePromptBar({
           <button
             type="button"
             onClick={handleCopy}
-            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-bold transition-all active:scale-95 ${
+            className={`inline-flex items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-medium transition-all active:scale-95 ${
               isCopied
-                ? 'bg-emerald-500 text-black shadow-lg shadow-emerald-500/20'
+                ? 'bg-[#7898bf] text-black shadow-lg shadow-emerald-500/20'
                 : 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 hover:brightness-110'
             }`}
           >

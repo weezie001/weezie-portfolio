@@ -56,13 +56,13 @@ export default function FeatureComparisonMatrix({
   function renderValue(val) {
     if (typeof val === 'boolean') {
       return val ? (
-        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-emerald-500/15 text-emerald-400">
+        <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#607b45]/15 text-emerald-400">
           <svg className="h-3.5 w-3.5" viewBox="0 0 20 20" fill="currentColor">
             <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
           </svg>
         </span>
       ) : (
-        <span className="inline-flex h-6 w-6 items-center justify-center text-zinc-600">
+        <span className="inline-flex h-6 w-6 items-center justify-center text-[#83916d]">
           —
         </span>
       )
@@ -71,45 +71,45 @@ export default function FeatureComparisonMatrix({
   }
 
   return (
-    <section className={`bg-zinc-950 px-5 py-20 text-white sm:px-8 sm:py-24 ${className}`}>
+    <section className={`[font-family:Arial,Helvetica,sans-serif] bg-[#f8f8f3] px-5 py-20 text-[#272c22] sm:px-8 sm:py-24 ${className}`}>
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#284cd8]">
             Transparency
           </p>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-white sm:text-5xl">
+          <h2 className="mt-3 text-3xl font-semibold tracking-tight text-[#272c22] sm:text-5xl">
             {title}
           </h2>
-          <p className="mt-4 text-base leading-relaxed text-zinc-400">
+          <p className="mt-4 text-base leading-relaxed text-[#88927a]">
             {subtitle}
           </p>
         </div>
 
         {/* Comparison Table */}
-        <div className="mt-16 overflow-x-auto rounded-3xl border border-white/10 bg-zinc-900/40 p-4 backdrop-blur-xl sm:p-8">
+        <div className="mt-16 overflow-x-auto rounded-[18px] border border-[#e0e5d6] bg-[#fbfcf7]/40 p-4 backdrop-blur-xl sm:p-8">
           <table className="w-full min-w-[640px] border-collapse text-left">
             {/* Table Header: Plans */}
             <thead>
-              <tr className="border-b border-white/10">
+              <tr className="border-b border-[#e0e5d6]">
                 <th className="w-2/5 pb-8 pr-4 align-bottom">
-                  <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  <span className="text-xs font-bold uppercase tracking-wider text-[#88927a]">
                     Features & Specs
                   </span>
                 </th>
                 {plans.map((plan) => (
                   <th key={plan.id} className="w-1/5 px-4 pb-8 align-bottom text-center">
                     {plan.isPopular && (
-                      <span className="mb-2 inline-block rounded-full bg-blue-500/20 px-2.5 py-0.5 text-[10px] font-bold text-blue-400">
+                      <span className="mb-2 inline-block rounded-full bg-[#284cd8]/20 px-2.5 py-0.5 text-[10px] font-bold text-[#284cd8]">
                         Most Popular
                       </span>
                     )}
-                    <h3 className="text-lg font-bold text-white">{plan.name}</h3>
+                    <h3 className="text-lg font-bold text-[#272c22]">{plan.name}</h3>
                     <div className="mt-2 flex items-baseline justify-center">
-                      <span className="text-3xl font-extrabold text-white">{plan.price}</span>
-                      <span className="text-xs text-zinc-400">{plan.period}</span>
+                      <span className="text-3xl font-extrabold text-[#272c22]">{plan.price}</span>
+                      <span className="text-xs text-[#88927a]">{plan.period}</span>
                     </div>
-                    <p className="mt-2 text-[11px] leading-tight text-zinc-400">
+                    <p className="mt-2 text-[11px] leading-tight text-[#88927a]">
                       {plan.description}
                     </p>
                     <button
@@ -120,8 +120,8 @@ export default function FeatureComparisonMatrix({
                       }}
                       className={`mt-4 w-full rounded-full py-2 text-xs font-bold uppercase tracking-wider transition-all ${
                         plan.isPopular || activePlan === plan.id
-                          ? 'bg-white text-zinc-950 hover:bg-zinc-200'
-                          : 'border border-white/10 bg-white/5 text-white hover:bg-white/10'
+                          ? 'bg-[#252a20] text-white hover:bg-zinc-200'
+                          : 'border border-[#e0e5d6] bg-[#e9eee0] text-[#272c22] hover:bg-[#e1e9d5]'
                       }`}
                     >
                       Choose {plan.name}
@@ -135,10 +135,10 @@ export default function FeatureComparisonMatrix({
             <tbody>
               {categories.map((cat, catIdx) => (
                 <Fragment key={cat.category}>
-                  <tr key={`cat-${catIdx}`} className="border-b border-white/10 bg-white/[0.02]">
+                  <tr key={`cat-${catIdx}`} className="border-b border-[#e0e5d6] bg-white/[0.02]">
                     <td
                       colSpan={plans.length + 1}
-                      className="py-4 text-xs font-bold uppercase tracking-wider text-blue-400"
+                      className="py-4 text-xs font-bold uppercase tracking-wider text-[#284cd8]"
                     >
                       {cat.category}
                     </td>
@@ -146,9 +146,9 @@ export default function FeatureComparisonMatrix({
                   {cat.features.map((feat, featIdx) => (
                     <tr
                       key={`feat-${catIdx}-${featIdx}`}
-                      className="border-b border-white/5 transition-colors hover:bg-white/[0.02]"
+                      className="border-b border-[#e5eadb] transition-colors hover:bg-white/[0.02]"
                     >
-                      <td className="py-3.5 pr-4 text-xs font-medium text-zinc-300">
+                      <td className="py-3.5 pr-4 text-xs font-medium text-[#727b65]">
                         {feat.name}
                       </td>
                       <td className="px-4 py-3.5 text-center">

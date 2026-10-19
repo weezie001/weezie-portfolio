@@ -11,7 +11,7 @@ export default function KageGhostCursors({
   activeUsers = [
     { id: 'u1', name: 'Elena (Lead UX)', color: 'bg-violet-500', border: 'border-violet-400', text: 'text-violet-300' },
     { id: 'u2', name: 'Marcus (Frontend)', color: 'bg-blue-500', border: 'border-blue-400', text: 'text-blue-300' },
-    { id: 'u3', name: 'Demo Assistant', color: 'bg-emerald-500', border: 'border-emerald-400', text: 'text-emerald-300' },
+    { id: 'u3', name: 'Demo Assistant', color: 'bg-[#7898bf]', border: 'border-emerald-400', text: 'text-emerald-300' },
   ],
   title = "Live Collaborative Canvas",
   subtitle = "Simulated real-time multiplayer presence with cursor coordinates.",
@@ -46,13 +46,13 @@ export default function KageGhostCursors({
   }, [isPlaying])
 
   return (
-    <div className={`relative w-full overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6 sm:p-8 ${className}`}>
+    <div className={`[font-family:Arial,Helvetica,sans-serif] relative w-full overflow-hidden rounded-[18px] border border-white/10 bg-[#171a20] p-6 sm:p-8 ${className}`}>
       {/* Top Header & Simulation Controls */}
       <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-4">
         <div>
           <div className="flex items-center gap-2">
             <span className="flex h-2.5 w-2.5 rounded-full bg-emerald-400 motion-safe:animate-ping" />
-            <h3 className="text-base font-bold text-white">{title}</h3>
+            <h3 className="text-base font-medium text-white">{title}</h3>
           </div>
           <p className="mt-0.5 text-xs text-zinc-400">{subtitle}</p>
         </div>
@@ -64,7 +64,7 @@ export default function KageGhostCursors({
               <div
                 key={u.id}
                 title={u.name}
-                className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-zinc-950 ${u.color} text-[10px] font-bold text-white shadow-sm`}
+                className={`flex h-7 w-7 items-center justify-center rounded-full border-2 border-zinc-950 ${u.color} text-[10px] font-medium text-white shadow-sm`}
               >
                 {u.name.charAt(0)}
               </div>
@@ -94,7 +94,7 @@ export default function KageGhostCursors({
             <div className="mt-2 h-2 w-24 rounded bg-white/10" />
           </div>
           <div className="hidden sm:block rounded-xl border border-white/5 bg-white/[0.02] p-4 transition-colors hover:border-white/15">
-            <div className="h-2 w-14 rounded bg-emerald-500/30" />
+            <div className="h-2 w-14 rounded bg-[#7898bf]/30" />
             <div className="mt-2 h-2 w-20 rounded bg-white/10" />
           </div>
         </div>
@@ -139,7 +139,7 @@ export default function KageGhostCursors({
 
               {/* User Label Badge */}
               <div
-                className={`mt-1 flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-xl backdrop-blur-md ${user.border} ${user.color}`}
+                className={`mt-1 flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[10px] font-semibold text-white shadow-[0_12px_40px_-24px_#10182080] backdrop-blur-md ${user.border} ${user.color}`}
               >
                 <span>{user.name}</span>
                 {cursor.clicking && <span className="text-[9px] opacity-75">· clicked</span>}

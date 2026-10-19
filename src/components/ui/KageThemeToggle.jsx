@@ -52,12 +52,12 @@ export default function KageThemeToggle({
   }
 
   return (
-    <div className={`flex flex-col items-center gap-4 ${className}`}>
+    <div className={`[font-family:Arial,Helvetica,sans-serif] flex flex-col items-center gap-4 ${className}`}>
       {/* Segmented Switcher Pill */}
       <div
         role="radiogroup"
         aria-label="Color theme selection"
-        className="inline-flex rounded-full border border-white/10 bg-zinc-950/80 p-1 shadow-inner backdrop-blur-xl"
+        className="inline-flex rounded-full border border-white/10 bg-[#171a20]/80 p-1 shadow-inner backdrop-blur-sm"
       >
         {THEMES.map((item) => {
           const isActive = theme === item.id
@@ -85,7 +85,7 @@ export default function KageThemeToggle({
       </div>
 
       {/* Micro-preview Card Showing Active Theme Appearance */}
-      <div className="w-full max-w-sm rounded-2xl border border-white/10 p-4 transition-all duration-500 bg-zinc-900/60 backdrop-blur-md">
+      <div className="w-full max-w-sm rounded-2xl border border-white/10 p-4 transition-all duration-500 bg-[#1d222b]/60 backdrop-blur-md">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-blue-400" />

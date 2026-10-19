@@ -1,12 +1,8 @@
 "use client";
-import { useState, useEffect, useRef, useId } from 'react'
+import {useState} from 'react'
+import artwork from './assets/cobalt-arch.png'
 
-// Original Weezie UI implementation. React + Tailwind CSS; no UI dependencies.
-const panel = "mx-auto w-full max-w-3xl rounded-3xl border border-white/15 bg-zinc-900 p-5 text-white sm:p-8"
-const button = "rounded-full border border-white/20 px-4 py-2 text-sm transition hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-lime-300 disabled:opacity-40"
-const field = "w-full rounded-xl border border-white/20 bg-black/30 px-4 py-3 text-white focus:outline-2 focus:outline-lime-300"
-
-export default function ReferoStyleCard({ title='Studio Journal', description='Warm paper, expressive type, one bright accent.', onSave }) {
- const [saved,setSaved]=useState(false)
- return <article className="mx-auto max-w-lg rounded-[2rem] border border-white/15 bg-zinc-900 p-3 text-white"><div className="aspect-[16/10] overflow-hidden rounded-[1.4rem] bg-[#efe9dd] p-6 text-[#252b27]"><div className="flex justify-between border-b border-black/20 pb-3 text-xs"><span>STUDIO / 01</span><span>Independent ideas</span></div><p className="mt-8 max-w-[240px] font-serif text-4xl leading-none sm:text-5xl">Good things<br/><i>take shape.</i></p><div className="mt-5 h-3 w-16 bg-orange-600"/></div><div className="p-4"><div className="flex items-start justify-between gap-4"><h2 className="text-xl font-semibold">{title}</h2><button aria-pressed={saved} className={button} onClick={()=>{setSaved(!saved);onSave?.(!saved)}}>{saved?'Saved':'Save'}</button></div><p className="mt-3 text-sm text-zinc-400">{description}</p></div></article>
+export default function ReferoStyleCard({title='Form, in good company.',description='Quiet architecture. One vivid detail. A little room to breathe.',imageUrl=artwork,onSave}) {
+  const [saved,setSaved]=useState(false)
+  return <article className="group mx-auto max-w-xl rounded-[18px] border border-[#e1e2da] bg-[#fbfaf7] p-2.5 text-[#262820] [font-family:Arial,Helvetica,sans-serif]"><div className="relative aspect-[4/3] overflow-hidden rounded-xl"><img src={imageUrl} alt="Blue glass ring, warm stone and soft daylight" loading="lazy" className="h-full w-full object-cover motion-safe:transition-transform motion-safe:duration-700 group-hover:scale-[1.025]"/><div className="absolute inset-x-5 top-5 flex justify-between text-[9px] uppercase tracking-[.18em] text-[#343c32]"><span>FORM / ORIGINAL STUDY</span><span>01 — 2026</span></div><span className="absolute bottom-5 left-5 rounded bg-[#faf9f6]/90 px-2.5 py-1.5 text-[9px] uppercase tracking-[.12em]">Editorial · Material · Cobalt</span></div><div className="px-2 pb-3 pt-5"><div className="flex items-center justify-between gap-5"><h2 className="text-xl font-normal tracking-[-.045em]">{title}</h2><button aria-pressed={saved} className={`rounded-full border px-4 py-2 text-[11px] motion-safe:transition-colors focus-visible:outline-2 focus-visible:outline-[#284cd8] ${saved?'border-[#284cd8] bg-[#284cd8] text-white':'border-[#dce0d4] hover:bg-[#f0f0e9]'}`} onClick={()=>{setSaved(!saved);onSave?.(!saved)}}>{saved?'Saved':'Save'}</button></div><p className="mt-2.5 max-w-xs text-xs leading-5 text-[#858b7b]">{description}</p></div></article>
 }

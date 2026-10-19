@@ -117,7 +117,7 @@ export default function KageCommandPalette({
         <button
           type="button"
           onClick={() => (isControlled && onClose ? onClose() : setInternalOpen(true))}
-          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-zinc-900 px-4 py-2.5 text-xs font-semibold text-zinc-300 hover:border-white/20 hover:text-white"
+          className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-[#1d222b] px-4 py-2.5 text-xs font-semibold text-zinc-300 hover:border-white/20 hover:text-white"
         >
           <span>Open Command Palette</span>
           <kbd className="rounded border border-white/15 bg-white/5 px-2 py-0.5 font-mono text-[10px] text-zinc-400">⌘K</kbd>
@@ -127,7 +127,7 @@ export default function KageCommandPalette({
   }
 
   return (
-    <div className={`relative w-full max-w-xl mx-auto overflow-hidden rounded-2xl border border-white/10 bg-zinc-950/90 shadow-2xl backdrop-blur-2xl ${className}`}>
+    <div className={`[font-family:Arial,Helvetica,sans-serif] relative w-full max-w-xl mx-auto overflow-hidden rounded-2xl border border-white/10 bg-[#171a20]/90 shadow-[0_12px_40px_-24px_#10182080] backdrop-blur-2xl ${className}`}>
       {/* Search Input Bar */}
       <div className="relative flex items-center border-b border-white/10 px-4 py-3.5">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mr-3 h-5 w-5 text-zinc-400">
@@ -178,7 +178,7 @@ export default function KageCommandPalette({
                   onMouseEnter={() => setSelectedIndex(idx)}
                   className={`group flex cursor-pointer items-center justify-between rounded-xl px-3 py-2.5 text-xs transition-colors ${
                     isSelected
-                      ? 'bg-blue-600/15 text-white border border-blue-500/30'
+                      ? 'bg-[#617fbd]/15 text-white border border-blue-500/30'
                       : 'text-zinc-400 hover:bg-white/5 border border-transparent'
                   }`}
                 >

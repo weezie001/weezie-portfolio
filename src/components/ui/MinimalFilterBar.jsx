@@ -39,7 +39,7 @@ export default function MinimalFilterBar({
   }
 
   return (
-    <div className={`flex items-center gap-2 overflow-hidden py-2 ${className}`}>
+    <div className={`[font-family:Arial,Helvetica,sans-serif] flex items-center gap-2 overflow-hidden py-2 ${className}`}>
       {/* Scrollable Pills Container */}
       <div
         ref={scrollRef}
@@ -54,14 +54,14 @@ export default function MinimalFilterBar({
               onClick={() => handleSelect(tag.id)}
               className={`flex shrink-0 items-center gap-2 rounded-full border px-3.5 py-1.5 text-xs font-semibold transition-all active:scale-95 ${
                 isActive
-                  ? 'border-white bg-white text-zinc-950 shadow-md'
-                  : 'border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-white'
+                  ? 'border-[#d2dcc3] bg-[#252a20] text-white shadow-md'
+                  : 'border-[#e0e5d6] bg-[#e9eee0] text-[#88927a] hover:border-[#d8dfca] hover:text-[#272c22]'
               }`}
             >
               <span>{tag.label}</span>
               <span
                 className={`font-mono text-[10px] ${
-                  isActive ? 'text-zinc-600 font-bold' : 'text-zinc-500'
+                  isActive ? 'text-[#83916d] font-bold' : 'text-[#929d83]'
                 }`}
               >
                 {tag.count}

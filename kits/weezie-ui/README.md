@@ -13,7 +13,7 @@ Use a current Node.js LTS release (Node 22.12+ recommended).
 
 ## Use one component
 
-Copy the chosen JSX file from src/components into your project. Every component is self-contained and imports only React. Tailwind CSS v4 must scan the copied files. See examples/ for all 35 usage files. Hooks-based components include the Next.js use-client directive. This package does not include authentication servers, payment processors, multiplayer infrastructure or AI APIs.
+Copy the chosen JSX file from src/components into your project. Visual components also import the supplied artwork from src/components/assets; copy that directory alongside the component, or pass your own imageUrl where supported. All UI logic uses React with no other UI dependencies. Tailwind CSS v4 must scan the copied files. See examples/ for all 35 usage files. Hooks-based components include the Next.js use-client directive. This package does not include authentication servers, payment processors, multiplayer infrastructure or AI APIs.
 
 Import example:
 
@@ -32,7 +32,7 @@ export default function Page() { return <ReferoTokenInspector /> }
 - LICENSE.txt: commercial-use terms
 - manifest.json: file inventory and checksums
 
-The components use a deliberate dark demo palette. Customize their literal Tailwind classes and props for your brand; the portfolio's light-preview filter is not a separate light-theme implementation. Native dialog requires a modern browser. Clipboard requires localhost or HTTPS. Content, labels and example counts are demo data.
+The templates have distinct palettes: warm editorial surfaces for gallery and product blocks, blue-grey developer tools, and muted motion studies. Typography and spacing live in the component sources. The supplied cobalt architectural artwork was created with OpenAI image generation for this collection and is included for use with these templates. It is not photography of a real reference website or product. Native dialog requires a modern browser. Clipboard requires localhost or HTTPS. Content, labels and example counts are demo data.
 
 ## Catalog
 

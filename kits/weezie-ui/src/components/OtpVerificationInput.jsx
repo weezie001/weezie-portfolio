@@ -105,9 +105,9 @@ export default function OtpVerificationInput({
   }
 
   return (
-    <div className={`mx-auto max-w-md rounded-3xl border border-white/10 bg-zinc-950 p-6 text-white shadow-2xl sm:p-8 ${className}`}>
+    <div className={`[font-family:Arial,Helvetica,sans-serif] mx-auto max-w-md rounded-[18px] border border-[#e0e5d6] bg-[#f8f8f3] p-6 text-[#272c22] shadow-[0_12px_40px_-24px_#35402540] sm:p-8 ${className}`}>
       {/* Icon Badge */}
-      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl border border-white/10 bg-white/5 text-blue-400">
+      <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl border border-[#e0e5d6] bg-[#e9eee0] text-[#284cd8]">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-6 w-6">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
           <path d="M7 11V7a5 5 0 0 1 10 0v4" />
@@ -116,10 +116,10 @@ export default function OtpVerificationInput({
 
       {/* Header */}
       <div className="mt-5 text-center">
-        <h3 className="text-xl font-bold tracking-tight text-white sm:text-2xl">
+        <h3 className="text-xl font-bold tracking-tight text-[#272c22] sm:text-2xl">
           Check your email
         </h3>
-        <p className="mt-2 text-xs leading-relaxed text-zinc-400">
+        <p className="mt-2 text-xs leading-relaxed text-[#88927a]">
           We sent a 6-digit security code to <strong className="font-semibold text-zinc-200">{email}</strong>.
           Enter it below to confirm your account.
         </p>
@@ -142,8 +142,8 @@ export default function OtpVerificationInput({
               error
                 ? 'border-red-500/50 bg-red-500/10 text-red-300'
                 : digit
-                  ? 'border-blue-500/70 bg-blue-500/10 text-white shadow-[0_0_15px_rgba(59,130,246,0.2)]'
-                  : 'border-white/10 bg-white/[0.04] text-white focus:border-white/30 focus:bg-white/[0.08]'
+                  ? 'border-blue-500/70 bg-[#284cd8]/10 text-[#272c22] shadow-[0_0_15px_rgba(59,130,246,0.2)]'
+                  : 'border-[#e0e5d6] bg-white/[0.04] text-[#272c22] focus:border-[#cbd6b9] focus:bg-white/[0.08]'
             }`}
           />
         ))}
@@ -162,21 +162,21 @@ export default function OtpVerificationInput({
           type="button"
           disabled={isVerifying || digits.some((d) => d === '')}
           onClick={() => handleVerify(digits.join(''))}
-          className="w-full rounded-full bg-white px-5 py-3 text-xs font-bold uppercase tracking-wider text-zinc-950 transition-all hover:bg-zinc-200 active:scale-[0.99] disabled:opacity-40"
+          className="w-full rounded-full bg-white px-5 py-3 text-xs font-bold uppercase tracking-wider text-[#272c22] transition-all hover:bg-zinc-200 active:scale-[0.99] disabled:opacity-40"
         >
           {isVerifying ? 'Verifying Code…' : 'Confirm & Continue →'}
         </button>
       </div>
 
       {/* Resend state */}
-      <div className="mt-6 text-center text-xs text-zinc-500">
+      <div className="mt-6 text-center text-xs text-[#929d83]">
         Didn't receive the email?{' '}
         <button
           type="button"
           disabled={resendCooldown > 0}
           onClick={handleResendClick}
           className={`font-semibold transition-colors ${
-            resendCooldown > 0 ? 'text-zinc-600' : 'text-blue-400 hover:text-blue-300'
+            resendCooldown > 0 ? 'text-[#83916d]' : 'text-[#284cd8] hover:text-blue-300'
           }`}
         >
           {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend code'}

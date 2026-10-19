@@ -60,20 +60,20 @@ export default function DesignMdCliBox({
   }
 
   return (
-    <div className={`mx-auto w-full max-w-3xl overflow-hidden rounded-3xl border border-white/10 bg-zinc-950 p-6 text-white shadow-2xl sm:p-8 ${className}`}>
+    <div className={`mx-auto w-full max-w-3xl [font-family:Arial,Helvetica,sans-serif] overflow-hidden rounded-[18px] border border-[#e0e5d6] bg-[#f8f8f3] p-6 text-[#272c22] shadow-[0_12px_40px_-24px_#35402540] sm:p-8 ${className}`}>
       {/* Top Bar with Package Managers and Flags */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-white/10 pb-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-[#e0e5d6] pb-5">
         <div>
           <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-emerald-400">
             ● Developer CLI
           </span>
-          <h3 className="mt-1 text-lg font-bold tracking-tight text-white">
+          <h3 className="mt-1 text-lg font-bold tracking-tight text-[#272c22]">
             Install Starter Package
           </h3>
         </div>
 
         {/* Manager Tabs */}
-        <div className="flex rounded-full border border-white/10 bg-zinc-900 p-1">
+        <div className="flex rounded-full border border-[#e0e5d6] bg-[#fbfcf7] p-1">
           {['pnpm', 'npm', 'yarn', 'bun'].map((m) => (
             <button
               key={m}
@@ -81,8 +81,8 @@ export default function DesignMdCliBox({
               onClick={() => setManager(m)}
               className={`rounded-full px-3 py-1 font-mono text-xs font-semibold transition-all ${
                 manager === m
-                  ? 'bg-white text-black shadow-md'
-                  : 'text-zinc-400 hover:text-white'
+                  ? 'bg-[#252a20] text-white shadow-md'
+                  : 'text-[#88927a] hover:text-[#272c22]'
               }`}
             >
               {m}
@@ -93,7 +93,7 @@ export default function DesignMdCliBox({
 
       {/* Flag modifiers */}
       <div className="mt-4 flex flex-wrap items-center gap-2">
-        <span className="text-[11px] font-medium text-zinc-500">Flags:</span>
+        <span className="text-[11px] font-medium text-[#929d83]">Flags:</span>
         {['--all', '--minimal', '--motion', '--typescript'].map((flag) => (
           <button
             key={flag}
@@ -101,8 +101,8 @@ export default function DesignMdCliBox({
             onClick={() => setSelectedFlag(flag)}
             className={`rounded-lg border px-2.5 py-1 font-mono text-[11px] transition-all ${
               selectedFlag === flag
-                ? 'border-blue-500/50 bg-blue-500/15 text-blue-300 font-bold'
-                : 'border-white/10 bg-white/5 text-zinc-400 hover:border-white/20 hover:text-white'
+                ? 'border-blue-500/50 bg-[#284cd8]/15 text-blue-300 font-bold'
+                : 'border-[#e0e5d6] bg-[#e9eee0] text-[#88927a] hover:border-[#d8dfca] hover:text-[#272c22]'
             }`}
           >
             {flag}
@@ -111,14 +111,14 @@ export default function DesignMdCliBox({
       </div>
 
       {/* Realistic Terminal Window */}
-      <div className="mt-5 overflow-hidden rounded-2xl border border-white/10 bg-black shadow-inner">
+      <div className="mt-5 overflow-hidden rounded-xl border border-[#e0e5d6] bg-black shadow-inner">
         {/* Window Chrome */}
-        <div className="flex items-center justify-between border-b border-white/10 bg-zinc-900/60 px-4 py-3">
+        <div className="flex items-center justify-between border-b border-[#e0e5d6] bg-[#fbfcf7]/60 px-4 py-3">
           <div className="flex items-center gap-2">
             <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f56]" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#ffbd2e]" />
             <span className="h-2.5 w-2.5 rounded-full bg-[#27c93f]" />
-            <span className="ml-2 font-mono text-[11px] text-zinc-400">bash — 80x24</span>
+            <span className="ml-2 font-mono text-[11px] text-[#88927a]">bash — 80x24</span>
           </div>
 
           <div className="flex items-center gap-2">
@@ -126,7 +126,7 @@ export default function DesignMdCliBox({
               type="button"
               disabled={isRunning}
               onClick={handleRunSimulation}
-              className="rounded-md border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[10px] font-bold text-zinc-300 transition-all hover:bg-white/15 hover:text-white active:scale-95 disabled:opacity-40"
+              className="rounded-md border border-[#e0e5d6] bg-[#e9eee0] px-2.5 py-1 font-mono text-[10px] font-bold text-[#727b65] transition-all hover:bg-white/15 hover:text-[#272c22] active:scale-95 disabled:opacity-40"
             >
               {isRunning ? 'Running…' : '▶ Simulate'}
             </button>
@@ -149,7 +149,7 @@ export default function DesignMdCliBox({
 
           {/* Simulated Logs Output */}
           {simulatedLogs.length > 0 && (
-            <div className="mt-4 space-y-1.5 border-t border-white/10 pt-3 font-mono text-xs text-zinc-400">
+            <div className="mt-4 space-y-1.5 border-t border-[#e0e5d6] pt-3 font-mono text-xs text-[#88927a]">
               {simulatedLogs.map((log, i) => (
                 <p key={i} className={i === simulatedLogs.length - 1 ? 'font-bold text-emerald-300' : ''}>
                   {log}
@@ -160,7 +160,7 @@ export default function DesignMdCliBox({
         </div>
       </div>
 
-      <p className="mt-4 text-center font-mono text-[11px] text-zinc-500">
+      <p className="mt-4 text-center font-mono text-[11px] text-[#929d83]">
         Run inside your React 18+ or Next.js project with Tailwind CSS configured.
       </p>
     </div>
