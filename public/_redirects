@@ -1,0 +1,13 @@
+/templates /index.html 200
+/templates/ /index.html 200
+/components /index.html 200
+/components/ /index.html 200
+/store /index.html 200
+/store/ /index.html 200
+/about /index.html 200
+/about/ /index.html 200
+/work /index.html 200
+/work/ /index.html 200
+/ai-lab /index.html 200
+/ai-lab/ /index.html 200
+/* /index.html 200
