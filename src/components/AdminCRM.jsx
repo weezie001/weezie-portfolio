@@ -14,9 +14,38 @@ import {
   readFileAsBase64,
 } from '../lib/crmStore.js'
 import { analyzeSpamRisk, appendAntiSpamFooter } from '../lib/spamGuard.js'
-import { parseProspectCsv } from '../lib/prospectCsv.js'
+import { parseProspectCsv, exportToCsv } from '../lib/prospectCsv.js'
 
 const STATUS_OPTIONS = ['New', 'Contacted', 'Quoted', 'Won', 'Archived']
+
+const PROSPECT_COLUMNS = [
+  { key: 'name', label: 'Contact Name' },
+  { key: 'business', label: 'Company / Business' },
+  { key: 'email', label: 'Email Address' },
+  { key: 'website', label: 'Website URL' },
+  { key: 'niche', label: 'Niche / Industry' },
+  { key: 'status', label: 'Current Status' },
+  { key: 'open_count', label: 'Initial Opens', accessor: (p) => p.open_count || 0 },
+  { key: 'followup_count', label: 'Followup Sent Count', accessor: (p) => p.followup_count || 0 },
+  { key: 'followup_open_count', label: 'Followup Opens', accessor: (p) => p.followup_open_count || 0 },
+  { key: 'opened_at', label: 'Initial Opened At', accessor: (p) => p.opened_at || '' },
+  { key: 'followup_opened_at', label: 'Followup Opened At', accessor: (p) => p.followup_opened_at || '' },
+  { key: 'last_contacted_at', label: 'Last Contacted', accessor: (p) => p.last_contacted_at || p.sent_at || '' },
+  { key: 'custom_opener', label: 'AI Custom Pitch', accessor: (p) => p.custom_opener || '' },
+  { key: 'created_at', label: 'Created At', accessor: (p) => p.created_at || '' },
+]
+
+const LEAD_COLUMNS = [
+  { key: 'name', label: 'Lead Name' },
+  { key: 'email', label: 'Email Address' },
+  { key: 'source', label: 'Lead Source' },
+  { key: 'status', label: 'Lead Status' },
+  { key: 'plan', label: 'Requested Plan / Pack' },
+  { key: 'budget', label: 'Budget Range' },
+  { key: 'timeline', label: 'Timeline' },
+  { key: 'message', label: 'Message / Notes' },
+  { key: 'created_at', label: 'Submitted Date' },
+]
 
 function replaceColdTokens(text, prospect) {
   return String(text || '')
@@ -1504,9 +1533,11 @@ export default function AdminCRM({ onNavigate }) {
                       </div>
                     )}
 
-                    {/* Search & Filter Bar */}
+                    {/* Search & Filter Bar with Export */}
                     <div className="space-y-3 w-full min-w-0 max-w-full">
-                      <div className="relative w-full max-w-md">
+                      {/* Search & Export Toolbar */}
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between w-full min-w-0 max-w-full bg-paper p-3 sm:p-4 rounded-2xl neu-inset">
+                      <div className="relative w-full max-w-sm">
                         <input
                           type="text"
                           value={coldSearch}
@@ -1514,19 +1545,66 @@ export default function AdminCRM({ onNavigate }) {
                             setColdSearch(e.target.value)
                             setDisplayLimit(25)
                           }}
-                          placeholder="🔍 Search name, company, email, or niche…"
-                          className="w-full rounded-full bg-paper px-4 py-2.5 text-xs font-medium text-ink outline-none neu-inset placeholder:text-ink-soft"
+                          placeholder="🔍 Search name, company, email or niche…"
+                          className="w-full rounded-full bg-paper px-4 py-2 text-xs font-medium text-ink outline-none neu-sm placeholder:text-ink-soft"
                         />
                         {coldSearch && (
                           <button
                             type="button"
                             onClick={() => setColdSearch('')}
-                            className="absolute right-3 top-2.5 text-xs font-bold text-ink-soft hover:text-red-500"
+                            className="absolute right-3 top-2 text-xs font-bold text-ink-soft hover:text-red-500"
                           >
                             ✕
                           </button>
                         )}
                       </div>
+
+                      {/* Universal Prospect Download Actions */}
+                      <div className="flex flex-wrap items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const filterSlug = coldFilter === 'all' ? 'all' : coldFilter.toLowerCase().replace(/[\s-]+/g, '_')
+                            const filename = `weezie_prospects_${filterSlug}_${new Date().toISOString().slice(0, 10)}.csv`
+                            exportToCsv(filename, filteredCold, PROSPECT_COLUMNS)
+                          }}
+                          className="btn-gradient inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-sm"
+                          title="Download current filtered list to CSV"
+                        >
+                          <span>📥</span>
+                          <span>Download Current ({filteredCold.length})</span>
+                        </button>
+
+                        <select
+                          onChange={(e) => {
+                            const val = e.target.value
+                            if (!val) return
+                            const d = new Date().toISOString().slice(0, 10)
+                            if (val === 'all') exportToCsv(`weezie_all_prospects_${d}.csv`, coldList, PROSPECT_COLUMNS)
+                            if (val === 'initial_opened') exportToCsv(`weezie_prospects_initial_viewed_${d}.csv`, initialOpenedColdList, PROSPECT_COLUMNS)
+                            if (val === 'followup_opened') exportToCsv(`weezie_prospects_followup_viewed_${d}.csv`, followupOpenedList, PROSPECT_COLUMNS)
+                            if (val === 'all_opened') exportToCsv(`weezie_prospects_all_viewed_${d}.csv`, allOpenedColdList, PROSPECT_COLUMNS)
+                            if (val === 'followup_sent') exportToCsv(`weezie_prospects_followup_sent_${d}.csv`, followupSentList, PROSPECT_COLUMNS)
+                            if (val === 'sent') exportToCsv(`weezie_prospects_sent_${d}.csv`, sentColdList, PROSPECT_COLUMNS)
+                            if (val === 'pending') exportToCsv(`weezie_prospects_pending_${d}.csv`, pendingColdList, PROSPECT_COLUMNS)
+                            if (val === 'replied') exportToCsv(`weezie_prospects_replied_${d}.csv`, repliedColdList, PROSPECT_COLUMNS)
+                            e.target.value = ''
+                          }}
+                          defaultValue=""
+                          className="rounded-full bg-paper px-3.5 py-2 text-xs font-bold text-ink outline-none neu-sm cursor-pointer"
+                        >
+                          <option value="" disabled>📥 Download By Type…</option>
+                          <option value="initial_opened">👁️ Initial Viewed / Opened ({initialOpenedColdList.length})</option>
+                          <option value="followup_opened">🔥 Follow-up Viewed / Opened ({followupOpenedList.length})</option>
+                          <option value="all_opened">🎯 All Viewed / Opened ({allOpenedColdList.length})</option>
+                          <option value="followup_sent">📨 Follow-up Sent ({followupSentList.length})</option>
+                          <option value="sent">📤 Initial Sent ({sentColdList.length})</option>
+                          <option value="pending">⏳ Pending Queue ({pendingColdList.length})</option>
+                          <option value="replied">💬 Replied ({repliedColdList.length})</option>
+                          <option value="all">📁 All Prospects ({coldList.length})</option>
+                        </select>
+                      </div>
+                    </div>
 
                       <div className="w-full min-w-0 max-w-full overflow-x-auto pb-2 scrollbar-none">
                         <div className="inline-flex items-center gap-1.5 min-w-max">
@@ -2128,22 +2206,57 @@ export default function AdminCRM({ onNavigate }) {
         {/* TAB 4: LEADS & BRIEFS PIPELINE */}
         {tab === 'leads' && (
           <div className="mt-8 rounded-[28px] bg-paper p-6 neu">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <h2 className="display text-2xl text-ink">Leads, Briefs &amp; Freebie Subscribers</h2>
-              <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
-                {['all', 'brief', 'contact', 'freebie', 'store', 'ai_tool'].map((src) => (
-                  <button
-                    key={src}
-                    type="button"
-                    onClick={() => setSourceFilter(src)}
-                    className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] whitespace-nowrap ${
-                      sourceFilter === src ? 'bg-ink text-white' : 'bg-paper text-ink-soft neu-sm'
-                    }`}
-                  >
-                    {src}
-                  </button>
-                ))}
+            <div className="flex flex-col gap-4 border-b border-line pb-4 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h2 className="display text-2xl text-ink">Leads, Briefs &amp; Freebie Subscribers</h2>
+                <p className="mt-1 text-xs text-ink-soft">
+                  Inbound client inquiries, project briefs, AI Lab audits, and freebie downloads.
+                </p>
               </div>
+
+              {/* Export Leads CSV Actions */}
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const d = new Date().toISOString().slice(0, 10)
+                    exportToCsv(`weezie_leads_${sourceFilter}_${d}.csv`, filteredLeads, LEAD_COLUMNS)
+                  }}
+                  className="btn-gradient inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-wider shadow-sm"
+                  title="Download currently filtered leads"
+                >
+                  <span>📥</span>
+                  <span>Export {sourceFilter === 'all' ? 'All Leads' : `${sourceFilter} Leads`} ({filteredLeads.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    const d = new Date().toISOString().slice(0, 10)
+                    exportToCsv(`weezie_all_leads_${d}.csv`, leadsList, LEAD_COLUMNS)
+                  }}
+                  className="neu-hover rounded-full bg-paper px-3.5 py-2 text-xs font-bold text-ink neu-sm"
+                  title="Export all inbound leads regardless of filter"
+                >
+                  Export Complete Database ({leadsList.length})
+                </button>
+              </div>
+            </div>
+
+            {/* Source Filter Pills */}
+            <div className="mt-4 flex gap-2 overflow-x-auto pb-1.5 scrollbar-none sm:flex-wrap">
+              {['all', 'brief', 'contact', 'freebie', 'store', 'ai_tool'].map((src) => (
+                <button
+                  key={src}
+                  type="button"
+                  onClick={() => setSourceFilter(src)}
+                  className={`shrink-0 rounded-full px-3.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.1em] whitespace-nowrap ${
+                    sourceFilter === src ? 'bg-ink text-white' : 'bg-paper text-ink-soft neu-sm'
+                  }`}
+                >
+                  {src === 'all' ? `All Sources (${leadsList.length})` : `${src} (${leadsList.filter(l => l.source === src).length})`}
+                </button>
+              ))}
             </div>
 
             {filteredLeads.length === 0 ? (
