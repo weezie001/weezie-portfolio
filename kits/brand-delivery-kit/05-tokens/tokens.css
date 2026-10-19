@@ -29,9 +29,9 @@
   --radius-lg: 28px;
   --radius-full: 999px;
 
-  --font-display: "Newsreader", "Iowan Old Style", "Palatino Linotype", serif;
-  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Georgia", "Iowan Old Style", "Palatino Linotype", serif;
+  --font-body: "Arial", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "Consolas", ui-monospace, monospace;
 
   /* semantic */
   --bg-page: var(--color-paper-50);

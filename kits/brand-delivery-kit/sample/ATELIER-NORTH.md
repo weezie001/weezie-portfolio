@@ -4,7 +4,7 @@ This is a **completed** mini-identity so you can see density. It is not a real c
 
 | | |
 |---|---|
-| Sector | Small-batch joinery / furniture, Abuja |
+| Sector | Small-batch joinery / furniture |
 | Audience | People furnishing a first serious home; interior specifiers |
 | Purpose | We make lasting objects for people done with disposable rooms. |
 | Position | Atelier North is the joinery house for considered homes who want pieces that age, because we still cut joints by hand in small lots. |

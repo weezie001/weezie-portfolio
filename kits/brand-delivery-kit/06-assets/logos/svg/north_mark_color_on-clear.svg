@@ -1,6 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" fill="none" role="img" aria-label="Atelier North mark">
-  <title>Atelier North mark</title>
-  <!-- House-gabled N: sample only. Replace per client. -->
-  <rect width="80" height="80" rx="4" fill="#3D5A45"/>
-  <path d="M18 58V28.5L40 16l22 12.5V58H52.5V36.2L40 28.8 27.5 36.2V58H18Z" fill="#E7E3D6"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" role="img"><title>Atelier North / mark / color</title><g transform="translate(10 10) scale(1)" fill="#3d5a45"><path d="M8 68V27L40 8l32 19v41H58V35L40 24 22 35v33Z"/><path d="M34 43h12v25H34Z"/></g></svg>

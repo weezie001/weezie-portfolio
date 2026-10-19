@@ -1,0 +1,110 @@
+[
+  {
+    "id": "card-front",
+    "name": "Business card / front",
+    "category": "Stationery",
+    "w": 850,
+    "h": 550,
+    "size": "85 × 55 mm",
+    "file": "business-card-front"
+  },
+  {
+    "id": "card-back",
+    "name": "Business card / back",
+    "category": "Stationery",
+    "w": 850,
+    "h": 550,
+    "size": "85 × 55 mm",
+    "file": "business-card-back"
+  },
+  {
+    "id": "letterhead",
+    "name": "Letterhead",
+    "category": "Stationery",
+    "w": 794,
+    "h": 1123,
+    "size": "A4",
+    "file": "letterhead-a4"
+  },
+  {
+    "id": "invoice",
+    "name": "Invoice",
+    "category": "Stationery",
+    "w": 794,
+    "h": 1123,
+    "size": "A4",
+    "file": "invoice-a4"
+  },
+  {
+    "id": "social-square",
+    "name": "Social / square",
+    "category": "Social",
+    "w": 1080,
+    "h": 1080,
+    "size": "1080 × 1080",
+    "file": "social-square"
+  },
+  {
+    "id": "social-portrait",
+    "name": "Social / portrait",
+    "category": "Social",
+    "w": 1080,
+    "h": 1350,
+    "size": "1080 × 1350",
+    "file": "social-portrait"
+  },
+  {
+    "id": "story",
+    "name": "Social / story",
+    "category": "Social",
+    "w": 1080,
+    "h": 1920,
+    "size": "1080 × 1920",
+    "file": "social-story"
+  },
+  {
+    "id": "banner",
+    "name": "Profile banner",
+    "category": "Social",
+    "w": 1500,
+    "h": 500,
+    "size": "1500 × 500",
+    "file": "profile-banner"
+  },
+  {
+    "id": "avatar",
+    "name": "Social avatar",
+    "category": "Social",
+    "w": 1080,
+    "h": 1080,
+    "size": "1080 × 1080",
+    "file": "social-avatar"
+  },
+  {
+    "id": "slide-cover",
+    "name": "Presentation / cover",
+    "category": "Presentations",
+    "w": 1600,
+    "h": 900,
+    "size": "16:9",
+    "file": "presentation-cover"
+  },
+  {
+    "id": "slide-content",
+    "name": "Presentation / content",
+    "category": "Presentations",
+    "w": 1600,
+    "h": 900,
+    "size": "16:9",
+    "file": "presentation-content"
+  },
+  {
+    "id": "og",
+    "name": "Website / share image",
+    "category": "Digital",
+    "w": 1200,
+    "h": 630,
+    "size": "1200 × 630",
+    "file": "website-share-image"
+  }
+]

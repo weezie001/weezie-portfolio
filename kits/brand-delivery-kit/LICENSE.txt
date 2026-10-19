@@ -13,3 +13,5 @@ You may not:
 Fonts used in the sample book (Newsreader, IBM Plex) are Google Fonts, licensed separately by the foundries. Client jobs need their own font licenses as recorded in 08-handover.
 
 Identity files you create for a client belong to that client after you are paid, per your contract.
+
+Version 2 includes editable SVG/HTML layouts and original AI-generated sample photography. You may adapt these included materials for the client jobs permitted above. The Atelier North sample remains a fictional demonstration, not proof of a real client project. No font binaries, native Figma or Canva documents are supplied. System fonts and third-party software retain their respective terms.

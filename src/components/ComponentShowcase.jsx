@@ -23,12 +23,11 @@ const REFERENCES = [...new Set(catalog.map(item => item.reference))]
 const UI_PACK_PRODUCT = storeProducts.find(p => p.slug === 'weezie-ui-components-bundle') || storeProducts[0]
 
 /**
- * ComponentGridCard — Renders a single component in a compact grid box,
- * with its live interactive canvas on top, and its name, description, tags,
- * and Buy/Copy action buttons directly UNDER it.
+ * ComponentHorizontalCard — Renders a single component with:
+ * 1. A 100% fluid, naturally responsive live canvas (NO fake mobile frame, NO rigid height cutoff)
+ * 2. Horizontally arranged metadata and action buttons directly UNDER the component
  */
-function ComponentGridCard({ item, globalTheme, onBuyPack }) {
-  const [device, setDevice] = useState('desktop') // 'desktop' | 'mobile'
+function ComponentHorizontalCard({ item, globalTheme, onBuyPack }) {
   const [showCode, setShowCode] = useState(false)
   const [codeTab, setCodeTab] = useState('source') // 'source' | 'usage'
   const [copied, setCopied] = useState(false)
@@ -58,144 +57,97 @@ function ComponentGridCard({ item, globalTheme, onBuyPack }) {
   return (
     <article
       id={`comp-${item.id}`}
-      className="flex flex-col justify-between overflow-hidden rounded-[26px] bg-paper border border-line neu shadow-sm transition-all duration-300 hover:shadow-md"
+      className="w-full overflow-hidden rounded-[30px] bg-paper border border-line neu shadow-sm transition-all duration-300 hover:shadow-md"
     >
-      {/* 1. Live Interactive Component Canvas (Top - Compact Height in Grid) */}
-      <div className="relative border-b border-line bg-zinc-950 p-2 sm:p-3">
-        
-        {/* Canvas Device Container */}
+      {/* 1. Live Interactive Component Canvas (Full Width & Naturally 100% Fluid Responsive) */}
+      <div className="relative border-b border-line bg-zinc-950 p-4 sm:p-8 md:p-10 w-full">
         <div
-          className={`transition-all duration-300 mx-auto ${
-            device === 'mobile'
-              ? 'max-w-[280px] rounded-[28px] border-[6px] border-zinc-900 shadow-2xl overflow-hidden'
-              : 'w-full rounded-xl overflow-hidden'
+          className={`w-full min-h-[220px] transition-colors duration-300 flex items-center justify-center overflow-x-auto ${
+            globalTheme === 'light'
+              ? 'component-light-canvas'
+              : 'bg-zinc-950 text-white'
           }`}
         >
-          {/* Mobile frame top bar */}
-          {device === 'mobile' && (
-            <div className="relative flex h-5 items-center justify-center bg-zinc-950 px-4">
-              <div className="h-2.5 w-14 rounded-full bg-black" />
+          {Component && !previewClosed ? (
+            <div className="w-full flex justify-center py-2">
+              <Component
+                key={`${item.id}-${previewKey}`}
+                theme={globalTheme}
+                onClose={() => setPreviewClosed(true)}
+                onSubmit={(val) => setPreviewFeedback(`Submitted: ${typeof val === 'object' ? JSON.stringify(val) : val}`)}
+                onSelect={(val) => setPreviewFeedback(`Selected: ${typeof val === 'object' ? JSON.stringify(val) : val}`)}
+                onApply={(val) => setPreviewFeedback(`Applied: ${typeof val === 'object' ? JSON.stringify(val) : val}`)}
+                onComplete={() => setPreviewFeedback('Complete.')}
+              />
             </div>
-          )}
-
-          {/* Component Canvas */}
-          <div
-            className={`h-56 sm:h-64 overflow-hidden p-3 sm:p-4 transition-colors duration-300 flex flex-col justify-center items-center text-center ${
-              globalTheme === 'light'
-                ? 'component-light-canvas'
-                : 'bg-zinc-950 text-white'
-            }`}
-          >
-            {Component && !previewClosed ? (
-              <div className="w-full max-h-full overflow-y-auto overflow-x-hidden py-1 px-1">
-                <Component
-                  key={`${item.id}-${previewKey}`}
-                  theme={globalTheme}
-                  onClose={() => setPreviewClosed(true)}
-                  onSubmit={(val) => setPreviewFeedback(`Submitted: ${typeof val === 'object' ? JSON.stringify(val) : val}`)}
-                  onSelect={(val) => setPreviewFeedback(`Selected: ${typeof val === 'object' ? JSON.stringify(val) : val}`)}
-                  onApply={(val) => setPreviewFeedback(`Applied: ${typeof val === 'object' ? JSON.stringify(val) : val}`)}
-                  onComplete={() => setPreviewFeedback('Complete.')}
-                />
-              </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-6 text-center">
-                <p className="text-xs text-zinc-400">Preview closed.</p>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="mt-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-bold text-white hover:bg-white/20 transition"
-                >
-                  Reset Preview ↺
-                </button>
-              </div>
-            )}
-
-            {/* Micro Interaction Toast / Status Bar */}
-            {previewFeedback && (
-              <div className="mt-2 flex w-full items-center justify-between border-t border-white/10 pt-2 text-[10px] text-zinc-400">
-                <span className="font-mono text-emerald-400 truncate max-w-[200px]">✓ {previewFeedback}</span>
-                <button
-                  type="button"
-                  onClick={handleReset}
-                  className="text-zinc-500 hover:text-white underline text-[9px] shrink-0"
-                >
-                  Reset
-                </button>
-              </div>
-            )}
-          </div>
-
-          {/* Mobile frame bottom bar */}
-          {device === 'mobile' && (
-            <div className="flex h-3.5 items-center justify-center bg-zinc-950">
-              <div className="h-0.5 w-16 rounded-full bg-white/30" />
+          ) : (
+            <div className="flex flex-col items-center justify-center py-10 text-center">
+              <p className="text-xs text-zinc-400">Preview closed.</p>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="mt-2 rounded-full bg-white/10 px-4 py-1.5 text-xs font-bold text-white hover:bg-white/20 transition"
+              >
+                Reset Preview ↺
+              </button>
             </div>
           )}
         </div>
+
+        {/* Micro Interaction Toast / Status Bar */}
+        {previewFeedback && (
+          <div className="mt-3 flex items-center justify-between border-t border-white/10 pt-2 text-xs text-zinc-400">
+            <span className="font-mono text-emerald-400">✓ {previewFeedback}</span>
+            <button
+              type="button"
+              onClick={handleReset}
+              className="text-zinc-500 hover:text-white underline text-[10px]"
+            >
+              Reset
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* 2. Component Details & Controls Directly UNDER the Component */}
-      <div className="flex flex-1 flex-col justify-between bg-paper p-4 sm:p-5">
-        <div>
-          <div className="flex flex-wrap items-center justify-between gap-1.5">
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="rounded-full bg-blue/10 px-2 py-0.5 font-mono text-[9px] font-bold uppercase tracking-wider text-blue">
+      {/* 2. Horizontally Arranged Details & Action Buttons Directly UNDER Component */}
+      <div className="bg-paper p-5 sm:p-6 md:p-7">
+        <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          
+          {/* Left: Badges, Component Name, Description */}
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="rounded-full bg-blue/10 px-2.5 py-0.5 font-mono text-[10px] font-bold uppercase tracking-wider text-blue">
                 {item.category}
               </span>
-              <span className="rounded-full bg-paper px-2 py-0.5 font-mono text-[9px] font-bold text-ink-soft neu-sm">
-                {item.reference}
+              <span className="rounded-full bg-paper px-2.5 py-0.5 font-mono text-[10px] font-bold text-ink-soft neu-sm">
+                Ref: {item.reference}
+              </span>
+              <span className="font-mono text-[10px] text-ink-soft opacity-75">
+                {item.fileName}
               </span>
             </div>
-            
-            {/* Local device preview toggle */}
-            <div className="inline-flex rounded-full bg-paper p-0.5 neu-inset">
-              <button
-                type="button"
-                onClick={() => setDevice('desktop')}
-                className={`rounded-full px-2 py-0.5 text-[9px] font-bold transition ${
-                  device === 'desktop' ? 'bg-ink text-white' : 'text-ink-soft'
-                }`}
-                title="Desktop View"
-              >
-                🖥️
-              </button>
-              <button
-                type="button"
-                onClick={() => setDevice('mobile')}
-                className={`rounded-full px-2 py-0.5 text-[9px] font-bold transition ${
-                  device === 'mobile' ? 'bg-ink text-white' : 'text-ink-soft'
-                }`}
-                title="Mobile View"
-              >
-                📱
-              </button>
-            </div>
+
+            {/* NAME UNDER THE COMPONENT */}
+            <h3 className="display text-xl font-bold text-ink sm:text-2xl">
+              {item.name} <span className="font-mono text-xs font-normal text-ink-soft">({item.id})</span>
+            </h3>
+
+            <p className="text-xs font-medium leading-relaxed text-ink-soft">
+              {item.description}
+            </p>
           </div>
 
-          {/* NAME UNDER THE COMPONENT */}
-          <h3 className="display mt-2 text-lg font-bold text-ink sm:text-xl">
-            {item.name}
-          </h3>
-
-          <p className="mt-1 text-[11px] font-medium leading-relaxed text-ink-soft line-clamp-2">
-            {item.description}
-          </p>
-        </div>
-
-        {/* Action Buttons Directly Underneath */}
-        <div className="mt-4 flex flex-col gap-2 border-t border-line pt-3">
-          <div className="flex items-center gap-2">
+          {/* Right: Horizontally Arranged Action Buttons */}
+          <div className="flex flex-wrap items-center gap-2.5 shrink-0 self-start lg:self-center">
             
             {/* PRIMARY: Buy Copy / Buy Pack Button (Triggers checkout modal) */}
             <button
               type="button"
               onClick={() => onBuyPack(item)}
-              className="btn-gradient flex-1 flex items-center justify-center gap-1.5 rounded-full py-2.5 px-3 text-xs font-bold uppercase tracking-wider shadow-sm transition hover:scale-102"
+              className="btn-gradient inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-xs font-bold uppercase tracking-wider shadow-sm transition hover:scale-102"
               title="Buy Component Pack ($29 / ₦35,000)"
             >
-              <span>Get Pack</span>
-              <span className="opacity-80 font-normal">($29)</span>
+              <span>Get Pack ($29)</span>
               <span>→</span>
             </button>
 
@@ -203,62 +155,71 @@ function ComponentGridCard({ item, globalTheme, onBuyPack }) {
             <button
               type="button"
               onClick={() => setShowCode(!showCode)}
-              className={`rounded-full px-3 py-2 text-xs font-bold uppercase tracking-wider transition ${
+              className={`rounded-full px-4 py-2.5 text-xs font-bold uppercase tracking-wider transition ${
                 showCode ? 'bg-ink text-white' : 'bg-paper text-ink neu-sm hover:text-blue'
               }`}
-              title="Inspect component source"
             >
-              {showCode ? '✕' : '💻 Code'}
+              {showCode ? '✕ Hide Code' : '💻 Code'}
             </button>
 
             {/* Quick Copy Snippet */}
             <button
               type="button"
               onClick={handleCopy}
-              className="neu-hover rounded-full bg-paper px-3 py-2 text-xs font-bold text-ink-soft neu-sm hover:text-ink"
+              className="neu-hover rounded-full bg-paper px-4 py-2.5 text-xs font-bold text-ink neu-sm hover:text-blue"
               title="Copy Component Code"
             >
-              {copied ? '✓' : '📋'}
+              {copied ? '✓ Copied' : '📋 Copy'}
+            </button>
+
+            {/* Reset Button */}
+            <button
+              type="button"
+              onClick={handleReset}
+              className="neu-hover rounded-full bg-paper px-3 py-2.5 text-xs font-bold text-ink-soft neu-sm hover:text-ink"
+              title="Reset Component Demo"
+            >
+              ↺
             </button>
           </div>
         </div>
 
         {/* 3. Expandable Inline Code Drawer */}
         {showCode && (
-          <div className="mt-3 overflow-hidden rounded-xl border border-line/50 bg-zinc-950 shadow-inner">
-            <div className="flex flex-wrap items-center justify-between gap-1.5 border-b border-white/10 bg-zinc-900/90 px-3 py-2">
-              <div className="flex gap-1.5">
+          <div className="mt-5 overflow-hidden rounded-2xl border border-line/50 bg-zinc-950 shadow-inner">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-white/10 bg-zinc-900/90 px-5 py-3">
+              <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => setCodeTab('source')}
-                  className={`rounded px-2 py-0.5 text-[10px] font-bold transition ${
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition ${
                     codeTab === 'source' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-400 hover:text-white'
                   }`}
                 >
-                  Source ({item.fileName})
+                  Component Source ({item.fileName})
                 </button>
                 <button
                   type="button"
                   onClick={() => setCodeTab('usage')}
-                  className={`rounded px-2 py-0.5 text-[10px] font-bold transition ${
+                  className={`rounded-lg px-3 py-1 text-xs font-bold transition ${
                     codeTab === 'usage' ? 'bg-white text-zinc-950 shadow-sm' : 'text-zinc-400 hover:text-white'
                   }`}
                 >
-                  Usage
+                  Usage Example
                 </button>
               </div>
 
               <button
                 type="button"
                 onClick={handleCopy}
-                className="font-mono text-[10px] text-blue-400 hover:text-blue-300 font-bold"
+                className="font-mono text-xs text-blue-400 hover:text-blue-300 font-bold"
               >
-                {copied ? '✓ Copied' : 'Copy ⎘'}
+                {copied ? '✓ Copied to clipboard' : 'Copy code ⎘'}
               </button>
             </div>
 
-            <div className="p-3 font-mono text-[11px] leading-relaxed text-zinc-300">
-              <pre className="max-h-[300px] overflow-auto rounded bg-black/60 p-2.5">
+            <div className="p-4 font-mono text-xs leading-relaxed text-zinc-300">
+              <pre className="max-h-[460px] overflow-auto rounded-xl bg-black/60 p-4">
                 <code>{codeTab === 'source' ? item.source : item.code}</code>
               </pre>
             </div>
@@ -361,12 +322,12 @@ export default function ComponentShowcase({ onNavigate }) {
         {/* Hero Section */}
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue">// Weezie UI · Design &amp; Systems Lab</p>
+            <p className="text-xs font-bold uppercase tracking-[0.2em] text-blue">// Weezie UI · Component Library</p>
             <h1 className="display mt-2 text-4xl text-ink md:text-6xl">
               COPY-PASTE <span className="text-gradient">REACT BLOCKS</span>
             </h1>
             <p className="mt-3 max-w-2xl text-base font-medium text-ink-soft">
-              Original Tailwind CSS v4 &amp; React 19 interfaces. Select categories on the left sidebar to filter the stream. Click &ldquo;Get Pack&rdquo; on any component to unlock the full commercial source.
+              Original Tailwind CSS v4 &amp; React 19 interfaces. 100% fluid and responsive. Select categories on the left sidebar to filter instantly.
             </p>
           </div>
 
@@ -395,13 +356,13 @@ export default function ComponentShowcase({ onNavigate }) {
             <div className="max-w-xl">
               <span className="inline-flex items-center gap-2 rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-blue-400">
                 <span className="h-1.5 w-1.5 rounded-full bg-blue-400 animate-pulse" />
-                Live Component Grid
+                Fluid Responsive Components
               </span>
               <h2 className="display mt-2 text-xl font-bold text-white sm:text-2xl">
                 High-Velocity UI for Founders Who Build.
               </h2>
               <p className="mt-1 text-xs text-zinc-300">
-                Browse all components in the grid below. Filter by category on the left side with zero friction.
+                All components are fluidly responsive and arranged horizontally below.
               </p>
             </div>
 
@@ -431,7 +392,7 @@ export default function ComponentShowcase({ onNavigate }) {
         </div>
 
         {/* ============================================================== */}
-        {/* TWO-COLUMN LAYOUT: Left Category Sidebar + Right Grid Feed       */}
+        {/* TWO-COLUMN LAYOUT: Left Category Sidebar + Right Full-Width Feed */}
         {/* ============================================================== */}
         <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-start">
           
@@ -563,7 +524,7 @@ export default function ComponentShowcase({ onNavigate }) {
           </aside>
 
           {/* ============================================================ */}
-          {/* RIGHT MAIN GRID FEED: SMALLER IN GRIDS WITH NAMES UNDERNEATH */}
+          {/* RIGHT MAIN FEED: HORIZONTALLY ARRANGED RESPONSIVE CARDS      */}
           {/* ============================================================ */}
           <div className="w-full min-w-0 flex-1 space-y-6">
             
@@ -626,11 +587,11 @@ export default function ComponentShowcase({ onNavigate }) {
             )}
 
             {/* ========================================================== */}
-            {/* 2-COLUMN RESPONSIVE GRID (Smaller in Grids with Names Under) */}
+            {/* HORIZONTALLY ARRANGED RESPONSIVE CARDS (Full-width stream) */}
             {/* ========================================================== */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
+            <div className="space-y-8 w-full">
               {filtered.map((item) => (
-                <ComponentGridCard
+                <ComponentHorizontalCard
                   key={item.id}
                   item={item}
                   globalTheme={globalTheme}

@@ -1,0 +1,18 @@
+{
+  "name": "Atelier North",
+  "descriptor": "Objects for considered living",
+  "tagline": "Made slowly. Kept for years.",
+  "person": "Alex Morgan",
+  "role": "Founder / Maker",
+  "email": "hello@ateliernorth.example",
+  "website": "ateliernorth.example",
+  "phone": "+1 202 555 0146",
+  "location": "By appointment / Working worldwide",
+  "primary": "#3d5a45",
+  "paper": "#e7e3d6",
+  "ink": "#0e1114",
+  "accent": "#c9a227",
+  "display": "Georgia",
+  "body": "Arial",
+  "heading": "A quieter kind of everyday."
+}

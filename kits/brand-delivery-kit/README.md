@@ -1,124 +1,78 @@
-# Weezie Brand Delivery Kit
+# Weezie Brand Delivery Kit v2
 
-A studio operating system for designing and handing over a brand.
+A finished fictional identity, 12 designed applications, editable starting layouts and a practical studio-to-client handover workflow.
 
-This is not a logo folder. It is the full kit a professional designer needs so every client job has the same structure, the same files, and a clean handover.
+## Open it
 
-Use it in two ways:
+Extract the ZIP, then open **START-HERE.html** or **index.html** in a modern browser. No installation or server is needed. The editor is bundled as a classic script so it also works from an extracted local folder.
 
-1. **Your practice** — duplicate this kit for every brand job. Fill the templates. Drop finals into the asset folders. Zip `09-handover` for the client.
-2. **A product** — sell this structure to other designers, or sell a filled kit as an add-on next to a website.
+## What's included
 
----
+- A complete Atelier North sample: brand platform, positioning, voice, logo system, color, type, imagery and layout direction.
+- 12 sample application SVGs and 12 blank starting SVGs.
+- 12 distinct logo variants: horizontal, stacked, wordmark and mark in color, reverse and mono, plus three legacy SVG aliases.
+- 24 transparent logo PNGs (512 and 1024 px widths), favicon PNGs at six sizes and an ICO file.
+- An eight-page sample brand guidelines PDF and a four-page exact-size stationery proof PDF.
+- Editable HTML brand books for sample and blank identities.
+- HTML email signatures, CSS/JSON web tokens, a Tailwind preset and original sample photography.
+- Discovery, strategy, approvals, scope, naming, licensing and client handover documents.
+- Brand editor source, bundled script and export functions.
 
-## What a real brand kit is
+## The 12 applications
 
-A client can only *use* a brand if you give them three layers:
+| File | Dimensions |
+|---|---|
+| Business card front and back | 85 x 55 mm proportions |
+| Letterhead and invoice | A4 |
+| Square social post | 1080 x 1080 px |
+| Portrait social post | 1080 x 1350 px |
+| Story | 1080 x 1920 px |
+| Profile banner | 1500 x 500 px |
+| Social avatar | 1080 x 1080 px |
+| Presentation cover and content slide | 1600 x 900 px |
+| Website share image | 1200 x 630 px |
 
-| Layer | What it is | If you skip it |
-|---|---|---|
-| **Strategy** | Who it is for, what it says, how it sounds | Pretty logo, random copy |
-| **Identity system** | Logo, colour, type, space, image, icon, motion | One lockup that breaks on a story |
-| **Applications** | Files they actually open: cards, social, email, slides, web tokens | A PDF they never open again |
+## Customize and export
 
-The folders in this kit map to those layers.
+1. Open index.html and choose Sample or Blank.
+2. Enter the client's brand details and approved colors. Choose the display and body type.
+3. Add client photography. It stays in the current browser session and is embedded in exports; it is not uploaded. Add it again after reloading.
+4. Save brand settings as JSON. Load this file to resume the identity later.
+5. Export the selected SVG or a branded SVG handover ZIP. The ZIP contains 12 applications, 12 logo variants, settings, matching CSS/JSON tokens, signature HTML and an editable HTML brand book.
+6. Open the SVGs in a vector editor to replace the sample mark and refine the layout. Edit the HTML book's sample strategy and copy, then print to PDF.
 
----
+The editor handles brand details and visual starting points. It does not generate an original client logo, positioning strategy or custom invoice terms. Review every file before client delivery.
 
-## Kit map
+## Folder guide
 
-```
-brand-delivery-kit/
-├── README.md                          ← you are here
-├── START-A-JOB.md                     ← duplicate + rename for a client
-├── index.html                         ← open this: kit dashboard + brand book
-│
-├── 00-studio/                         ← how YOU work (do not send to client)
-│   ├── SCOPE-TIERS.md                 what you sell at each price
-│   ├── NAMING-CONVENTION.md
-│   ├── FIGMA-FILE-STRUCTURE.md
-│   ├── TOOLSET.md                     software + export presets
-│   └── APPROVAL-CHECKLIST.md
-│
-├── 01-intake/                         ← discovery before you draw
-│   ├── PROJECT-BRIEF.md
-│   ├── DISCOVERY-QUESTIONNAIRE.md
-│   └── COMPETITIVE-AUDIT.md
-│
-├── 02-strategy/                       ← words before pixels
-│   ├── BRAND-PLATFORM.md
-│   ├── MESSAGING-FRAMEWORK.md
-│   └── VOICE-AND-TONE.md
-│
-├── 03-identity/                       ← the system
-│   ├── LOGO-SYSTEM.md
-│   ├── COLOR-SYSTEM.md
-│   ├── TYPOGRAPHY.md
-│   ├── IMAGERY-ICONOGRAPHY.md
-│   ├── LAYOUT-GRID.md
-│   └── MOTION.md
-│
-├── 04-guidelines/
-│   └── BRAND-GUIDELINES.md            ← client-facing bible
-│
-├── 05-tokens/                         ← design-to-code handoff
-│   ├── design-tokens.json
-│   ├── tokens.css
-│   └── tailwind.preset.js
-│
-├── 06-assets/                         ← drop finished files here
-│   ├── logos/
-│   ├── colours/
-│   ├── type/
-│   ├── icons/
-│   ├── photography/
-│   ├── patterns/
-│   └── mockups/
-│
-├── 07-applications/                   ← things the business uses
-│   ├── stationery/
-│   ├── digital/
-│   ├── social/
-│   └── cip-optional/
-│
-├── 08-handover/                       ← what you zip and send
-│   ├── DELIVERY-CHECKLIST.md
-│   ├── FILE-MANIFEST.md
-│   ├── LICENSE-AND-USAGE.md
-│   └── CLIENT-WALKTHROUGH.md
-│
-└── sample/                            ← filled “Atelier North” example
-    └── (see index.html brand book)
-```
+- **00-studio through 04-guidelines:** reusable process, strategy and specification documents.
+- **05-tokens:** sample design-to-code values. Branded exports generate matching current values.
+- **06-assets:** sample logos, PNGs, favicons and original AI-generated photography.
+- **07-applications:** format and production guides, plus HTML signature.
+- **08-handover:** delivery checklist, manifest, license and walkthrough.
+- **sample/ready-to-use:** the 12 finished sample SVGs, settings and signature.
+- **sample/previews:** rendered PNG previews of the application designs.
+- **sample/*.pdf:** the two printable sample documents.
+- **editable-templates:** blank starting SVGs, HTML book and settings.
+- **brand-engine.js / brand-book.js / editor.js / zip.js:** editable source. editor.bundle.js runs the local editor.
+- **manifest.json:** inventory and SHA-256 checksums for the delivered files.
 
----
+## Editing formats and fonts
 
-## How to run a job (short)
+SVG is the editable design source, and HTML is the editable brand-book source. Use a vector editor that preserves SVG text and shapes. Figma can import artwork, but import behavior and text editability vary. Native .fig, .ai, Canva links, DOCX and PPTX files are not included.
 
-1. Copy this whole folder. Rename it `YYYY-client-name-brand-kit`.
-2. Fill `01-intake` on the kickoff call. Do not design yet.
-3. Lock `02-strategy` with the client (one page is enough).
-4. Design the identity in Figma using `00-studio/FIGMA-FILE-STRUCTURE.md`.
-5. Export into `06-assets` using the naming convention.
-6. Fill `04-guidelines` and `05-tokens` from the same values (never two palettes).
-7. Build only the applications in the sold tier (`00-studio/SCOPE-TIERS.md`).
-8. Walk the client through `08-handover/CLIENT-WALKTHROUGH.md`. Zip and send.
+Sample artwork uses Georgia and Arial with system fallbacks. Font files are not redistributed. The studio notes mention optional Newsreader and IBM Plex alternatives; use properly licensed fonts and update tokens consistently when changing families.
 
-One source of truth: **guidelines + tokens**. Mockups are proof. Random extra logos in WhatsApp are not the kit.
+## Production details
 
----
+The card proof pages include 3 mm bleed and trim marks. The SVGs show the finished layout proportions; set physical document units when editing or printing. A4 stationery is provided at full page size. Proof PDFs use RGB and are not certified PDF/X files. Ask the printer to confirm stock, trim, color conversion and a physical proof.
 
-## What “done” looks like for the client
+The invoice contains sample amounts and dates. It is an editable design, not billing software. Replace all business, customer, payment and tax details.
 
-They receive a zip with:
+For email signatures, host the approved PNG over HTTPS and replace the local sample logo URL before installing. Do not attach the HTML as though it were an email message.
 
-- Brand guidelines (PDF or this HTML book)
-- Logo pack (SVG + PNG, light/dark, mark/wordmark/lockup)
-- Colour values (hex, RGB, CMYK, Pantone if print)
-- Font files **or** license links (never pirate fonts)
-- Social avatars + cover templates
-- Email signature
-- Tokens for the developer (`tokens.css` + JSON)
-- License: what they own, what they can change, what they cannot
+## Commercial use
 
-That is a professional handover. Everything else is scope you billed for.
+Duplicate and adapt this collection for unlimited client jobs under LICENSE.txt. You may deliver completed client kits. You may not resell or republish this empty collection as a competing template product. Atelier North is fictional and must not be presented as a real client case study.
+
+Questions: enang@weezie.site

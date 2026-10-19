@@ -36,9 +36,9 @@
       "full": { "value": "999px", "type": "dimension" }
     },
     "font": {
-      "display": { "value": "Newsreader, Iowan Old Style, Palatino Linotype, serif", "type": "fontFamily" },
-      "body": { "value": "IBM Plex Sans, Segoe UI, system-ui, sans-serif", "type": "fontFamily" },
-      "mono": { "value": "IBM Plex Mono, ui-monospace, monospace", "type": "fontFamily" }
+      "display": { "value": "Georgia, Iowan Old Style, Palatino Linotype, serif", "type": "fontFamily" },
+      "body": { "value": "Arial, Segoe UI, system-ui, sans-serif", "type": "fontFamily" },
+      "mono": { "value": "Consolas, ui-monospace, monospace", "type": "fontFamily" }
     }
   },
   "semantic": {

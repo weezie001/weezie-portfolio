@@ -10,9 +10,9 @@ export default {
         brass: '#c9a227',
       },
       fontFamily: {
-        display: ['Newsreader', 'Iowan Old Style', 'Palatino Linotype', 'serif'],
-        sans: ['IBM Plex Sans', 'Segoe UI', 'system-ui', 'sans-serif'],
-        mono: ['IBM Plex Mono', 'ui-monospace', 'monospace'],
+        display: ['Georgia', 'Iowan Old Style', 'Palatino Linotype', 'serif'],
+        sans: ['Arial', 'Segoe UI', 'system-ui', 'sans-serif'],
+        mono: ['Consolas', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
         sm: '8px',
