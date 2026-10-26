@@ -1248,12 +1248,12 @@ export default function AdminCRM({ onNavigate }) {
                       <div>
                         <h3 className="display text-xl text-ink">Automated 24h Drip Engine</h3>
                         <p className="text-xs font-medium text-ink-soft">
-                          Drips pending cold emails over 24 hours at randomized intervals (~1 email every 14 minutes with natural human pacing).
+                          Drips pending cold emails over 24 hours at randomized intervals (~1 email every 6 minutes with natural human pacing).
                         </p>
                       </div>
                       <span className="inline-flex items-center gap-1.5 rounded-full bg-green-500/15 px-3 py-1.5 text-xs font-bold text-green-700">
                         <span className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                        Cloud Cron Active (*/14m)
+                        Cloud Cron Active (*/6m)
                       </span>
                     </div>
 
@@ -1278,13 +1278,13 @@ export default function AdminCRM({ onNavigate }) {
                       </div>
                       <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Cadence</p>
-                        <p className="display mt-1 text-xl sm:text-2xl text-ink">~1 / 14m</p>
-                        <p className="mt-0.5 text-[10px] text-ink-soft">~4.3 / hour</p>
+                        <p className="display mt-1 text-xl sm:text-2xl text-ink">~1 / 6m</p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">~10 / hour</p>
                       </div>
                       <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm col-span-2 lg:col-span-1">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Est. Time</p>
                         <p className="display mt-1 text-xl sm:text-2xl text-ink">
-                          {pendingColdList.length === 0 ? '0h' : `~${Math.round((pendingColdList.length * 14) / 60 * 10) / 10}h`}
+                          {pendingColdList.length === 0 ? '0h' : `~${Math.round((pendingColdList.length * 6) / 60 * 10) / 10}h`}
                         </p>
                         <p className="mt-0.5 text-[10px] text-ink-soft">Auto-adapts</p>
                       </div>
