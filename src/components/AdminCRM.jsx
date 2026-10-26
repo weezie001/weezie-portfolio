@@ -15,6 +15,9 @@ import {
 } from '../lib/crmStore.js'
 import { analyzeSpamRisk, appendAntiSpamFooter } from '../lib/spamGuard.js'
 import { parseProspectCsv, exportToCsv } from '../lib/prospectCsv.js'
+import { engagementFor, hasEstimatedOpen, hasSuspectedOpen, hasUnverifiedOpen, trackingTime } from '../lib/emailEngagement.js'
+import OutreachAnalytics, { prospectKey } from './OutreachAnalytics.jsx'
+import ProspectEngagement from './ProspectEngagement.jsx'
 
 const STATUS_OPTIONS = ['New', 'Contacted', 'Quoted', 'Won', 'Archived']
 
@@ -25,11 +28,25 @@ const PROSPECT_COLUMNS = [
   { key: 'website', label: 'Website URL' },
   { key: 'niche', label: 'Niche / Industry' },
   { key: 'status', label: 'Current Status' },
-  { key: 'open_count', label: 'Initial Opens', accessor: (p) => p.open_count || 0 },
+  { key: 'open_count', label: 'Legacy Initial Loads (All Classes)', accessor: (p) => p.open_count || 0 },
+  { key: 'initial_estimated', label: 'Estimated Initial Opens', accessor: p => engagementFor(p).initial.estimated },
+  { key: 'initial_recorded', label: 'Recorded Initial Signals (All Classes)', accessor: p => engagementFor(p).initial.recorded },
+  { key: 'initial_suspected', label: 'Suspected Initial Automation', accessor: p => engagementFor(p).initial.suspected },
+  { key: 'initial_proxy', label: 'Initial Proxy Loads', accessor: p => engagementFor(p).initial.proxy },
+  { key: 'initial_unverified', label: 'Unverified Initial Loads', accessor: p => engagementFor(p).initial.unverified },
+  { key: 'initial_evidence', label: 'Initial Historical Evidence', accessor: p => engagementFor(p).initial.reason },
   { key: 'followup_count', label: 'Followup Sent Count', accessor: (p) => p.followup_count || 0 },
-  { key: 'followup_open_count', label: 'Followup Opens', accessor: (p) => p.followup_open_count || 0 },
-  { key: 'opened_at', label: 'Initial Opened At', accessor: (p) => p.opened_at || '' },
-  { key: 'followup_opened_at', label: 'Followup Opened At', accessor: (p) => p.followup_opened_at || '' },
+  { key: 'followup_open_count', label: 'Legacy Followup Loads (All Classes)', accessor: (p) => p.followup_open_count || 0 },
+  { key: 'followup_estimated', label: 'Estimated Followup Opens', accessor: p => engagementFor(p).followup.estimated },
+  { key: 'followup_recorded', label: 'Recorded Followup Signals (All Classes)', accessor: p => engagementFor(p).followup.recorded },
+  { key: 'followup_suspected', label: 'Suspected Followup Automation', accessor: p => engagementFor(p).followup.suspected },
+  { key: 'followup_proxy', label: 'Followup Proxy Loads', accessor: p => engagementFor(p).followup.proxy },
+  { key: 'followup_unverified', label: 'Unverified Followup Loads', accessor: p => engagementFor(p).followup.unverified },
+  { key: 'unknown_recorded', label: 'Unattributed Recorded Loads', accessor: p => engagementFor(p).unknown.recorded },
+  { key: 'opened_at', label: 'Legacy Initial First Load At (UTC)', accessor: (p) => p.opened_at || '' },
+  { key: 'followup_opened_at', label: 'Legacy Followup First Load At (UTC)', accessor: (p) => p.followup_opened_at || '' },
+  { key: 'initial_estimated_at', label: 'Latest Estimated Initial Open At (UTC)', accessor: p => engagementFor(p).initial.estimatedAt },
+  { key: 'followup_estimated_at', label: 'Latest Estimated Followup Open At (UTC)', accessor: p => engagementFor(p).followup.estimatedAt },
   { key: 'last_contacted_at', label: 'Last Contacted', accessor: (p) => p.last_contacted_at || p.sent_at || '' },
   { key: 'custom_opener', label: 'AI Custom Pitch', accessor: (p) => p.custom_opener || '' },
   { key: 'created_at', label: 'Created At', accessor: (p) => p.created_at || '' },
@@ -155,6 +172,7 @@ export default function AdminCRM({ onNavigate }) {
   const [coldPreviewIndex, setColdPreviewIndex] = useState(0)
   const [coldPreviewReviewed, setColdPreviewReviewed] = useState([])
   const [coldFilter, setColdFilter] = useState('all') // 'all' | 'Pending' | 'Sent' | 'Follow-up 1' | 'Replied'
+  const [analyticsSelection, setAnalyticsSelection] = useState(null)
   const [coldSubject, setColdSubject] = useState(outreachDraft({ business: '{{business}}' }).subject)
   const [coldBody, setColdBody] = useState(outreachDraft({ name: '{{name}}', business: '{{business}}' }).body)
   const [coldAttachment, setColdAttachment] = useState(null)
@@ -613,6 +631,24 @@ export default function AdminCRM({ onNavigate }) {
     loadDashboard()
   }
 
+  async function handleClearQueue() {
+    if (!window.confirm(`Are you sure you want to remove all ${pendingColdList.length} pending prospects from the queue?`)) return
+    await postAdminAction(adminKey, { action: 'clear_queue' })
+    await loadDashboard()
+  }
+
+  async function handleClearSales() {
+    if (!window.confirm(`Are you sure you want to clear all ${ordersList.length} sales and orders?`)) return
+    await postAdminAction(adminKey, { action: 'clear_sales' })
+    await loadDashboard()
+  }
+
+  async function handleDeleteOrder(id, reference) {
+    if (!window.confirm('Delete this order record?')) return
+    await postAdminAction(adminKey, { action: 'delete_order', id, reference })
+    await loadDashboard()
+  }
+
   function startEditProduct(p) {
     setEditingProduct({
       ...p,
@@ -706,28 +742,24 @@ export default function AdminCRM({ onNavigate }) {
   const filteredInbox = inboxList.filter((m) => mailboxFilter === 'all' || m.mailbox === mailboxFilter)
 
   const pendingColdList = coldList.filter((p) => p.status === 'Pending')
-  const sentColdList = coldList.filter((p) => p.status === 'Sent')
+  const sentColdList = coldList.filter((p) => ['Sent', 'Opened'].includes(p.status) && !hasEstimatedOpen(p) && Number(p.followup_count || 0) === 0)
   
-  // Prospects who opened initial email (and have NOT received follow-up yet)
+  // Estimated initial opens are independent of the current sales stage.
   const initialOpenedColdList = coldList.filter(
     (p) =>
-      p.status === 'Opened' ||
-      (Number(p.open_count || 0) > 0 && Number(p.followup_count || 0) === 0),
+      hasEstimatedOpen(p),
   )
 
   // Follow-up Sent (dispatched, waiting for open)
   const followupSentList = coldList.filter(
     (p) =>
-      p.status === 'Follow-up Sent' ||
-      p.status === 'Follow-up 1' ||
-      (Number(p.followup_count || 0) > 0 && p.status !== 'Follow-up Opened' && Number(p.followup_open_count || 0) === 0),
+      Number(p.followup_count || 0) > 0 && !hasEstimatedOpen(p, 'followup') && !['Replied', 'Unsubscribed'].includes(p.status),
   )
 
-  // Follow-up Opened (prospect opened the follow-up email!)
+  // Follow-up Opened (estimated provider opens for follow-up emails)
   const followupOpenedList = coldList.filter(
     (p) =>
-      p.status === 'Follow-up Opened' ||
-      Number(p.followup_open_count || 0) > 0,
+      hasEstimatedOpen(p, 'followup'),
   )
 
   const repliedColdList = coldList.filter((p) => p.status === 'Replied')
@@ -736,14 +768,11 @@ export default function AdminCRM({ onNavigate }) {
   // Total unique prospects who opened ANY outreach email
   const allOpenedColdList = coldList.filter(
     (p) =>
-      p.status === 'Opened' ||
-      p.status === 'Follow-up Opened' ||
-      Number(p.open_count || 0) > 0 ||
-      Number(p.followup_open_count || 0) > 0,
+      hasEstimatedOpen(p, 'all'),
   )
   const openedColdList = allOpenedColdList
 
-  const sentColdCount = coldList.filter((p) => p.status !== 'Pending').length
+  const sentColdCount = coldList.filter((p) => p.last_contacted_at || ['Sent', 'Opened', 'Follow-up Sent', 'Follow-up Opened', 'Follow-up 1', 'Follow-up 2', 'Replied', 'Unsubscribed'].includes(p.status)).length
   const coldOpenRate = sentColdCount > 0 ? Math.round((allOpenedColdList.length / sentColdCount) * 100) : 0
 
   // Needs follow-up: Outreached (Sent or Opened), but ZERO follow-ups sent yet, AND not already followed up!
@@ -760,32 +789,32 @@ export default function AdminCRM({ onNavigate }) {
 
   // Priority follow-up: specifically those who opened the initial email and haven't received a follow-up yet!
   const openedNeedsFollowupList = needsFollowupList.filter(
-    (p) => p.status === 'Opened' || Number(p.open_count || 0) > 0,
+    (p) => hasEstimatedOpen(p),
   )
 
   const needsDraftList = coldList.filter((p) => p.status === 'Pending' && !p.custom_opener)
 
   const filteredCold = coldList.filter((p) => {
+    if (analyticsSelection && !analyticsSelection.keys.includes(prospectKey(p))) return false
     // 1. Status Filter
     if (coldFilter === 'Pending' && p.status !== 'Pending') return false
-    if (coldFilter === 'Sent' && p.status !== 'Sent') return false
+    if (coldFilter === 'Sent' && !sentColdList.includes(p)) return false
     if (coldFilter === 'Opened') {
-      const isInitialOpened = p.status === 'Opened' || (Number(p.open_count || 0) > 0 && Number(p.followup_count || 0) === 0)
+      const isInitialOpened = hasEstimatedOpen(p)
       if (!isInitialOpened) return false
     }
     if (coldFilter === 'Follow-up Sent') {
-      const isFUSent =
-        p.status === 'Follow-up Sent' ||
-        p.status === 'Follow-up 1' ||
-        (Number(p.followup_count || 0) > 0 && p.status !== 'Follow-up Opened' && Number(p.followup_open_count || 0) === 0)
+      const isFUSent = followupSentList.includes(p)
       if (!isFUSent) return false
     }
     if (coldFilter === 'Follow-up Opened') {
-      const isFUOpened = p.status === 'Follow-up Opened' || Number(p.followup_open_count || 0) > 0
+      const isFUOpened = hasEstimatedOpen(p, 'followup')
       if (!isFUOpened) return false
     }
     if (coldFilter === 'Replied' && p.status !== 'Replied') return false
     if (coldFilter === 'Unsubscribed' && p.status !== 'Unsubscribed') return false
+    if (coldFilter === 'Suspected' && !hasSuspectedOpen(p)) return false
+    if (coldFilter === 'Unverified' && !hasUnverifiedOpen(p)) return false
 
     // 2. Search Filter
     if (coldSearch && coldSearch.trim()) {
@@ -1168,7 +1197,7 @@ export default function AdminCRM({ onNavigate }) {
         {tab === 'cold' && (
           <div className="mt-8 space-y-8 w-full min-w-0 max-w-full">
             {/* Sub-tool picker */}
-            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 rounded-[28px] bg-paper p-4 sm:p-6 neu w-full min-w-0 max-w-full">
+            <div className="flex flex-col gap-4 rounded-[28px] bg-paper p-4 sm:p-6 neu w-full min-w-0 max-w-full">
               <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.15em] text-blue">
                   // Zero API Credits Needed · Powered by Free Cloudflare Workers AI + Anti-Spam Guard
@@ -1178,7 +1207,7 @@ export default function AdminCRM({ onNavigate }) {
               <div className="flex gap-2 overflow-x-auto pb-1.5 scrollbar-none flex-nowrap sm:flex-wrap shrink-0 max-w-full">
                 {[
                   ['cron', `⏱️ 24h Auto-Drip (${pendingColdList.length} Pending)`],
-                  ['tracker', `Prospect Tracker (${coldList.length}) · ${allOpenedColdList.length} Read`],
+                  ['tracker', `Prospect Tracker (${coldList.length}) · ${allOpenedColdList.length} Estimated Opens`],
                   ['import', 'CSV Importer'],
                   ['ai', 'AI Copy Generator'],
                 ].map(([id, label]) => (
@@ -1196,6 +1225,20 @@ export default function AdminCRM({ onNavigate }) {
               </div>
             </div>
 
+            <OutreachAnalytics prospects={coldList} webhookConfigured={data.trackingWebhookConfigured} connected={data.d1Connected} selection={analyticsSelection}
+              onInspect={selection => {
+                setAnalyticsSelection(selection)
+                if (selection) {
+                  setColdSubTab('tracker')
+                  setColdFilter('all')
+                  setColdSearch('')
+                  setDisplayLimit(25)
+                }
+              }} />
+            {analyticsSelection && <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-blue/5 p-4 text-sm text-ink" role="status">
+              <span>Showing {analyticsSelection.label}</span>
+              <button type="button" onClick={() => setAnalyticsSelection(null)} className="rounded-full px-4 py-2 font-bold neu-sm">Clear graph selection</button>
+            </div>}
             <div className="grid gap-8 lg:grid-cols-12 w-full min-w-0 max-w-full">
               {/* Left panel: Tool 1, Tool 2, Tool 3, or Cron Dashboard */}
               <div className={`rounded-[28px] bg-paper p-4 sm:p-6 neu w-full min-w-0 max-w-full overflow-hidden ${coldSubTab === 'tracker' ? 'lg:col-span-12' : 'lg:col-span-6'}`}>
@@ -1227,11 +1270,11 @@ export default function AdminCRM({ onNavigate }) {
                         <p className="mt-0.5 text-[10px] text-ink-soft">Total sent</p>
                       </div>
                       <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Opened &amp; Read</p>
+                        <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Estimated opens</p>
                         <p className="display mt-1 text-xl sm:text-2xl text-indigo-600">
                           {allOpenedColdList.length} <span className="text-xs font-semibold text-ink-soft">({coldOpenRate}%)</span>
                         </p>
-                        <p className="mt-0.5 text-[10px] text-ink-soft">Read receipts</p>
+                        <p className="mt-0.5 text-[10px] text-ink-soft">Share of contacted prospects</p>
                       </div>
                       <div className="rounded-2xl bg-paper p-3 sm:p-4 neu-sm">
                         <p className="text-[10px] font-bold uppercase tracking-wider text-ink-soft">Cadence</p>
@@ -1279,6 +1322,16 @@ export default function AdminCRM({ onNavigate }) {
                       >
                         📂 Upload More Prospects (CSV)
                       </button>
+                      {pendingColdList.length > 0 && (
+                        <button
+                          type="button"
+                          onClick={handleClearQueue}
+                          className="rounded-full bg-paper px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-red-600 neu-sm hover:bg-red-50 transition"
+                          title="Remove all pending prospects from queue"
+                        >
+                          🗑️ Clear Queue ({pendingColdList.length})
+                        </button>
+                      )}
                     </div>
 
                     {/* Feedback Toast */}
@@ -1390,7 +1443,7 @@ export default function AdminCRM({ onNavigate }) {
                       <div className="min-w-0 flex-1">
                         <h3 className="display text-xl sm:text-2xl text-ink">3. Prospect &amp; Follow-Up Tracker</h3>
                         <p className="mt-1 text-xs text-ink-soft">
-                          {coldList.length} Total Prospects · {pendingColdList.length} Pending · {sentColdList.length} Initial Sent · <span className="font-bold text-blue">{initialOpenedColdList.length} Initial Read</span> · <span className="font-bold text-purple-700">{followupSentList.length} Followed Up</span> · <span className="font-bold text-amber-600">{followupOpenedList.length} Follow-up Read 🔥</span>
+                          {coldList.length} Total Prospects · {pendingColdList.length} Pending · {sentColdList.length} Initial Sent · <span className="font-bold text-blue">{initialOpenedColdList.length} Estimated Initial Opens</span> · <span className="font-bold text-purple-700">{coldList.filter(p => Number(p.followup_count || 0) > 0).length} Followed Up</span> · <span className="font-bold text-amber-600">{followupOpenedList.length} Estimated Follow-up Opens</span>
                         </p>
                       </div>
                       <div className="flex flex-wrap items-center gap-2 shrink-0">
@@ -1445,7 +1498,7 @@ export default function AdminCRM({ onNavigate }) {
                               onClick={() => handlePreviewColdToTargets(openedNeedsFollowupList.slice(0, coldBatchSize), true)}
                               className="btn-gradient rounded-full px-4 py-2 text-[11px] font-bold uppercase tracking-wider disabled:opacity-60"
                             >
-                              🔥 Follow-up to Opened ({openedNeedsFollowupList.length})
+                              Review follow-up to estimated opens ({openedNeedsFollowupList.length})
                             </button>
                           )}
 
@@ -1584,6 +1637,9 @@ export default function AdminCRM({ onNavigate }) {
                             if (val === 'initial_opened') exportToCsv(`weezie_prospects_initial_viewed_${d}.csv`, initialOpenedColdList, PROSPECT_COLUMNS)
                             if (val === 'followup_opened') exportToCsv(`weezie_prospects_followup_viewed_${d}.csv`, followupOpenedList, PROSPECT_COLUMNS)
                             if (val === 'all_opened') exportToCsv(`weezie_prospects_all_viewed_${d}.csv`, allOpenedColdList, PROSPECT_COLUMNS)
+                            if (val === 'selected') exportToCsv(`weezie_prospects_current_selection_${d}.csv`, filteredCold, PROSPECT_COLUMNS)
+                            if (val === 'suspected') exportToCsv(`weezie_prospects_suspected_automation_${d}.csv`, coldList.filter(hasSuspectedOpen), PROSPECT_COLUMNS)
+                            if (val === 'unverified') exportToCsv(`weezie_prospects_unverified_opens_${d}.csv`, coldList.filter(hasUnverifiedOpen), PROSPECT_COLUMNS)
                             if (val === 'followup_sent') exportToCsv(`weezie_prospects_followup_sent_${d}.csv`, followupSentList, PROSPECT_COLUMNS)
                             if (val === 'sent') exportToCsv(`weezie_prospects_sent_${d}.csv`, sentColdList, PROSPECT_COLUMNS)
                             if (val === 'pending') exportToCsv(`weezie_prospects_pending_${d}.csv`, pendingColdList, PROSPECT_COLUMNS)
@@ -1594,9 +1650,12 @@ export default function AdminCRM({ onNavigate }) {
                           className="rounded-full bg-paper px-3.5 py-2 text-xs font-bold text-ink outline-none neu-sm cursor-pointer"
                         >
                           <option value="" disabled>📥 Download By Type…</option>
-                          <option value="initial_opened">👁️ Initial Viewed / Opened ({initialOpenedColdList.length})</option>
-                          <option value="followup_opened">🔥 Follow-up Viewed / Opened ({followupOpenedList.length})</option>
-                          <option value="all_opened">🎯 All Viewed / Opened ({allOpenedColdList.length})</option>
+                          <option value="initial_opened">Estimated Initial Opens ({initialOpenedColdList.length})</option>
+                          <option value="followup_opened">Estimated Follow-up Opens ({followupOpenedList.length})</option>
+                          <option value="all_opened">Estimated Opens, All Stages ({allOpenedColdList.length})</option>
+                          <option value="selected">Current Graph / Filter Selection ({filteredCold.length})</option>
+                          <option value="suspected">Suspected Automation / Proxy ({coldList.filter(hasSuspectedOpen).length})</option>
+                          <option value="unverified">Unverified Opens ({coldList.filter(hasUnverifiedOpen).length})</option>
                           <option value="followup_sent">📨 Follow-up Sent ({followupSentList.length})</option>
                           <option value="sent">📤 Initial Sent ({sentColdList.length})</option>
                           <option value="pending">⏳ Pending Queue ({pendingColdList.length})</option>
@@ -1612,9 +1671,11 @@ export default function AdminCRM({ onNavigate }) {
                             { id: 'all', label: `All (${coldList.length})` },
                             { id: 'Pending', label: `⏳ Pending (${pendingColdList.length})` },
                             { id: 'Sent', label: `📤 Sent (${sentColdList.length})` },
-                            { id: 'Opened', label: `👁️ Initial Opened (${initialOpenedColdList.length})` },
+                            { id: 'Opened', label: `Estimated Initial Opens (${initialOpenedColdList.length})` },
                             { id: 'Follow-up Sent', label: `📨 Follow-up Sent (${followupSentList.length})` },
-                            { id: 'Follow-up Opened', label: `🔥 Follow-up Opened (${followupOpenedList.length})` },
+                            { id: 'Follow-up Opened', label: `Estimated Follow-up Opens (${followupOpenedList.length})` },
+                            { id: 'Suspected', label: `Suspected Automation / Proxy (${coldList.filter(hasSuspectedOpen).length})` },
+                            { id: 'Unverified', label: `Unverified Opens (${coldList.filter(hasUnverifiedOpen).length})` },
                             { id: 'Replied', label: `💬 Replied (${repliedColdList.length})` },
                             { id: 'Unsubscribed', label: `🚫 Unsubscribed (${unsubscribedColdList.length})` },
                           ].map(({ id, label }) => (
@@ -1646,9 +1707,7 @@ export default function AdminCRM({ onNavigate }) {
                         </div>
                       ) : (
                         filteredCold.slice(0, displayLimit).map((p) => {
-                          const isInitialOpened = p.status === 'Opened' || Number(p.open_count || 0) > 0
-                          const isFollowupSent = p.status === 'Follow-up Sent' || p.status === 'Follow-up 1' || Number(p.followup_count || 0) > 0
-                          const isFollowupOpened = p.status === 'Follow-up Opened' || Number(p.followup_open_count || 0) > 0
+                          const isFollowupSent = Number(p.followup_count || 0) > 0 || ['Follow-up Sent', 'Follow-up Opened', 'Follow-up 1', 'Follow-up 2'].includes(p.status)
 
                           return (
                             <div
@@ -1657,28 +1716,7 @@ export default function AdminCRM({ onNavigate }) {
                             >
                               <div className="min-w-0 flex-1 max-w-full overflow-hidden">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  {/* Status Pill */}
-                                  {isFollowupOpened ? (
-                                    <span className="rounded-full bg-amber-500/20 text-amber-900 border border-amber-500/30 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                                      🔥 Follow-up Opened {Number(p.followup_open_count || 0) > 1 ? `(${p.followup_open_count}x)` : ''}
-                                    </span>
-                                  ) : isFollowupSent ? (
-                                    <span className="rounded-full bg-purple-500/15 text-purple-800 border border-purple-500/20 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                                      📨 Follow-up Sent
-                                    </span>
-                                  ) : isInitialOpened ? (
-                                    <span className="rounded-full bg-blue/15 text-blue border border-blue/20 px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                                      👁️ Initial Opened {Number(p.open_count || 0) > 1 ? `(${p.open_count}x)` : ''}
-                                    </span>
-                                  ) : p.status === 'Sent' ? (
-                                    <span className="rounded-full bg-paper text-ink neu-inset px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                                      📤 Initial Sent
-                                    </span>
-                                  ) : (
-                                    <span className="rounded-full bg-paper text-ink-soft neu-inset px-3 py-0.5 text-[10px] font-bold uppercase tracking-wider">
-                                      ⏳ Pending Initial
-                                    </span>
-                                  )}
+                                  <ProspectEngagement prospect={p} />
 
                                   {p.niche && (
                                     <span className="rounded-full bg-paper px-2.5 py-0.5 text-[10px] font-semibold text-ink-soft neu-sm">
@@ -1708,24 +1746,7 @@ export default function AdminCRM({ onNavigate }) {
                                   )}
                                 </div>
 
-                                {/* Read & Send Timestamps */}
-                                <div className="mt-2 flex flex-wrap items-center gap-3 text-[11px]">
-                                  {(p.last_opened_at || p.opened_at) && (
-                                    <span className="font-semibold text-blue">
-                                      👁️ Initial Read: {new Date(p.last_opened_at || p.opened_at).toLocaleString()}
-                                    </span>
-                                  )}
-                                  {(p.followup_sent_at || (isFollowupSent && p.last_contacted_at)) && (
-                                    <span className="font-semibold text-purple-700">
-                                      📨 Follow-up Dispatched: {new Date(p.followup_sent_at || p.last_contacted_at).toLocaleString()}
-                                    </span>
-                                  )}
-                                  {(p.followup_opened_at || (isFollowupOpened && p.last_opened_at)) && (
-                                    <span className="font-semibold text-amber-700">
-                                      🔥 Follow-up Read: {new Date(p.followup_opened_at || p.last_opened_at).toLocaleString()}
-                                    </span>
-                                  )}
-                                </div>
+                                {p.last_contacted_at && <p className="mt-2 text-[11px] text-ink-soft">Last contacted: {new Date(trackingTime(p.last_contacted_at)).toLocaleString('en-GB', { timeZone: 'Africa/Lagos' })} (Lagos)</p>}
 
                                 {p.custom_opener && (
                                   <details className="mt-2.5 max-w-2xl rounded-xl bg-paper p-3 neu-inset overflow-hidden">
@@ -1845,7 +1866,7 @@ export default function AdminCRM({ onNavigate }) {
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <h3 className="display text-xl text-ink">Recent Drip Activity</h3>
                         <span className="text-xs font-bold text-ink-soft">
-                          {sentColdCount} contacted · {allOpenedColdList.length} read
+                          {sentColdCount} contacted · {allOpenedColdList.length} estimated opens
                         </span>
                       </div>
                     <p className="mt-1 text-xs font-medium text-ink-soft">
@@ -1862,7 +1883,6 @@ export default function AdminCRM({ onNavigate }) {
                           .filter((p) => p.status !== 'Pending')
                           .slice(0, 25)
                           .map((p) => {
-                            const isOpened = p.status === 'Opened' || (p.open_count && p.open_count > 0)
                             return (
                               <div key={p.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl bg-paper p-3 text-xs neu-sm">
                                 <div className="min-w-0 flex-1">
@@ -1870,27 +1890,16 @@ export default function AdminCRM({ onNavigate }) {
                                     <p className="font-bold text-ink break-words">
                                       {p.name} · <span className="font-normal text-ink-soft">{p.business || p.email}</span>
                                     </p>
-                                    {isOpened && (
-                                      <span className="inline-flex items-center gap-1 rounded-full bg-green-500/15 px-2 py-0.5 text-[9px] font-bold text-green-700">
-                                        👁️ Opened {p.open_count > 1 ? `(${p.open_count}x)` : ''}
-                                      </span>
-                                    )}
+                                    <ProspectEngagement prospect={p} compact />
                                   </div>
                                   <p className="text-[11px] text-ink-soft break-all">{p.email}</p>
                                   <div className="flex flex-wrap items-center gap-2 mt-0.5">
                                     {p.last_contacted_at && (
                                       <span className="text-[10px] text-blue">Contacted: {new Date(p.last_contacted_at).toLocaleString()}</span>
                                     )}
-                                    {(p.last_opened_at || p.opened_at) && (
-                                      <span className="text-[10px] text-green-700 font-semibold">· Read: {new Date(p.last_opened_at || p.opened_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                    )}
                                   </div>
                                 </div>
-                                <span className={`self-start sm:self-center shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
-                                  isOpened ? 'bg-blue/15 text-blue' : 'bg-green-500/15 text-green-700'
-                                }`}>
-                                  {isOpened ? 'Opened 👁️' : (p.status || 'Sent')} ✅
-                                </span>
+
                               </div>
                             )
                           })
@@ -2607,7 +2616,18 @@ export default function AdminCRM({ onNavigate }) {
         {tab === 'orders' && (
           <div className="mt-8 grid gap-8 lg:grid-cols-12">
             <div className="rounded-[28px] bg-paper p-6 neu lg:col-span-7">
-              <h2 className="display text-2xl text-ink">Orders &amp; Unlocks ({ordersList.length})</h2>
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="display text-2xl text-ink">Orders &amp; Unlocks ({ordersList.length})</h2>
+                {ordersList.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={handleClearSales}
+                    className="rounded-full bg-paper px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider text-red-600 neu-sm hover:bg-red-50 transition"
+                  >
+                    🗑️ Clear Sales
+                  </button>
+                )}
+              </div>
               {ordersList.length === 0 ? (
                 <p className="mt-4 text-xs font-medium text-ink-soft">
                   No paid orders yet. Purchases from the Digital Store and AI Lab Deep-Dive packs appear here
@@ -2616,8 +2636,16 @@ export default function AdminCRM({ onNavigate }) {
               ) : (
                 <div className="mt-4 space-y-3">
                   {ordersList.map((o) => (
-                    <div key={o.reference || o.id} className="rounded-2xl bg-paper p-4 neu-sm">
-                      <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div key={o.reference || o.id} className="relative rounded-2xl bg-paper p-4 neu-sm">
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteOrder(o.id, o.reference)}
+                        className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-ink-soft hover:bg-red-50 hover:text-red-600 transition"
+                        title="Delete order"
+                      >
+                        ✕
+                      </button>
+                      <div className="flex flex-wrap items-center justify-between gap-2 pr-8">
                         <span className="text-[11px] font-bold uppercase tracking-[0.1em] text-blue break-all">
                           {o.reference} · {o.item_type}
                         </span>

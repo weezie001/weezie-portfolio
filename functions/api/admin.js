@@ -1,6 +1,7 @@
 import { outreachDraft } from '../../src/lib/outreachCopy.js'
 import { json, corsHeaders, isAuthorizedAdmin, ensureDb, sendBrevoEmail } from './_utils.js'
 import { storeProducts } from '../../src/data.js'
+import { attachEngagement } from '../../src/lib/emailEngagement.js'
 
 export async function onRequestOptions() {
   return new Response(null, { headers: corsHeaders })
@@ -27,14 +28,18 @@ export async function onRequestGet({ request, env }) {
       })
     }
 
-    const [leadsRes, productsRes, ordersRes, emailsRes, inboxRes, coldRes, filesRes] = await Promise.all([
+    const [leadsRes, productsRes, ordersRes, emailsRes, inboxRes, coldRes, filesRes, trackingRes, legacyRes] = await Promise.all([
       db.prepare('SELECT * FROM leads ORDER BY id DESC LIMIT 250').all(),
       db.prepare('SELECT * FROM products ORDER BY id DESC').all(),
       db.prepare('SELECT * FROM orders ORDER BY id DESC LIMIT 200').all(),
       db.prepare('SELECT * FROM emails ORDER BY id DESC LIMIT 150').all(),
       db.prepare('SELECT * FROM inbox_messages ORDER BY id DESC LIMIT 200').all(),
-      db.prepare('SELECT * FROM cold_prospects ORDER BY id DESC LIMIT 300').all(),
+      db.prepare('SELECT * FROM cold_prospects ORDER BY id DESC').all(),
       db.prepare('SELECT id, file_key, filename, mime_type, size_bytes, created_at FROM uploaded_files ORDER BY id DESC LIMIT 100').all(),
+      db.prepare(`SELECT prospect_id, stage, event_type, classification, COUNT(*) AS count,
+        MIN(occurred_at) AS first_at, MAX(occurred_at) AS last_at
+        FROM email_tracking_events GROUP BY prospect_id, stage, event_type, classification`).all(),
+      db.prepare('SELECT * FROM email_tracking_legacy').all(),
     ])
 
     const products = (productsRes.results || []).map((p) => ({
@@ -68,7 +73,8 @@ export async function onRequestGet({ request, env }) {
       orders: ordersRes.results || [],
       emails: emailsRes.results || [],
       inbox: inboxRes.results || [],
-      coldProspects: coldRes.results || [],
+      coldProspects: attachEngagement(coldRes.results || [], trackingRes.results || [], legacyRes.results || []),
+      trackingWebhookConfigured: Boolean(env?.BREVO_WEBHOOK_TOKEN),
       uploadedFiles: (filesRes.results || []).map((f) => ({
         ...f,
         downloadUrl: `/api/files?key=${encodeURIComponent(f.file_key)}`,
@@ -429,9 +435,51 @@ export async function onRequestPost({ request, env }) {
     // 9. Delete Cold Prospect
     if (action === 'delete_cold_prospect') {
       if (db && body.id) {
-        await db.prepare('DELETE FROM cold_prospects WHERE id = ?').bind(Number(body.id)).run()
+        await db.batch([
+          db.prepare('DELETE FROM email_tracking_events WHERE prospect_id = ?').bind(Number(body.id)),
+          db.prepare('DELETE FROM email_tracking_messages WHERE prospect_id = ?').bind(Number(body.id)),
+          db.prepare('DELETE FROM email_tracking_legacy WHERE prospect_id = ?').bind(Number(body.id)),
+          db.prepare('DELETE FROM cold_prospects WHERE id = ?').bind(Number(body.id)),
+        ])
       }
       return json({ ok: true })
+    }
+
+    // 9b. Clear Pending Cold Email Queue
+    if (action === 'clear_queue') {
+      if (db) {
+        await db.prepare("DELETE FROM cold_prospects WHERE status = 'Pending'").run()
+      }
+      return json({ ok: true, message: 'Pending queue cleared.' })
+    }
+
+    // 9c. Clear All Cold Prospects
+    if (action === 'clear_all_cold_prospects') {
+      if (db) {
+        await db.batch([
+          db.prepare('DELETE FROM email_tracking_events'),
+          db.prepare('DELETE FROM email_tracking_messages'),
+          db.prepare('DELETE FROM email_tracking_legacy'),
+          db.prepare('DELETE FROM cold_prospects'),
+        ])
+      }
+      return json({ ok: true, message: 'All cold prospects cleared.' })
+    }
+
+    // 9d. Clear All Sales / Orders
+    if (action === 'clear_sales') {
+      if (db) {
+        await db.prepare('DELETE FROM orders').run()
+      }
+      return json({ ok: true, message: 'All sales and orders cleared.' })
+    }
+
+    // 9e. Delete Specific Order
+    if (action === 'delete_order') {
+      if (db && (body.id || body.reference)) {
+        await db.prepare('DELETE FROM orders WHERE id = ? OR reference = ?').bind(body.id || 0, body.reference || '').run()
+      }
+      return json({ ok: true, message: 'Order deleted.' })
     }
 
     // 10. Save (Create or Update) Store Product

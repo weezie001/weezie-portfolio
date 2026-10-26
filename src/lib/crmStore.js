@@ -454,15 +454,22 @@ export async function fetchAdminDashboard(adminKey) {
     }
     if (res.ok && res.headers.get('content-type')?.includes('application/json')) {
       const data = await res.json()
+      if (data.d1Connected) {
+        writeLocal(LS_KEYS.leads, data.leads || [])
+        writeLocal(LS_KEYS.orders, data.orders || [])
+        writeLocal(LS_KEYS.cold, data.coldProspects || [])
+        writeLocal(LS_KEYS.emails, data.emails || [])
+        writeLocal(LS_KEYS.inbox, data.inbox || [])
+      }
       return {
         ...data,
-        leads: data.leads?.length ? data.leads : readLocal(LS_KEYS.leads, []),
-        products: data.products?.length ? data.products : readLocal(LS_KEYS.products, seedProducts),
-        orders: data.orders?.length ? data.orders : readLocal(LS_KEYS.orders, []),
-        emails: data.emails?.length ? data.emails : readLocal(LS_KEYS.emails, []),
-        inbox: data.inbox?.length ? data.inbox : defaultInbox,
-        coldProspects: data.coldProspects?.length ? data.coldProspects : readLocal(LS_KEYS.cold, []),
-        uploadedFiles: data.uploadedFiles?.length ? data.uploadedFiles : readLocal(LS_KEYS.files, []),
+        leads: Array.isArray(data.leads) ? data.leads : readLocal(LS_KEYS.leads, []),
+        products: Array.isArray(data.products) && data.products.length ? data.products : readLocal(LS_KEYS.products, seedProducts),
+        orders: Array.isArray(data.orders) ? data.orders : readLocal(LS_KEYS.orders, []),
+        emails: Array.isArray(data.emails) ? data.emails : readLocal(LS_KEYS.emails, []),
+        inbox: Array.isArray(data.inbox) ? data.inbox : defaultInbox,
+        coldProspects: Array.isArray(data.coldProspects) ? data.coldProspects : readLocal(LS_KEYS.cold, []),
+        uploadedFiles: Array.isArray(data.uploadedFiles) ? data.uploadedFiles : readLocal(LS_KEYS.files, []),
       }
     }
   } catch {
@@ -617,6 +624,16 @@ export async function postAdminAction(adminKey, payload) {
   } else if (action === 'delete_cold_prospect') {
     const list = readLocal(LS_KEYS.cold, []).filter((p) => p.id !== payload.id)
     writeLocal(LS_KEYS.cold, list)
+  } else if (action === 'clear_queue') {
+    const list = readLocal(LS_KEYS.cold, []).filter((p) => p.status !== 'Pending')
+    writeLocal(LS_KEYS.cold, list)
+  } else if (action === 'clear_all_cold_prospects') {
+    writeLocal(LS_KEYS.cold, [])
+  } else if (action === 'clear_sales') {
+    writeLocal(LS_KEYS.orders, [])
+  } else if (action === 'delete_order') {
+    const list = readLocal(LS_KEYS.orders, []).filter((o) => o.id !== payload.id && o.reference !== payload.reference)
+    writeLocal(LS_KEYS.orders, list)
   } else if (action === 'save_product') {
     const prods = readLocal(LS_KEYS.products, seedProducts)
     const p = payload.product
